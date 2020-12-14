@@ -54,7 +54,35 @@ def get_streamline(uv, pos):
     while True:  # might be infinite loop for spiral flow
         pos = [pos[0] + u_interp(pos)[0], pos[1] + v_interp(pos)[0]]
         sline.append(pos)
-        if m <= pos[0] <= 0 or n <= pos[1] <= 0 or (pos[0] == sline[-2][0] and pos[1] == sline[-2][1]):
+        if pos[0] <= 0 or pos[0] >= m or pos[1] <= 0 or pos[1] >= n or (pos[0] == sline[-2][0] and pos[1] == sline[-2][1]):
+            sline = sline[:-1]
+            break
+
+    return np.stack(sline, axis=0)
+
+
+def get_temporal_streamline(uvt, pos):
+    """
+
+    :param uvt: ndarray (nt, m, n, 2)
+    :param pos: spatial initial position [y0, x0]
+    :return:
+    """
+    nt, m, n, _ = uvt.shape
+    ut, vt = uvt[:, :, :, 0], uvt[:, :, :, 1]
+    x = np.linspace(0, n, n, n)
+    y = np.linspace(0, m, m, m)
+    t = np.linspace(0, nt, nt, nt)
+
+    u_interp = interpolate.RegularGridInterpolator((t, x, y), ut)
+    v_interp = interpolate.RegularGridInterpolator((t, x, y), vt)
+
+    pos = pos + [0]
+    sline = [pos]
+    for i in range(1, nt):
+        pos = [pos[0] + u_interp(pos)[0], pos[1] + v_interp(pos)[0], i]
+        sline.append(pos)
+        if pos[0] <= 0 or pos[0] >= m or pos[1] <= 0 or pos[1] >= n or (pos[0] == sline[-2][0] and pos[1] == sline[-2][1]):
             sline = sline[:-1]
             break
 
@@ -94,3 +122,12 @@ def find_stramline_travel_list(pos, rois_dict, shape):
 
 def streamline_path_integral(uv, streamline):
     pass
+
+
+# import pathlib
+# from utils.load_matlab_vector_field import load_matlab_OF
+# gt_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'ofamm_results.mat')
+# gt_flow = load_matlab_OF(gt_path)
+# nt, ny, nx, _ = gt_flow.shape
+# gt_flowc = gt_flow[:,10:,10:,:]
+# tsline = get_temporal_streamline(gt_flowc, [20, 80])
