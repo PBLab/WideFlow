@@ -6,7 +6,7 @@ def swap_3dmatrix_elements(mat):
     nt, ny, nx = mat.shape
     swap_ind = np.random.permutation(np.arange(ny * nx))
     flat = np.reshape(mat, [nt, ny*nx])
-    flat_swap = np.zeros(flat.shape)
+    flat_swap = np.zeros(flat.shape, dtype=np.float32)
     for i in range(ny * nx):
         flat_swap[:, i] = flat[:, swap_ind[i]]
 
@@ -85,3 +85,5 @@ def add_properties_to_roi_list(rois_dict, shape):
         rois_dict[roi_name]["outline"] = roi_outline_from_pixels_indices(rois_dict[roi_name]["PixelIdxList"], shape)
         rois_dict[roi_name]["top_left_bottom_rigth"] = roi_top_left_bottom_right(roi_dict["PixelIdxList"], shape)
     return rois_dict
+
+
