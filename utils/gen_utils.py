@@ -1,5 +1,6 @@
 import numpy as np
 import cv2 as cv
+import matplotlib.pyplot as plt
 
 
 def swap_3dmatrix_elements(mat):
@@ -41,16 +42,17 @@ def overlapped_blockshaped(arr, nrows, ncols):
     return ol_block
 
 
-def roi_outline_from_pixels_indices(pixels_indices, shape):
+def roi_outline_from_pixels_indices(pixels_indices, shape, order='C'):
     """
 
     :param pixels_indices: a list of indices in Fortran format
     :param shape: shape of the 2d matrix from where pixels_indices where drawn from
+    :param order: specify the subscript format
     :return:
     """
 
     pixels_indices = np.array(pixels_indices)
-    roi_id = np.unravel_index(pixels_indices, shape=shape, order='F')
+    roi_id = np.unravel_index(pixels_indices, shape=shape, order=order)
     ((top, left), (down, right)) = roi_top_left_bottom_right(pixels_indices, shape)
 
     img = np.zeros(shape=shape)
@@ -62,7 +64,18 @@ def roi_outline_from_pixels_indices(pixels_indices, shape):
     margin = croped_img - erosion
     margin = margin[1:-1, 1:-1]
     img[top: down, left: right] = margin
-    return np.where(img == 1)
+    temp = np.where(img == 1)
+    outline = np.array([temp[0], temp[1]]).transpose()
+    # exclude outline points that coincide with the image boundaries
+    ex = outline[:, 0] == 0
+    outline = np.delete(outline, (ex), axis=0)
+    ex = outline[:, 0] == shape[0]
+    outline = np.delete(outline, (ex), axis=0)
+    ex = outline[:, 1] == 0
+    outline = np.delete(outline, (ex), axis=0)
+    ex = outline[:, 1] == shape[1]
+    outline = np.delete(outline, (ex), axis=0)
+    return outline
 
 
 def roi_top_left_bottom_right(pixels_indices, shape):
@@ -72,7 +85,7 @@ def roi_top_left_bottom_right(pixels_indices, shape):
     :return: tuple ((top, left), (down, right))
     """
 
-    roi_id = np.unravel_index(pixels_indices, shape=shape, order='F')
+    roi_id = np.unravel_index(pixels_indices, shape=shape)  #, order='F')
     top = np.amin(roi_id[0])
     down = np.amax(roi_id[0]) + 1
     left = np.amin(roi_id[1])
@@ -80,10 +93,10 @@ def roi_top_left_bottom_right(pixels_indices, shape):
     return ((top, left), (down, right))
 
 
-def add_properties_to_roi_list(rois_dict, shape):
+def add_properties_to_roi_list(rois_dict, shape, order):
     for roi_name, roi_dict in rois_dict.items():
-        rois_dict[roi_name]["outline"] = roi_outline_from_pixels_indices(rois_dict[roi_name]["PixelIdxList"], shape)
         rois_dict[roi_name]["top_left_bottom_rigth"] = roi_top_left_bottom_right(roi_dict["PixelIdxList"], shape)
+        rois_dict[roi_name]["outline"] = roi_outline_from_pixels_indices(rois_dict[roi_name]["PixelIdxList"], shape, order)
     return rois_dict
 
 
