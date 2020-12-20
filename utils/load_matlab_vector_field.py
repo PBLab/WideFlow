@@ -1,5 +1,6 @@
-import numpy as np
 import h5py
+import numpy as np
+from utils.gen_utils import add_properties_to_roi_list
 
 
 def load_matlab_OF(mat_path):
@@ -8,12 +9,12 @@ def load_matlab_OF(mat_path):
     """
 
     arrays = {}
-    f = h5py.File(mat_path)
-    for k, v in f.items():
-        arrays[k] = np.array(v)
+    with h5py.File(mat_path) as f:
+        for k, v in f.items():
+            arrays[k] = np.array(v)
 
     [t, m, n] = arrays["uvHS"].shape
-    uxy = arrays["uvHS"].view(np.double).reshape((t, m, n, 2))
+    uxy = np.swapaxes(arrays["uvHS"].view(np.double).reshape((t, m, n, 2)), 1 ,2)
     return uxy
 
 
@@ -35,9 +36,38 @@ def load_allen_2d_cortex_rois(file_path):
     return roi_list
 
 
-# from utils.gen_utils import *
+def extend_rois_list(file_path, save_path):
+
+    roi_list = load_allen_2d_cortex_rois(file_path)
+    roi_list = add_properties_to_roi_list(roi_list, (297, 337), 'F')
+
+
+    with h5py.File(save_path, 'w') as f:
+        for key, rdict in roi_list.items():
+            f.create_group(key)
+            for rkey, rval in rdict.items():
+                f.create_dataset(f'{key}/{rkey}', data=rval)
+
+
+def load_extended_rois_list(file_path):
+    with h5py.File(file_path) as f:
+        roi_list = {}
+        for key, grp in f.items():
+            roi_list[key] = {}
+            roi_list[key]['Index'] = int(key.split('_')[1])
+            roi_list[key]['Area'] = grp['Area'].value
+            roi_list[key]['Centroid'] = grp['Centroid'].value
+            roi_list[key]['PixelIdxList'] = grp['PixelIdxList'].value - 1  # -1 to convert from matlab to python
+            roi_list[key]['outline'] = grp['outline'].value
+            roi_list[key]['top_left_bottom_rigth'] = grp['top_left_bottom_rigth'].value
+
+    return roi_list
+
+
+
 # import pathlib
-# pth = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'wf_opticflow' / 'data' / 'cortex_map' / 'allen_2d_cortex_rois.h5')
-# roi_list = load_allen_2d_cortex_rois(pth)
-# roi_list = add_properties_to_roi_list(roi_list, (297, 337))
-# z = 3
+# file_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'cortex_map' / 'allen_2d_cortex_rois.h5')
+# save_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'cortex_map' / 'allen_2d_cortex_rois_extended.h5')
+# extend_rois_list(file_path, save_path)
+# roi_list = load_extended_rois_list(save_path)
+# z=3
