@@ -79,36 +79,36 @@ class IndexTracker(object):
         self.im.axes.figure.canvas.draw()
 
 
-# import pathlib
-# from utils.load_matlab_vector_field import load_matlab_OF
-# from utils.load_tiff import load_tiff
-# from utils.analyze_OF import get_temporal_streamline
-#
-# vid_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'ImgSeq.tif')
-# gt_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'ofamm_results.mat')
-#
-# vid = load_tiff(vid_path)
-# gt_flow = load_matlab_OF(gt_path)
-#
-# nt, ny, nx, _ = gt_flow.shape
-# gt_flowc = gt_flow[:,10:,:,:]
-# vidc = vid[:,10:,:]
-#
-# tsline = get_temporal_streamline(gt_flow, [20, 100])
-# tsline2 = get_temporal_streamline(gt_flow, [20, 100])
-# tsline3 = get_temporal_streamline(gt_flow, [100, 20])
-# tsline4 = get_temporal_streamline(gt_flow, [100, 100])
-# tsline5 = get_temporal_streamline(gt_flow, [80, 80])
-# tsline6 = get_temporal_streamline(gt_flow, [40, 40])
-# tsline7 = get_temporal_streamline(gt_flow, [40, 80])
-# tsline8 = get_temporal_streamline(gt_flow, [80, 40])
-#
-#
-# fig, ax = plt.subplots(1, 1)
-# tracker = IndexTracker(ax, vid, gt_flow,
-#                        [tsline[:, 1:], tsline2[:, 1:], tsline3[:, 1:], tsline4[:, 1:], tsline5[:, 1:], tsline6[:, 1:], tsline7[:, 1:], tsline8[:, 1:]],
-#                        qv_spacer=3, qv_scale=200)
-# # tracker = IndexTracker(ax, vid, gt_flow, [tsline[:, 1:], ], qv_spacer=3, qv_scale=200)
-#
-# fig.canvas.mpl_connect('scroll_event', tracker.onscroll)
-# plt.show()
+import pathlib
+from utils.load_matlab_vector_field import load_matlab_OF
+from utils.load_tiff import load_tiff
+from utils.analyze_OF import get_temporal_streamline
+
+vid_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'ImgSeq.tif')
+gt_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'ofamm_results.mat')
+
+vid = load_tiff(vid_path)
+gt_flow = load_matlab_OF(gt_path)
+
+nt, ny, nx, _ = gt_flow.shape
+gt_flowc = gt_flow[:,10:,:,:]
+vidc = vid[:,10:,:]
+
+tsline = get_temporal_streamline(gt_flow, [20, 100])
+tsline2 = get_temporal_streamline(gt_flow, [20, 100])
+tsline3 = get_temporal_streamline(gt_flow, [100, 20])
+tsline4 = get_temporal_streamline(gt_flow, [100, 100])
+tsline5 = get_temporal_streamline(gt_flow, [80, 80])
+tsline6 = get_temporal_streamline(gt_flow, [40, 40])
+tsline7 = get_temporal_streamline(gt_flow, [40, 80])
+tsline8 = get_temporal_streamline(gt_flow, [80, 40])
+
+
+fig, ax = plt.subplots(1, 1)
+tracker = IndexTracker(ax, vid, gt_flow,
+                       [tsline[:, 1:], tsline2[:, 1:], tsline3[:, 1:], tsline4[:, 1:], tsline5[:, 1:], tsline6[:, 1:], tsline7[:, 1:], tsline8[:, 1:]],
+                       qv_spacer=3, qv_scale=200)
+# tracker = IndexTracker(ax, vid, gt_flow, [tsline[:, 1:], ], qv_spacer=3, qv_scale=200)
+
+fig.canvas.mpl_connect('scroll_event', tracker.onscroll)
+plt.show()
