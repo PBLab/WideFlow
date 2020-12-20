@@ -70,23 +70,24 @@ def get_temporal_streamline(uvt, pos):
     """
     nt, m, n, _ = uvt.shape
     ut, vt = uvt[:, :, :, 0], uvt[:, :, :, 1]
+
     x = np.linspace(0, n, n, n)
     y = np.linspace(0, m, m, m)
     t = np.linspace(0, nt, nt, nt)
 
-    u_interp = interpolate.RegularGridInterpolator((t, x, y), ut)
-    v_interp = interpolate.RegularGridInterpolator((t, x, y), vt)
+    u_interp = interpolate.RegularGridInterpolator((t, y, x), ut)
+    v_interp = interpolate.RegularGridInterpolator((t, y, x), vt)
 
-    pos = pos + [0]
+    pos = [0, pos[0], pos[1]]
     sline = [pos]
     for i in range(1, nt):
-        pos = [pos[0] + u_interp(pos)[0], pos[1] + v_interp(pos)[0], i]
+        pos = [i, pos[1] + u_interp(pos)[0], pos[2] + v_interp(pos)[0]]
         sline.append(pos)
-        if pos[0] <= 0 or pos[0] >= m or pos[1] <= 0 or pos[1] >= n or (pos[0] == sline[-2][0] and pos[1] == sline[-2][1]):
+        if pos[1] <= 0 or pos[1] >= m or pos[2] <= 0 or pos[2] >= n or (pos[1] == sline[-2][1] and pos[2] == sline[-2][2]):
             sline = sline[:-1]
             break
 
-    return np.stack(sline, axis=0)
+    return np.stack(sline, axis=0).astype(np.int)
 
 
 def get_roi_stream_connectivity(uv, outline, roi_list):
@@ -98,11 +99,11 @@ def get_roi_stream_connectivity(uv, outline, roi_list):
     streamLines = []
     for pos in outline:
         sline = get_streamline(uv, pos)
-        travel_list = find_stramline_travel_list(sline, roi_list)
+        travel_list = find_streamline_travel_list(sline, roi_list)
         streamLines.append(sline)
 
 
-def find_stramline_travel_list(pos, rois_dict, shape):
+def find_streamline_travel_list(pos, rois_dict, shape):
     travel_list = []
     pos_flat = np.ravel_multi_index(pos, shape)
     for i, posi in enumerate(pos):
@@ -113,8 +114,8 @@ def find_stramline_travel_list(pos, rois_dict, shape):
                 rois_list.append(roi_name)
 
         for r in rois_list:
-            if pos_flat[i] in roi_dict[r]["PixelIdxList"]:
-                travel_list.append(roi_dict[r]["Index"])
+            if pos_flat[i] in rois_dict[r]["PixelIdxList"]:
+                travel_list.append(rois_dict[r]["Index"])
                 break
 
     return travel_list
