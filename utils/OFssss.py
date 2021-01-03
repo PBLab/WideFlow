@@ -1,5 +1,5 @@
 import numpy as np
-from utils.gen_utils import blockshaped, overlapped_blockshaped
+from utils.gen_utils import overlapped_blockshaped
 
 
 def source_sink_saddle(uv):
@@ -21,7 +21,9 @@ def source_sink_saddle(uv):
     for ind in np.argwhere(poincare_idx == 1):
         sss[ind[0], ind[1]], spiral[ind[0], ind[1]] = characterize_critical_point(tau[ind[0], ind[1]], tau_sqr[ind[0], ind[1]], delta[ind[0], ind[1]])
 
-    return sss, spiral
+    critics = {'source': np.where(sss == 1), 'sink': np.where(sss == -1), 'spiral': np.where(sss == 2)}
+    spirals = np.where(spiral == 1)
+    return critics, spirals
 
 
 def source_sink_saddle2(uv):
@@ -46,15 +48,14 @@ def jacobian(uv):
 def poincare_index(uv):
     m, n, _ = uv.shape
 
-    direction = np.arctan(np.divide(uv[:, :, 0], uv[:, :, 1]))
+    direction = np.arctan2(uv[:, :, 1], uv[:, :, 0])
     direction_blocks = overlapped_blockshaped(direction, 2, 2)
-
     tap = np.zeros((m*n, 4))
     tap[:, 0] = direction_blocks[:, 1, 1] - direction_blocks[:, 1, 0]
     tap[:, 1] = direction_blocks[:, 0, 1] - direction_blocks[:, 1, 1]
     tap[:, 2] = direction_blocks[:, 0, 0] - direction_blocks[:, 0, 1]
     tap[:, 3] = direction_blocks[:, 1, 0] - direction_blocks[:, 0, 0]
-    tap[tap < -np.pi / 2] = tap[tap < -np.pi / 2] + np.pi
+    tap[tap <= -np.pi / 2] = tap[tap <= -np.pi / 2] + np.pi
     tap[tap > np.pi / 2] = tap[tap > np.pi / 2] - np.pi
 
     poincare_idx = np.sum(tap, 1) / np.pi
@@ -100,7 +101,25 @@ def bilinear_intersection(uv):
 
 import pathlib
 from utils.load_matlab_vector_field import load_matlab_OF
-gt_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'wf_opticflow' / 'data' / 'ofamm_results.mat')
-gt_flow = load_matlab_OF(gt_path)
-uv30 = gt_flow[30,:,:,:]
-sss, spiral = source_sink_saddle(uv30)
+import matplotlib.pyplot as plt
+from utils.load_tiff import load_tiff
+from utils.plot_optical_flow import plot_optical_flow
+
+# # vid_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'OFAMM' / 'ImgSeq.tif')
+# vid_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'widefield_fast_acq' / 'wf_spont_crystal_skull1000_1200.tif')
+# vid = load_tiff(vid_path)
+# # gt_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'OFAMM' / 'ofamm_results.mat')
+# gt_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'widefield_fast_acq' / 'uvResults.mat')
+# gt_flow = load_matlab_OF(gt_path)
+#
+# sss = []
+# spiral = []
+# for uv in gt_flow:
+#     # uv30 = gt_flow[30, :, :, :]
+#     s, sp = source_sink_saddle(uv)
+#     sss.append(s)
+#     spiral.append(sp)
+#
+# frame = 32
+# plot_optical_flow(vid, gt_flow, frame, 100, 3)
+# z=3
