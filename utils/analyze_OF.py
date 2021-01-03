@@ -83,11 +83,49 @@ def get_temporal_streamline(uvt, pos):
     for i in range(1, nt):
         pos = [i, pos[1] + u_interp(pos)[0], pos[2] + v_interp(pos)[0]]
         sline.append(pos)
-        if pos[1] <= 0 or pos[1] >= m or pos[2] <= 0 or pos[2] >= n or (pos[1] == sline[-2][1] and pos[2] == sline[-2][2]):
+        if pos[1] <= 0 or pos[1] >= m or pos[2] <= 0 or pos[2] >= n:  # or (pos[1] == sline[-2][1] and pos[2] == sline[-2][2]):
             sline = sline[:-1]
             break
 
     return np.stack(sline, axis=0).astype(np.int)
+
+
+def get_temporal_streamlines(uvt, poses):
+    """
+
+    :param uvt: ndarray (nt, m, n, 2)
+    :param poses: spatial initial positions [[y0_0, x0_0], [y1_0, x1_0] , ...]
+    :return:
+    """
+    nt, m, n, _ = uvt.shape
+    ut, vt = uvt[:, :, :, 0], uvt[:, :, :, 1]
+
+    x = np.linspace(0, n, n, n)
+    y = np.linspace(0, m, m, m)
+    t = np.linspace(0, nt, nt, nt)
+
+    u_interp = interpolate.RegularGridInterpolator((t, y, x), ut)
+    v_interp = interpolate.RegularGridInterpolator((t, y, x), vt)
+
+    n_p = len(poses)
+    poses = np.array([[0, pos[0], pos[1]] for pos in poses]).astype(np.float32)
+    slines = np.zeros((n_p, nt, 3))
+    slines[:, 0, :] = poses
+    for i in range(1, nt):
+        us = u_interp(poses)
+        vs = v_interp(poses)
+        poses[:, 0] += 1
+        poses[:, 1] = poses[:, 1] + us
+        poses[:, 2] = poses[:, 2] + vs
+
+        # fix out of bound points
+        for p, pos in enumerate(poses):
+            if pos[1] <= 0 or pos[1] >= m or pos[2] <= 0 or pos[2] >= n:
+                poses[p] = slines[-1][p]
+
+        slines[:, i, :] = poses
+
+    return slines.astype(np.int)
 
 
 def get_roi_stream_connectivity(uv, outline, roi_list):
@@ -105,10 +143,10 @@ def get_roi_stream_connectivity(uv, outline, roi_list):
 
 def find_streamline_travel_list(pos, rois_dict, shape):
     travel_list = []
-    pos_flat = np.ravel_multi_index(pos, shape)
+    pos_flat = np.ravel_multi_index((pos[:,0], pos[:,1]), shape)
     for i, posi in enumerate(pos):
         rois_list = []
-        for roi_name, roi_dict in rois_dict.items():  # filtrate rois which the pixel is out of their bounds
+        for roi_name, roi_dict in rois_dict.items():  # filtrate rois which posi is out of their bounds
             tl_br = roi_dict["top_left_bottom_rigth"]
             if tl_br[0][0] < posi[0] < tl_br[1][0] and tl_br[0][1] < posi[1] < tl_br[1][1]:
                 rois_list.append(roi_name)
