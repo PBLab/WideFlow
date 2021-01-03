@@ -26,18 +26,24 @@ def blockshaped(arr, nrows, ncols):
     assert h % nrows == 0, "{} rows is not evenly divisble by {}".format(h, nrows)
     assert w % ncols == 0, "{} cols is not evenly divisble by {}".format(w, ncols)
     return (arr.reshape(h//nrows, nrows, -1, ncols)
-               .swapaxes(1,2)
+               .swapaxes(1, 2)
                .reshape(-1, nrows, ncols))
 
 
 def overlapped_blockshaped(arr, nrows, ncols):
     m, n = arr.shape
-    arr = np.pad(arr, [[0, nrows], [0, ncols]])
+    arr = np.pad(arr, [[0, nrows-1], [0, ncols-1]])
     ol_block = np.zeros((m*n, nrows, ncols))
-    for i in range(nrows):
-        for j in range(ncols):
+    cols_cond = np.mod(np.arange(n*m), ncols)
+    rows_cond = np.zeros(n)
+    for i in range(1, nrows):
+        rows_cond = np.concatenate([rows_cond, np.zeros(n)+i])
+    rows_cond = np.tile(rows_cond, int(m/nrows))
+    for j in range(ncols):
+        for i in range(nrows):
             blockij = blockshaped(arr[i:m+i, j:n+j], nrows, ncols)
-            ol_block[i+j: m*n - nrows*ncols + i+j + 1: nrows*ncols, :, :] = blockij
+            mask = np.logical_and(cols_cond==j, rows_cond==i)
+            ol_block[mask] = blockij
 
     return ol_block
 
@@ -93,10 +99,24 @@ def roi_top_left_bottom_right(pixels_indices, shape):
     return ((top, left), (down, right))
 
 
-def add_properties_to_roi_list(rois_dict, shape, order):
+def add_properties_to_roi_list(rois_dict, shape, order='F'):
     for roi_name, roi_dict in rois_dict.items():
         rois_dict[roi_name]["top_left_bottom_rigth"] = roi_top_left_bottom_right(roi_dict["PixelIdxList"], shape)
         rois_dict[roi_name]["outline"] = roi_outline_from_pixels_indices(rois_dict[roi_name]["PixelIdxList"], shape, order)
     return rois_dict
 
 
+def add_morphological_adjacent_rois_to_roi_list(roi_list, shape):
+    # works only for overlapped outlines!
+    for key1, val1 in roi_list.items():
+        outline_flat1 = np.ravel_multi_index((val1['outline'][:, 0], val1['outline'][:, 1]), shape)
+        adj_roi = []
+        for key2, val2 in roi_list.items():
+            outline_flat2 = np.ravel_multi_index((val2['outline'][:, 0], val2['outline'][:, 1]), shape)
+            if any(x in outline_flat1 for x in outline_flat2):
+                adj_roi.append(val2['Index'])
+
+        roi_list[key1]['Adjacent_rois_Idx'] = adj_roi
+        roi_list[key1]['Adjacent_rois_Idx'].remove(val1['Index'])
+
+    return roi_list
