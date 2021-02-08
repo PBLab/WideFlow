@@ -120,3 +120,17 @@ def add_morphological_adjacent_rois_to_roi_list(roi_list, shape):
         roi_list[key1]['Adjacent_rois_Idx'].remove(val1['Index'])
 
     return roi_list
+
+
+def extract_rois_data(image, roi_dict):
+    shape = image.shape
+    rois_data = {}
+    for key, val in roi_dict.items():
+        pixels_inds = np.unravel_index(val['PixelIdxList'], shape)
+        rois_data[key] = np.mean(image(pixels_inds))
+
+    return rois_data
+
+
+def mse(x, y):
+    return np.mean(np.square(x - y))
