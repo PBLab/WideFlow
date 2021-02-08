@@ -9,6 +9,9 @@ class PVCamera(Camera):
     def __init__(self, exp_time=10, binning=(0, 0)):
         super().__init__(exp_time, binning)
 
+
+
+
 # pvc.init_pvcam()
 # cam = next(PVCamera.detect_camera())
 # cam.open()
