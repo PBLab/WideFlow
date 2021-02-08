@@ -1,17 +1,15 @@
 import wx
 from Imaging.VideoCapture import VideoCapture
-
-import numpy as np
-import cv2
+from Imaging.gui_frames import AquisitionConfig
 
 from devices.PVCam import PVCamera
+from pyvcam import pvc
 
 
 class Main_GUI(wx.Frame):
-    def __init__(self, capture, fps=25, *args, **kwargs):
+    def __init__(self, cam, *args, **kwargs):
         super(Main_GUI, self).__init__(*args, **kwargs)
-        self.capture = capture
-        self.fps = fps  # TODO: change this to get its value from the text box
+        self.cam = cam
         self.InitUI()
 
     def InitUI(self):
@@ -105,8 +103,12 @@ class Main_GUI(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.open_video_window(), btn1_3)
 
     def open_video_window(self):
-        video_window = VideoCapture(parent=None, title='blabla', capture=self.capture, fps=self.fps)
+        video_window = VideoCapture(parent=None, title='blabla', cam=self.cam)
         video_window.Show()
+
+    def open_aquisition_config_window(self):
+        aquisition_config_window = AquisitionConfig(parent=None, title='blabla', cam=self.cam)
+        aquisition_config_window.Show()
 
 
 class Example(wx.Frame):
@@ -177,9 +179,11 @@ class Example(wx.Frame):
         panel.SetSizer(vbox)
 
 def main():
-    capture = cv2.VideoCapture(0)
+    pvc.init_pvcam()
+    cam = next(PVCamera.detect_camera())
+
     app = wx.App()
-    main_gui = Main_GUI(parent=None, title='blabla', capture=capture, fps=25)
+    main_gui = Main_GUI(parent=None, title='blabla', cam=cam)
     main_gui.Show()
     app.MainLoop()
 
