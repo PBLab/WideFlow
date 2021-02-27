@@ -16,6 +16,7 @@ class VideoCapture(wx.Frame):
         frame = np.stack((frame, frame, frame), axis=2)
         self.bmp = wx.Bitmap.FromBuffer(width, height, frame)
 
+        # TODO: get values from cam attributes
         fps = 20
         self.timer = wx.Timer(self)
         self.timer.Start(1000. / fps)
@@ -40,3 +41,7 @@ class VideoCapture(wx.Frame):
         self.bmp.CopyFromBuffer(frame)
 
 
+class ProcessingWindow(wx.Frame):
+    def __init__(self, cam, *args, **kwargs):
+        super(VideoCapture, self).__init__(*args, **kwargs)
+        self.InitUI()
