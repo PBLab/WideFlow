@@ -7,7 +7,10 @@ class Processing:
     def __init__(self):
         pass
 
-    def process(self):
+    def calc_process(self):
+        pass
+
+    def get_child_from_str(self):
         pass
 
 
@@ -16,7 +19,7 @@ class OpticFlow(Processing):
         super().__init__()
         self.method = method
 
-    def process(self, image1, image2):
+    def calc_process(self, image1, image2):
         pass
 
 
@@ -28,7 +31,7 @@ class SeqNMFPatternsDecomposition(Processing):
         self.rois_dict = rois_dict
         self.extract_rois_data = extract_rois_data
 
-    def process(self, images, patterns):
+    def calc_process(self, images, patterns):
         sequence = self.preprocess(images)
         [n, k, t] = patterns.shape
         overlap = np.zeros(k, t)
