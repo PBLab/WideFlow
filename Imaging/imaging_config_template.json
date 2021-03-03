@@ -1,0 +1,27 @@
+{
+    "name": "Imaging/imaging_config_template.json",
+
+    "camera_config": {
+        "exp_time": 10,
+        "binning": null,
+        "roi": null
+    },
+
+    "acquisition_config": {
+        "splice_plugin": "XXX",
+        "save_dir": "XXX/YYY",
+        "num_of_frames": 1000
+    },
+
+    "feedback_config": {
+        "port_id": "XXX"
+    },
+
+    "process_config": {
+        "method": "XXX"
+    },
+
+    "metric_config": {
+        "method": "XXX"
+    }
+}
