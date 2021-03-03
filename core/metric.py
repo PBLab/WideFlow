@@ -6,7 +6,10 @@ class Metric:
     def __init__(self):
         pass
 
-    def metric(self, input):
+    def calc_metric(self, input):
+        pass
+
+    def get_child_from_str(self):
         pass
 
 
@@ -16,7 +19,7 @@ class SeqNMFPatternsCorr(Metric):
         self.threshold = threshold
         self.pattern = pattern
 
-    def mertic(self, overlaps):
+    def calc_metric(self, overlaps):
         [k, t] = overlaps.shape
         th = self.threshold * t
         weights = np.mean(overlaps, 1)
