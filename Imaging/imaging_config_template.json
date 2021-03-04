@@ -18,10 +18,16 @@
     },
 
     "process_config": {
-        "method": "XXX"
+        "method": "XXX",
+        "attributes": {
+
+        }
     },
 
     "metric_config": {
-        "method": "XXX"
+        "method": "XXX",
+        "attributes": {
+
+        }
     }
 }
