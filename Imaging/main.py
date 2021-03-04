@@ -18,8 +18,8 @@ if __name__ == "__main__":
     cam = next(PVCamera.detect_camera())
 
 
-    process = Processing.get_child_from_str(config["process_config"]["method"])
-    metric = Metric.get_child_from_str(config["metric_config"]["method"])
+    process = Processing.get_child_from_str(config["process_config"]["method"], ["process_config"]["attributes"])
+    metric = Metric.get_child_from_str(config["metric_config"]["method"], ["process_config"]["attributes"])
 
     frame_counter = 0
     cam.start_live()
