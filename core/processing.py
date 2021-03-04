@@ -1,17 +1,18 @@
+import importlib
 import numpy as np
-import cv2
 from utils.gen_utils import extract_rois_data
 
 
 class Processing:
     def __init__(self):
-        pass
+        self.module = importlib.import_module("core.processing")
 
     def calc_process(self):
         pass
 
-    def get_child_from_str(self):
-        pass
+    def get_child_from_str(self, child_name, **kwargs):
+        class_ = getattr(self.module, child_name)
+        return class_(kwargs)
 
 
 class OpticFlow(Processing):
