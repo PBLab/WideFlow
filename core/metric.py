@@ -1,16 +1,18 @@
+import importlib
 import numpy as np
 from utils.gen_utils import mse
 
 
 class Metric:
     def __init__(self):
-        pass
+        self.module = importlib.import_module("core.processing")
 
     def calc_metric(self, input):
         pass
 
-    def get_child_from_str(self):
-        pass
+    def get_child_from_str(self, child_name, **kwargs):
+        class_ = getattr(self.module, child_name)
+        return class_(kwargs)
 
 
 class SeqNMFPatternsCorr(Metric):
