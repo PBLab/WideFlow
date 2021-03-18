@@ -9,6 +9,8 @@
 
     "acquisition_config": {
         "splice_plugin": "XXX",
+        "enable_gpu" : 1,
+        "param_x_values": 123,
         "save_dir": "XXX/YYY",
         "num_of_frames": 1000
     },
