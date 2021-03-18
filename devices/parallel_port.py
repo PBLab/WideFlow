@@ -1,5 +1,6 @@
-from psychopy import parallel
+import parallel
+p = parallel.Parallel()
 
-
-port = parallel.ParallelPort()
-
+# from psychopy import parallel
+# port = parallel.ParallelPort()
+# port.setData(0)
