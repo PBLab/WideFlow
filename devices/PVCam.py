@@ -12,6 +12,7 @@ class PVCamera(Camera):
 
 
 
+pvc.my_set_callback()
 # pvc.init_pvcam()
 # cam = next(PVCamera.detect_camera())
 # cam.open()
