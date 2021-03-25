@@ -1,5 +1,8 @@
 from psychopy import parallel
+import serial
 
 
-port = parallel.ParallelPort()
+# par = parallel.ParallelPort()
 
+# ser = serial.Serial('/dev/ttyUSB0')
+# print(ser.name)
