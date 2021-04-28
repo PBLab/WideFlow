@@ -1,11 +1,9 @@
-from pyvcam import pvc
+# For farther reading:
+# https://github.com/Photometrics/PyVCAM/blob/master/Documents/PyVCAM%20Wrapper.md
+
 from pyvcam.camera import Camera
 from pyvcam import constants as const
 
-
-# For farther reading:
-# https://github.com/Photometrics/PyVCAM/blob/master/Documents/PyVCAM%20Wrapper.md
-from matplotlib import pyplot as plt
 
 class PVCamera(Camera):
     def __init__(self, exp_time=10, binning=(0, 0)):
