@@ -24,48 +24,11 @@ class PVCamera(Camera):
                 self.set_param(const.PARAM_PP_PARAM, feat[1])
                 # param_name = self.get_param(const.PARAM_PP_PARAM_NAME)
 
-        else:
-            raise ValueError(f"plugin {plugin_name} doesn't exist in the available post processing list.")
 
 
- # cam.pp_table
-# const.PARAM_PP_FEAT_NAME - post processing plugin name
-# const.PARAM_PP_PARAM_INDEX - indicate plugin dictionary key value
-
-
-# {
-#     'DESPECKLE BRIGHT LOW': {
-#          'ENABLED': (140432545677313, 140432545677312, 140432545677313),
-#          'THRESHOLD': (140432545677437, 140432545677412, 140432545677612)
-#     },
-#
-#     'DESPECKLE BRIGHT HIGH': {
-#         'ENABLED': (140432545677313, 140432545677312, 140432545677313),
-#         'THRESHOLD': (140432545677452, 140432545677412, 140432545677612),
-#         'MIN ADU AFFECTED': (140432545677512, 140432545677512, 140432545679359)
-#     },
-#
-#     'DESPECKLE DARK LOW': {
-#         'ENABLED': (140432545677312, 140432545677312, 140432545677313),
-#         'THRESHOLD': (140432545677387, 140432545677312, 140432545677412)
-#     },
-#
-#     'DESPECKLE DARK HIGH': {
-#         'ENABLED': (140432545677313, 140432545677312, 140432545677313),
-#         'THRESHOLD': (140432545677372, 140432545677312, 140432545677412),
-#         'MIN ADU AFFECTED': (140432545677512, 140432545677512, 140432545679359)
-#     },
-#
-#     'QUANTVIEW':{
-#      'ENABLED': (140432545677312, 140432545677312, 140432545677313)
-#     },
-#
-#     'GPU-TOPLOCK': {
-#         'ENABLED': (140432545677312, 140432545677312, 140432545677313),
-#         'WHITE CLIP': (140432545677462, 140432545677312, 140432545742847),
-#         'MODULE_CALL_ORDER': (140432545677313, 140432545677312, 140432545677320)
-#     }
-# }
+# pvc.init_pvcam()
+# cam = next(PVCamera.detect_camera())
+# cam.open()
 
 
 # cam_settings = {
