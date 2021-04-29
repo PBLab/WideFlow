@@ -12,8 +12,10 @@
     "acquisition_config": {
         "splice_plugins_enable": false,
         "splice_plugin_setting": [
-            {"name": "pluginname1", "parameters": [{"name": "module_call_order", "value":  1}, {"name": "paramname", "value":  1}]},
-            {"name": "pluginname2", "parameters": [{"name": "module_call_order", "value":  1}, {"name": "paramname", "value":  1}]}
+            {"name": "pluginname1", "parameters": [{"name": "module_call_order", "value":  1},
+                {"name": "paramname", "value":  1}]},
+            {"name": "pluginname2", "parameters": [{"name": "module_call_order", "value":  1},
+                {"name": "paramname", "value":  1}]}
                                  ],
         "buffer": {"nframes": 32, "nrows": 512, "ncols": 512},
         "enable_gpu" : 1,
@@ -25,11 +27,15 @@
         "port_id": "XXX"
     },
 
-    "preprocess_config": {
-        "resize": {"order": 1, "kernel_name":"resize", "parameters": {"nrows": 512, "ncols": 512}},
-        "dff": {"order": 2, "kernel_name":"dff_moving_avg", "parameters": {"temporal_window": 30 , "exp_tau": 10}},
-        "filter": {"order": 3, "kernel_name":"filter_gauss3d", "parameters": {}},
-        "threshold": {"order": 4, "kernel_name":"threshold_std", "parameters":{}}
+    "buffer_preprocess_config": {
+        "resize": {"order": 1, "kernel_name":"resize",
+            "parameters": {"nrows": 512, "ncols": 512}},
+        "dff": {"order": 2, "kernel_name":"dff_moving_avg",
+            "parameters": {"temporal_window": 30 , "exp_tau": 10}},
+        "filter": {"order": 3, "kernel_name":"filter_gauss3d",
+            "parameters": {"sigma": [3, 3, 3]}},
+        "threshold": {"order": 4, "kernel_name":"threshold_std",
+            "parameters":{"nstd": 2}}
     },
 
     "process_config": {
@@ -45,4 +51,4 @@
 
         }
     }
-},
+}
