@@ -8,18 +8,20 @@ from numba import cuda
 
 update_buffer = cp.RawKernel(r'''
     extern "C" __global__
-    void copyKernel(double* x3d, double* x2d, unsigned char* frameIdx, unsigned char* capacity) {
+    void copyKernel(double* x3d, double* x2d, int frameIdx, int capacity) {
         
         const int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
         const int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
         const int zIndex = blockDim.z * blockIdx.z + threadIdx.z;
         
-        if (frameIdx == capacity-1) {
-            *frameIdx = 0}
+        if (frameIdx == capacity-1){
+            frameIdx = 0;
+            }
         else {
-            *frameIdx++1
-        
-        if (zIndex < frameIdx & zIndex > frameIdx+1){
+            frameIdx = frameIdx + 1;
+            }
+    
+        if (zIndex >= frameIdx & zIndex < frameIdx+1){
             x3d[zIndex][yIndex][xIndex] = x2d[yIndex][xIndex];
         }
 
@@ -27,15 +29,22 @@ update_buffer = cp.RawKernel(r'''
     ''', 'copyKernel')
 
 
-dff = cp.ElementwiseKernel(
-    'float32 x, float32 y',
-    'float32 z',
-    'z = (x - y) / (y + 0.0000000000000001)',
-    'dff')
+# dff = cp.ElementwiseKernel(
+#     'float32 x, float32 y',
+#     'float32 z',
+#     'z = (x - y) / (y + 0.0000000000000001)',
+#     'dff')
 
 
-def resize(cp_2d_arr, cp_2d_arr_rs, n_rows_rs, n_cols_rs):
+@cp.fuse()
+def dff(x2d, bs):
+    # bs = cp.sum(x3d, axis=0) / cap
+    return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
+
+
+def resize(cp_2d_arr, cp_2d_arr_rs):
     [n_rows, n_cols] = cp_2d_arr.shape
+    [n_rows_rs, n_cols_rs] = cp_2d_arr_rs.shape
     trans_mat = cp.eye(3)
     trans_mat[0][0] = n_rows_rs / n_rows
     trans_mat[1][1] = n_cols_rs / n_cols
