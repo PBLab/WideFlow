@@ -10,15 +10,26 @@
     },
 
     "acquisition_config": {
-        "splice_plugins": ["CudaBuffer"],
-        "splice_plugin_parameters": [{"dstIndex": null}],
+        "splice_plugins_enable": false,
+        "splice_plugin_setting": [
+            {"name": "pluginname1", "parameters": [{"name": "module_call_order", "value":  1}, {"name": "paramname", "value":  1}]},
+            {"name": "pluginname2", "parameters": []{"name": "module_call_order", "value":  1}, {"name": "paramname", "value":  1}]}
+                                 ],
+        "buffer": {"nframes": 32, "nrows": 512, "ncols": 512},
         "enable_gpu" : 1,
-        "save_dir": "XXX/YYY",
+        "save_path": "XXX/YYY.tiff",
         "num_of_frames": 1000
     },
 
     "feedback_config": {
         "port_id": "XXX"
+    },
+
+    "preprocess_config": {
+        "resize": {"order": 1, "kernel_name":"resize", "parameters": {"nrows": 512, "ncols": 512}},
+        "dff": {"order": 2, "kernel_name":"dff_moving_avg", "parameters": {"temporal_window": 30 , "exp_tau": 10}},
+        "filter": {"order": 3, "kernel_name":"filter_gauss3d", "parameters": {}},
+        "threshold": {"order": 4, "kernel_name":"threshold_std", "parameters":{}}
     },
 
     "process_config": {
@@ -34,4 +45,4 @@
 
         }
     }
-}
+},
