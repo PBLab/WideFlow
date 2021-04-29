@@ -1,38 +1,36 @@
 import numpy as np
-
 import cupy as cp
-from cupy.cuda.memory import MemoryPointer, UnownedMemory
 import cupyx.scipy.ndimage as csn
+import cupyx.scipy.signal as css
 
-from numba import cuda
 
-update_buffer = cp.RawKernel(r'''
-    extern "C" __global__
-    void copyKernel(double* x3d, double* x2d, int frameIdx, int capacity) {
-        
-        const int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
-        const int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
-        const int zIndex = blockDim.z * blockIdx.z + threadIdx.z;
-        
-        if (frameIdx == capacity-1){
-            frameIdx = 0;
-            }
-        else {
-            frameIdx = frameIdx + 1;
-            }
-    
-        if (zIndex >= frameIdx & zIndex < frameIdx+1){
-            x3d[zIndex][yIndex][xIndex] = x2d[yIndex][xIndex];
-        }
-
-    }
-    ''', 'copyKernel')
-
+# update_buffer = cp.RawKernel(r'''
+#     extern "C" __global__
+#     void copyKernel(double* x3d, double* x2d, int frameIdx, int capacity) {
+#
+#         const int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+#         const int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+#         const int zIndex = blockDim.z * blockIdx.z + threadIdx.z;
+#
+#         if (frameIdx == capacity-1){
+#             frameIdx = 0;
+#             }
+#         else {
+#             frameIdx = frameIdx + 1;
+#             }
+#
+#         if (zIndex >= frameIdx & zIndex < frameIdx+1){
+#             x3d[zIndex][yIndex][xIndex] = x2d[yIndex][xIndex];
+#         }
+#
+#     }
+#     ''', 'copyKernel')
 
 
 @cp.fuse()
 def dff(x2d, bs):
     return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
+
 
 @cp.fuse()
 def baseline_calc_carbox(x3d):
@@ -48,6 +46,9 @@ def resize(cp_2d_arr, cp_2d_arr_rs):
     csn.affine_transform(cp_2d_arr, trans_mat, output_shape=(n_rows_rs, n_cols_rs), output=cp_2d_arr_rs, mode='opencv')
 
 
+@cp.fuse()
+def temporal_cross_corr(x3d, y3d, ptr):
+    pass
 
 # def run_preprocesses(cp_2d_arr, processes_list):
 #     for process in processes_list:
