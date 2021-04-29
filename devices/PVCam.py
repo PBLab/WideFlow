@@ -10,7 +10,7 @@ class PVCamera(Camera):
         super().__init__(exp_time, binning)
         self.attr_count = const.ATTR_COUNT
 
-    def set_post_processing_attributes(self, plugin_name, plugin_features_list):
+    def set_splice_post_processing_attributes(self, plugin_name, plugin_features_list):
         pp_index = None
         for i in range(self.attr_count):
             self.set_param(const.PARAM_PP_INDEX, i)
