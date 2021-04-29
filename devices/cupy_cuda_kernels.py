@@ -29,17 +29,14 @@ update_buffer = cp.RawKernel(r'''
     ''', 'copyKernel')
 
 
-# dff = cp.ElementwiseKernel(
-#     'float32 x, float32 y',
-#     'float32 z',
-#     'z = (x - y) / (y + 0.0000000000000001)',
-#     'dff')
-
 
 @cp.fuse()
 def dff(x2d, bs):
-    # bs = cp.sum(x3d, axis=0) / cap
     return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
+
+@cp.fuse()
+def baseline_calc_carbox(x3d):
+    pass
 
 
 def resize(cp_2d_arr, cp_2d_arr_rs):
