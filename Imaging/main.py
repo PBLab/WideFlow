@@ -14,7 +14,8 @@ from utils.imaging_utils import *
 import pathlib
 import cupy as cp
 import numpy as np
-threadsperblock = 32
+
+from time import perf_counter
 
 
 if __name__ == "__main__":
@@ -33,9 +34,16 @@ if __name__ == "__main__":
     #                                  dtype=np.dtype("uint16"))
     #     config["acquisition_config"]["splice_plugin_parameters"][0]["dstIndex"] = process_station.data.mem.ptr
     # allocate circular buffer in device
-    capacity = cp.asanyarray(np.ones((1, )*32, dtype=np.int8()))
-    buffer = cp.asanyarray(np.zeros((capacity, 128, 128)))
-    pointer = cp.asanyarray(np.zeros((1, ), dtype=np.int8()))
+    capacity = 32
+    nrows = 128
+    ncols = 128
+    d_ptr = cp.asanyarray(np.zeros((1,), dtype=np.int8()))
+    d_capacity = cp.asanyarray(np.ones((1, )*capacity, dtype=np.int8()))
+    buffer = cp.asanyarray(np.zeros((capacity, nrows, ncols)))
+
+    # BlockPerGrid =
+    # threadsperblock = 32
+
 
     pvc.init_pvcam()
     cam = next(PVCamera.detect_camera())
@@ -46,17 +54,28 @@ if __name__ == "__main__":
     # process = Processing.get_child_from_str(config["process_config"]["method"], ["process_config"]["attributes"])
     # metric = Metric.get_child_from_str(config["metric_config"]["method"], ["process_config"]["attributes"])
 
+    d_frame_rs = cp.ndarray((128, 128), dtype=cp.float32)
     frame_counter = 0
+    ptr = capacity - 1
     cam.start_live()
     while True:
+        t1_start = perf_counter()
         frame = cam.get_live_frame()
-        # print(frame[0, :5])
+        print(frame[0, :5])
         d_frame = cp.asanyarray(frame)
-        d_frame_rs = cp.ndarray((128, 128), dtype=cp.float32)
-        resize(d_frame, d_frame_rs, 128, 128)
-        update_buffer(buffer, d_frame_rs, pointer, capacity)
+
+        resize(d_frame, d_frame_rs)
+        bs = cp.mean(buffer, axis=0)
+        d_frame_rs = dff(d_frame_rs, bs)
+        if ptr == capacity - 1:
+            ptr = 0
+        else:
+            ptr += 1
+        buffer[ptr, :, :] = d_frame_rs
 
         frame_counter += 1
+        t1_stop = perf_counter()
+        print("Elapsed time:", t1_stop - t1_start)
         # process_result = process.cal_process(frame)
         # cue = metric.calc_metric(process_result)
         #
