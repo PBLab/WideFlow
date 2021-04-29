@@ -44,7 +44,7 @@ if __name__ == "__main__":
     frame_counter = 0
     ptr = capacity - 1
     cam.start_live()
-    cam.poll
+
     while True:
         t1_start = perf_counter()
 
