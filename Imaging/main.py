@@ -1,65 +1,53 @@
-from devices.PVCam import PVCamera
 from pyvcam import pvc
 
-from devices.serial_port import ser
+from devices.PVCam import PVCamera
 from devices.cupy_cuda_kernels import *
-# from devices.numba_cuda_kernels import *
-
-from core.processing import Processing
-from core.metric import Metric
+# from devices.parallel_port import port
 
 from utils.imaging_utils import *
-# from devices.parallel_port import port
 
 import pathlib
 import cupy as cp
 import numpy as np
+import cv2
 
 from time import perf_counter
 
+fourcc = cv2.VideoWriter_fourcc('t', 'i', 'f', 'f')
 
 if __name__ == "__main__":
 
-    # imaging_config_path = str(
-    #     pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_config_template.json')
-    # config = load_config(imaging_config_path)
+    # load session configurations
+    imaging_config_path = str(
+        pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_config_template.json')
+    config = load_config(imaging_config_path)
 
-    # allocate processing station in device
-    # if config["acquisition_config"]["splice_plugin_parameters"][0]["dstIndex"]:
-    #     process_station = cp.ndarray((config["camera_config"]["n_rows"], config["camera_config"]["n_columns"]),
-    #                                  data=config["acquisition_config"]["splice_plugin_parameters"][0]["dstIndex"],
-    #                                  dtype=np.dtype("uint16"))
-    # else:
-    #     process_station = cp.ndarray((config["camera_config"]["n_rows"], config["camera_config"]["n_columns"]),
-    #                                  dtype=np.dtype("uint16"))
-    #     config["acquisition_config"]["splice_plugin_parameters"][0]["dstIndex"] = process_station.data.mem.ptr
     # allocate circular buffer in device
-    capacity = 32
-    nrows = 128
-    ncols = 128
-    d_ptr = cp.asanyarray(np.zeros((1,), dtype=np.int8()))
-    d_capacity = cp.asanyarray(np.ones((1, )*capacity, dtype=np.int8()))
+    capacity = config["acquisition_config"]["buffer"]["nframes"]
+    nrows = config["acquisition_config"]["buffer"]["nrows"]
+    ncols = config["acquisition_config"]["buffer"]["ncols"]
     buffer = cp.asanyarray(np.zeros((capacity, nrows, ncols)))
 
-    # BlockPerGrid =
-    # threadsperblock = 32
+    # allocate preprocessing buffer in device
+    d_frame_rs = cp.ndarray((nrows, ncols), dtype=cp.float32)
 
-
+    # open camera and set camera settings
     pvc.init_pvcam()
     cam = next(PVCamera.detect_camera())
     cam.open()
+    if config["acquisition_config"]["splice_plugins_enable"]:
+        for plugin_dict in config["acquisition_config"]["splice_plugins_settings"]:
+            cam.set_splice_post_processing_attributes(plugin_dict)
 
-    # cam.set_post_processing_attributes(config["acquisition_config"])
-    #
-    # process = Processing.get_child_from_str(config["process_config"]["method"], ["process_config"]["attributes"])
-    # metric = Metric.get_child_from_str(config["metric_config"]["method"], ["process_config"]["attributes"])
-
-    d_frame_rs = cp.ndarray((128, 128), dtype=cp.float32)
+    # start session
+    writer = cv2.VideoWriter(config["acquisition_config"]["save_path"], fourcc, 25, (nrows, ncols))
     frame_counter = 0
     ptr = capacity - 1
     cam.start_live()
+    cam.poll
     while True:
         t1_start = perf_counter()
+
         frame = cam.get_live_frame()
         print(frame[0, :5])
         d_frame = cp.asanyarray(frame)
@@ -74,8 +62,14 @@ if __name__ == "__main__":
         buffer[ptr, :, :] = d_frame_rs
 
         frame_counter += 1
+
+        frame_out = cp.asnumpy(d_frame_rs)
+        cv2.imshow('preprocessd frame', frame_out)
+        # writer.write(frame_out)
+
         t1_stop = perf_counter()
         print("Elapsed time:", t1_stop - t1_start)
+
         # process_result = process.cal_process(frame)
         # cue = metric.calc_metric(process_result)
         #
