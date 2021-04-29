@@ -13,7 +13,7 @@
         "splice_plugins_enable": false,
         "splice_plugin_setting": [
             {"name": "pluginname1", "parameters": [{"name": "module_call_order", "value":  1}, {"name": "paramname", "value":  1}]},
-            {"name": "pluginname2", "parameters": []{"name": "module_call_order", "value":  1}, {"name": "paramname", "value":  1}]}
+            {"name": "pluginname2", "parameters": [{"name": "module_call_order", "value":  1}, {"name": "paramname", "value":  1}]}
                                  ],
         "buffer": {"nframes": 32, "nrows": 512, "ncols": 512},
         "enable_gpu" : 1,
