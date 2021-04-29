@@ -37,7 +37,7 @@ if __name__ == "__main__":
     cam.open()
     if config["acquisition_config"]["splice_plugins_enable"]:
         for plugin_dict in config["acquisition_config"]["splice_plugins_settings"]:
-            cam.set_splice_post_processing_attributes(plugin_dict)
+            cam.set_splice_post_processing_attributes(plugin_dict["name"], plugin_dict["parameters"])
 
     # start session
     writer = cv2.VideoWriter(config["acquisition_config"]["save_path"], fourcc, 25, (nrows, ncols))
@@ -45,11 +45,10 @@ if __name__ == "__main__":
     ptr = capacity - 1
     cam.start_live()
 
-    while True:
+    while frame_counter < config["acquisition_config"]["num_of_frames"]:
         t1_start = perf_counter()
 
         frame = cam.get_live_frame()
-        print(frame[0, :5])
         d_frame = cp.asanyarray(frame)
 
         resize(d_frame, d_frame_rs)
@@ -60,10 +59,11 @@ if __name__ == "__main__":
         else:
             ptr += 1
         buffer[ptr, :, :] = d_frame_rs
-
+        print(cp.asnumpy(buffer[:, 10, 10]))
         frame_counter += 1
 
         frame_out = cp.asnumpy(d_frame_rs)
+
         cv2.imshow('preprocessd frame', frame_out)
         # writer.write(frame_out)
 
