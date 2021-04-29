@@ -6,7 +6,7 @@ from pyvcam import constants as const
 
 
 class PVCamera(Camera):
-    def __init__(self, exp_time=10, binning=(0, 0)):
+    def __init__(self, exp_time=10, binning=(1, 1)):
         super().__init__(exp_time, binning)
         self.attr_count = const.ATTR_COUNT
 
