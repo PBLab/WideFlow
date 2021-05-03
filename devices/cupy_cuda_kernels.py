@@ -27,14 +27,32 @@ import cupyx.scipy.signal as css
 #     ''', 'copyKernel')
 
 
-@cp.fuse()
-def dff(x2d, bs):
-    return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
+# mean_kernel = cp.RawKernel(r'''
+#     #include </usr/local/cuda-8.0/include/npps_statistics_functions.h>
+# ... extern "C" __global__
+# ... void mean(const float* x, float* y) {
+# ...     int tid = blockDim.x * blockIdx.x + threadIdx.x;
+# ...     nppsMean_StdDev_32f_C1MR_Ctx
+# ... }
+# ... ''', 'mean')
+#
+#
+# std_kernel = cp.RawKernel(r'''
+#     #include </usr/local/cuda-8.0/include/npps_statistics_functions.h>
+# ... extern "C" __global__
+# ... void std(const float* x, float* y) {
+# ...     int tid = blockDim.x * blockIdx.x + threadIdx.x;
+# ...     nppsStdDev_32f(x, , y,
+# ... }
+# ... ''', 'std')
 
 
-@cp.fuse()
-def baseline_calc_carbox(x3d):
-    pass
+
+def baseline_calc_carbox(cp_3d_arr):
+    dims = (5, 3, 3)
+    weights = np.ones(dims, dtype=np.float32) / (dims[0]*dims[1]*dims[2])
+    weights = cp.asanyarray(weights, dtype=cp.float32)
+    return cp.min(csn.convolve(cp_3d_arr, weights), 0)
 
 
 def resize(cp_2d_arr, cp_2d_arr_rs):
@@ -43,7 +61,24 @@ def resize(cp_2d_arr, cp_2d_arr_rs):
     trans_mat = cp.eye(3)
     trans_mat[0][0] = n_rows_rs / n_rows
     trans_mat[1][1] = n_cols_rs / n_cols
-    csn.affine_transform(cp_2d_arr, trans_mat, output_shape=(n_rows_rs, n_cols_rs), output=cp_2d_arr_rs, mode='opencv')
+    csn.affine_transform(cp_2d_arr, trans_mat, output_shape=(n_rows_rs, n_cols_rs), output=cp_2d_arr_rs)
+
+
+@cp.fuse()
+def dff(x2d, bs):
+    return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
+
+
+
+def nd_std(cp_nd_arr, ax):
+    n = cp_nd_arr.shape[0]
+    return cp.sum(cp.square(cp_nd_arr - cp.sum(cp_nd_arr, axis=ax) / n), axis=ax) / n
+
+
+def std_threshold(cp_3d_arr, std_map, steps):
+    cp_3d_arr_mean = cp.mean(cp_3d_arr, 0)
+    cp_3d_arr[cp_3d_arr < cp_3d_arr_mean - steps*std_map] = 0
+    return cp_3d_arr
 
 
 @cp.fuse()
