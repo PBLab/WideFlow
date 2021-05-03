@@ -86,6 +86,8 @@ if __name__ == "__main__":
         frame_out = cp.asnumpy(d_frame_rs)
 
         cv2.imshow('preprocessd frame', frame_out)
+        if cv2.waitKey(1) == 27:
+            break
         # writer.write(frame_out)
 
         t1_stop = perf_counter()
