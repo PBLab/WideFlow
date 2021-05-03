@@ -12,6 +12,7 @@ import numpy as np
 import cv2
 
 from time import perf_counter
+import matplotlib.pyplot as plt
 
 fourcc = cv2.VideoWriter_fourcc('t', 'i', 'f', 'f')
 
@@ -26,10 +27,14 @@ if __name__ == "__main__":
     capacity = config["acquisition_config"]["buffer"]["nframes"]
     nrows = config["acquisition_config"]["buffer"]["nrows"]
     ncols = config["acquisition_config"]["buffer"]["ncols"]
-    buffer = cp.asanyarray(np.zeros((capacity, nrows, ncols)))
+    buffer_rs = cp.asanyarray(np.zeros((capacity, nrows, ncols)))
+    buffer_dff = cp.asanyarray(np.zeros((capacity, nrows, ncols)))
+    buffer_th = cp.asanyarray(np.zeros((capacity, nrows, ncols)))
+
 
     # allocate preprocessing buffer in device
     d_frame_rs = cp.ndarray((nrows, ncols), dtype=cp.float32)
+    d_std_map = cp.ndarray((nrows, ncols), dtype=cp.float32)
 
     # open camera and set camera settings
     pvc.init_pvcam()
@@ -39,27 +44,43 @@ if __name__ == "__main__":
         for plugin_dict in config["acquisition_config"]["splice_plugins_settings"]:
             cam.set_splice_post_processing_attributes(plugin_dict["name"], plugin_dict["parameters"])
 
+    cam.start_live()
+
+    frame_counter = 0
+    ptr = capacity - 1
+    while frame_counter < capacity:
+        frame = cam.get_live_frame()
+        d_frame = cp.asanyarray(frame)
+
+        resize(d_frame, d_frame_rs)
+        buffer_rs[ptr, :, :] = d_frame_rs
+
     # start session
     writer = cv2.VideoWriter(config["acquisition_config"]["save_path"], fourcc, 25, (nrows, ncols))
     frame_counter = 0
     ptr = capacity - 1
-    cam.start_live()
-
     while frame_counter < config["acquisition_config"]["num_of_frames"]:
         t1_start = perf_counter()
+
+        if ptr == capacity - 1:
+            ptr = 0
+        else:
+            ptr += 1
 
         frame = cam.get_live_frame()
         d_frame = cp.asanyarray(frame)
 
         resize(d_frame, d_frame_rs)
-        bs = cp.mean(buffer, axis=0)
-        d_frame_rs = dff(d_frame_rs, bs)
-        if ptr == capacity - 1:
-            ptr = 0
-        else:
-            ptr += 1
-        buffer[ptr, :, :] = d_frame_rs
-        print(cp.asnumpy(buffer[:, 10, 10]))
+        buffer_rs[ptr, :, :] = d_frame_rs
+
+        bs = baseline_calc_carbox(buffer_rs)
+        buffer_dff[ptr, :, :] = dff(d_frame_rs, bs)
+
+        d_std_map = nd_std(buffer_dff, ax=0)
+        buffer_th = std_threshold(buffer_dff, d_std_map, 2)
+
+
+        print(cp.asnumpy(buffer_th[:, 10, 10]))
         frame_counter += 1
 
         frame_out = cp.asnumpy(d_frame_rs)
