@@ -29,7 +29,10 @@
 
     "buffer_preprocess_config": {
         "resize": {"order": 1, "kernel_name":"resize",
-            "parameters": {"nrows": 512, "ncols": 512}},
+            "parameters": {"nrows": 512, "ncols": 512}}
+    },
+
+    "buffer_postprocess_config": {
         "dff": {"order": 2, "kernel_name":"dff_moving_avg",
             "parameters": {"temporal_window": 30 , "exp_tau": 10}},
         "filter": {"order": 3, "kernel_name":"filter_gauss3d",
