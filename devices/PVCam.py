@@ -19,7 +19,7 @@ class PVCamera(Camera):
                 pp_index = i  # pp_index is the index of the post processing from the dict cam.pp_table
                 break
         # set plugin parameters
-        if pp_index != None: # TODO: fix for new configuration file structure
+        if pp_index is not None:  # TODO: fix for new configuration file structure
             for param in plugin_parameters_list:
                 self.set_param(const.PARAM_PP_PARAM_INDEX, param[0])
                 self.set_param(const.PARAM_PP_PARAM, param[1])
