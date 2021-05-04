@@ -81,6 +81,7 @@ if __name__ == "__main__":
         else:
             ptr += 1
 
+
         frame = cam.get_live_frame()
         d_frame = cp.asanyarray(frame)
 
