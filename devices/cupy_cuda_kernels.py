@@ -64,10 +64,9 @@ def resize(cp_2d_arr, cp_2d_arr_rs):
     csn.affine_transform(cp_2d_arr, trans_mat, output_shape=(n_rows_rs, n_cols_rs), output=cp_2d_arr_rs)
 
 
-@cp.fuse()
-def dff(x2d, bs):
-    return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
-
+def zoom(cp_2d_arr, cp_2d_arr_zm):
+    zm_factor = (cp_2d_arr_zm.shape[0] / cp_2d_arr.shape[0], cp_2d_arr_zm.shape[1] / cp_2d_arr.shape[1])
+    csn.zoom(cp_2d_arr, zm_factor, cp_2d_arr_zm)
 
 
 def nd_std(cp_nd_arr, ax):
@@ -79,6 +78,11 @@ def std_threshold(cp_3d_arr, std_map, steps):
     cp_3d_arr_mean = cp.mean(cp_3d_arr, 0)
     cp_3d_arr[cp_3d_arr < cp_3d_arr_mean - steps*std_map] = 0
     return cp_3d_arr
+
+
+@cp.fuse()
+def dff(x2d, bs):
+    return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
 
 
 @cp.fuse()
