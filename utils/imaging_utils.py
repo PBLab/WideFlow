@@ -17,3 +17,7 @@ def load_config(path, handler=None):
     return config
 
 
+def crop(img, xrange, yrange):
+    return img[yrange[0]: yrange[1], xrange[0]: xrange[1]]
+
+
