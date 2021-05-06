@@ -1,7 +1,6 @@
 import numpy as np
 import cupy as cp
 import cupyx.scipy.ndimage as csn
-import cupyx.scipy.signal as css
 
 
 # update_buffer = cp.RawKernel(r'''
@@ -49,9 +48,9 @@ import cupyx.scipy.signal as css
 
 
 def baseline_calc_carbox(cp_3d_arr):
-    dims = (5, 3, 3)
+    dims = (5, 1, 1)
     weights = np.ones(dims, dtype=np.float32) / (dims[0]*dims[1]*dims[2])
-    weights = cp.asanyarray(weights, dtype=cp.float32)
+    weights = cp.asanyarray(weights, dtype=cp.float64)
     return cp.min(csn.convolve(cp_3d_arr, weights), 0)
 
 
