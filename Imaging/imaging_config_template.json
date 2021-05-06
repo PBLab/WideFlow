@@ -17,10 +17,10 @@
             {"name": "pluginname2", "parameters": [{"name": "module_call_order", "value":  1},
                 {"name": "paramname", "value":  1}]}
                                  ],
-        "buffer": {"nframes": 32, "nrows": 512, "ncols": 512},
+        "buffer": {"nframes": 32, "nrows": 256, "ncols": 256},
         "enable_gpu" : 1,
         "save_path": "XXX/YYY.tiff",
-        "num_of_frames": 1000
+        "num_of_frames": 100
     },
 
     "feedback_config": {
