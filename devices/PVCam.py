@@ -18,26 +18,10 @@ class PVCamera(Camera):
             if self.get_param(const.PARAM_PP_FEAT_NAME) == plugin_name:
                 pp_index = i  # pp_index is the index of the post processing from the dict cam.pp_table
                 break
+
         # set plugin parameters
         if pp_index is not None:  # TODO: fix for new configuration file structure
             for param in plugin_parameters_list:
                 self.set_param(const.PARAM_PP_PARAM_INDEX, param[0])
                 self.set_param(const.PARAM_PP_PARAM, param[1])
                 # param_name = self.get_param(const.PARAM_PP_PARAM_NAME)
-
-
-
-# pvc.init_pvcam()
-# cam = next(PVCamera.detect_camera())
-# cam.open()
-
-
-# cam_settings = {
-#     "binning": None,  # (binx, biny)
-#     "exp_time": 10,
-#     "roi": None  # (x_start, x_end, y_start, y_end)
-# }
-#
-# for key, value in cam_settings.items():
-#     if hasattr(cam, key) and value:
-#         setattr(cam, key, value)
