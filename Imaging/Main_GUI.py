@@ -1,19 +1,18 @@
 import wx
-from Imaging.VideoCapture import VideoCapture, ProcessingWindow
-from Imaging.gui_frames import AcquisitionConfig, CameraConfig
+from Imaging.VideoCapture import VideoCapture
+from Imaging.gui_frames import AcquisitionConfig
+from Imaging.main import run_session
 from pubsub import pub
 
-from devices.PVCam import PVCamera
 from pyvcam import pvc
-
-from core.processing import *
-from core.metric import *
+from devices.PVCam import PVCamera
 
 
 class Main_GUI(wx.Frame):
     def __init__(self, cam, *args, **kwargs):
         super(Main_GUI, self).__init__(*args, **kwargs)
         self.cam = cam
+        self.configuration = None
         self.InitUI()
 
     def InitUI(self):
@@ -55,7 +54,6 @@ class Main_GUI(wx.Frame):
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(9)
 
-        #  raw video vertical box
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -65,67 +63,73 @@ class Main_GUI(wx.Frame):
         vbox.Add((-1, 10))
 
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        btn_start = wx.Button(panel, label='Start', size=(70, 30))
+        btn_start = wx.Button(panel, label='Start Session', size=(70, 30))
         hbox2.Add(btn_start)
-        btn_pause = wx.Button(panel, label='Pause', size=(70, 30))
-        hbox2.Add(btn_pause, flag=wx.LEFT | wx.BOTTOM, border=5)
         btn_stop = wx.Button(panel, label='Stop', size=(70, 30))
         hbox2.Add(btn_stop, flag=wx.LEFT | wx.BOTTOM, border=5)
         vbox.Add(hbox2, flag=wx.ALIGN_RIGHT | wx.RIGHT, border=10)
         vbox.Add((-1, 25))
 
         hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-        btn_show = wx.Button(panel, label='show', size=(70, 30))
+        btn_show = wx.Button(panel, label='Show\nLive', size=(70, 50))
         hbox3.Add(btn_show)
         vbox.Add(hbox3, flag=wx.ALIGN_RIGHT | wx.RIGHT, border=10)
         vbox.Add((-1, 25))
 
         hbox4 = wx.BoxSizer(wx.HORIZONTAL)
-        st1 = wx.StaticText(panel, label='frame rate')
-        st1.SetFont(font)
-        hbox4.Add(st1, flag=wx.RIGHT, border=8)
-        tc = wx.TextCtrl(panel)
-        hbox4.Add(tc, proportion=1)
+        btn_config = wx.Button(panel, label='Load\nConfigurations', size=(85, 50))
+        hbox4.Add(btn_config)
         vbox.Add(hbox4, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
-        vbox.Add((-1, 25))
-
-        hbox5 = wx.BoxSizer(wx.HORIZONTAL)
-        cb1 = wx.CheckBox(panel, label='option 1')
-        cb1.SetFont(font)
-        hbox5.Add(cb1)
-        cb2 = wx.CheckBox(panel, label='option 2')
-        cb2.SetFont(font)
-        hbox5.Add(cb2, flag=wx.LEFT, border=10)
-        cb3 = wx.CheckBox(panel, label='option 3')
-        cb3.SetFont(font)
-        hbox5.Add(cb3, flag=wx.LEFT, border=10)
-        vbox.Add(hbox5, flag=wx.LEFT, border=10)
         vbox.Add((-1, 25))
 
         panel.SetSizer(vbox)
 
-        self.Bind(wx.EVT_BUTTON, self.open_video_window(), btn_show)
-        self.Bind(wx.EVT_BUTTON, self.start_acquisition(), btn_start)
-        self.Bind(wx.EVT_BUTTON, self.stop_acquisition(), btn_stop)
+        self.Bind(wx.EVT_BUTTON, self.open_video_window, btn_show)
+        self.Bind(wx.EVT_BUTTON, self.open_acquisition_configuration_window, btn_config)
+        self.Bind(wx.EVT_BUTTON, self.start_acquisition, btn_start)
 
-
-    def open_video_window(self):
+    def open_video_window(self, event):
         video_window = VideoCapture(parent=None, title='Video', cam=self.cam)
         video_window.Show()
 
-    def open_acquisition_config_window(self):
+    def open_acquisition_configuration_window(self, event):
         acquisition_config_window = AcquisitionConfig(parent=None, title='Session Acquisition Configurations')
         acquisition_config_window.Show()
 
-    def open_camera_config_window(self):
-        camera_config_window = CameraConfig(parent=None, title='Camera Configurations', cam=self.cam)
-        camera_config_window.Show()
+    def start_acquisition(self, event):
+        try:
+            run_session(self.config, self.cam)
+        except:
+            print("An exception occurred")
 
-    def start_acquisition(self):
+import numpy as np
+class Camera:
+    def __init__(self):
+        self.sensor_size = (512, 512)
+        self.exp_time = 10
+
+    def open(self):
         pass
 
-    def stop_acquisition(self):
+    def close(self):
         pass
+
+    def get_frame(self):
+        return np.random.random(self.sensor_size)*255
+
+def main():
+    # pvc.init_pvcam()
+    # cam = next(PVCamera.detect_camera())
+
+    cam = Camera()
+    app = wx.App()
+    main_gui = Main_GUI(parent=None, title='blabla', cam=cam)
+    main_gui.Show()
+    app.MainLoop()
+
+
+if __name__ == '__main__':
+    main()
 
 
 # class Example(wx.Frame):
@@ -195,14 +199,3 @@ class Main_GUI(wx.Frame):
 #         panel.SetSizer(vbox)
 
 
-def main():
-    pvc.init_pvcam()
-    cam = next(PVCamera.detect_camera())
-
-    app = wx.App()
-    main_gui = Main_GUI(parent=None, title='blabla', cam=cam)
-    main_gui.Show()
-    app.MainLoop()
-
-if __name__ == '__main__':
-    main()
