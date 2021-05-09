@@ -46,7 +46,6 @@ import cupyx.scipy.ndimage as csn
 # ... ''', 'std')
 
 
-
 def baseline_calc_carbox(cp_3d_arr):
     dims = (5, 1, 1)
     weights = np.ones(dims, dtype=np.float32) / (dims[0]*dims[1]*dims[2])
@@ -79,14 +78,18 @@ def std_threshold(cp_3d_arr, std_map, steps):
     return cp_3d_arr
 
 
+def cross_corr(x3d, y3d):
+    meux = cp.mean(x3d)
+    sigx = cp.std(x3d)
+    meuy = cp.mean(y3d)
+    sigy = cp.std(y3d)
+    return cp.mean(cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy)))
+
+
 @cp.fuse()
 def dff(x2d, bs):
     return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
 
-
-@cp.fuse()
-def temporal_cross_corr(x3d, y3d, ptr):
-    pass
 
 # def run_preprocesses(cp_2d_arr, processes_list):
 #     for process in processes_list:
