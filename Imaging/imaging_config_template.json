@@ -4,9 +4,7 @@
     "camera_config": {
         "exp_time": 10,
         "binning": null,
-        "roi": null,
-        "n_rows": 2048,
-        "n_columns": 2048
+        "roi": null
     },
 
     "acquisition_config": {
@@ -19,7 +17,8 @@
                                  ],
         "buffer": {"nframes": 32, "nrows": 256, "ncols": 256},
         "enable_gpu" : 1,
-        "save_path": "XXX/YYY.tiff",
+        "vid_save_path": "XXX/YYY.tiff",
+        "meta_save_path": "XXX/YYY.txt",
         "num_of_frames": 100
     },
 
@@ -42,16 +41,19 @@
     },
 
     "process_config": {
-        "method": "XXX",
+        "method": "Temporal Cross-Correlation",
         "attributes": {
-
+            "function_name":"dff_moving_avg",
+            "parameters": {"pattern": "var_name" , "norm": null}
         }
     },
 
     "metric_config": {
-        "method": "XXX",
+        "method": "Temporal Cross-Correlation",
         "attributes": {
-
+            "function_name":"temporal_cross_corr",
+            "pattern_path": "XXX/YYY.tiff",
+            "parameters": {"threshold": 10}
         }
     }
 }
