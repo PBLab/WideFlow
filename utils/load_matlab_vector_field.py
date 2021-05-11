@@ -36,8 +36,8 @@ def load_allen_2d_cortex_rois(file_path):
     return roi_list
 
 
-def extend_rois_list(file_path, save_path, shape, order='F'):
-
+def extend_rois_list(file_path, save_path, order='F'):
+    shape = (297, 337)
     roi_list = load_allen_2d_cortex_rois(file_path)
     roi_list = add_properties_to_roi_list(roi_list, shape, order)
     # roi_list = add_morphological_adjacent_rois_to_roi_list(roi_list, shape)
@@ -60,7 +60,7 @@ def load_extended_rois_list(file_path):
             roi_list[key]['PixelIdxList'] = grp['PixelIdxList'][()] - 1  # -1 to convert from matlab to python
             roi_list[key]['outline'] = grp['outline'][()]
             roi_list[key]['top_left_bottom_rigth'] = grp['top_left_bottom_rigth'][()]
-            roi_list[key]['Adjacent_rois_Idx'] = grp['Adjacent_rois_Idx'][()]
+            # roi_list[key]['Adjacent_rois_Idx'] = grp['Adjacent_rois_Idx'][()]
 
 
     # keep keys order as index order
@@ -68,11 +68,10 @@ def load_extended_rois_list(file_path):
     return roi_list
 
 
-#
+
 # import pathlib
-# file_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'cortex_map' / 'allen_2d_cortex_rois.h5')
-# save_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'cortex_map' / 'allen_2d_cortex_rois_extended.h5')
-# shape = (297, 337)
-# extend_rois_list(file_path, save_path, shape)
+# file_path = '/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois.h5'
+# save_path = '/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5'
+# extend_rois_list(file_path, save_path)
 # roi_list = load_extended_rois_list(save_path)
 # # z=3
