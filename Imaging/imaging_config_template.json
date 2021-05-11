@@ -2,58 +2,117 @@
     "name": "Imaging/imaging_config_template.json",
 
     "camera_config": {
-        "exp_time": 10,
-        "binning": null,
-        "roi": null
+        "core_attr": {
+            "exp_time": 10,
+            "binning": [1, 1],
+            "roi": [0, 2048, 0, 2048]
+        },
+        "splice_plugins_enable": false,
+        "splice_plugin_setting": [
+            {
+                "name": "pluginname1",
+                "parameters": [
+                    {
+                        "name": "module_call_order",
+                        "value":  1
+                    },
+                    {
+                        "name": "paramname",
+                        "value":  1
+                    }
+                ]
+            },
+            {
+                "name": "pluginname2",
+                "parameters": [
+                    {
+                        "name": "module_call_order",
+                        "value":  1
+                    },
+                    {
+                        "name": "paramname",
+                        "value":  1
+                    }
+                ]
+            }
+                                 ]
+    },
+
+    "serial_port_config": {
+        "port_id": "/dev/ttyACM0",
+        "baudrate": 19200,
+        "timeout": 0.0
     },
 
     "acquisition_config": {
-        "splice_plugins_enable": false,
-        "splice_plugin_setting": [
-            {"name": "pluginname1", "parameters": [{"name": "module_call_order", "value":  1},
-                {"name": "paramname", "value":  1}]},
-            {"name": "pluginname2", "parameters": [{"name": "module_call_order", "value":  1},
-                {"name": "paramname", "value":  1}]}
-                                 ],
-        "buffer": {"nframes": 32, "nrows": 256, "ncols": 256},
         "enable_gpu" : 1,
-        "vid_save_path": "XXX/YYY.tiff",
-        "meta_save_path": "XXX/YYY.txt",
-        "num_of_frames": 100
+        "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 128, "ncols": 128, "frame_var": "d_frame_rs"},
+        "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/vid.avi",
+        "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/meta.txt",
+        "num_of_frames": 50
     },
 
-    "feedback_config": {
-        "port_id": "XXX"
+    "rois_data": {
+        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois.h5"
     },
 
-    "buffer_preprocess_config": {
-        "resize": {"order": 1, "kernel_name":"resize",
-            "parameters": {"nrows": 512, "ncols": 512}}
-    },
-
-    "buffer_postprocess_config": {
-        "dff": {"order": 2, "kernel_name":"dff_moving_avg",
-            "parameters": {"temporal_window": 30 , "exp_tau": 10}},
-        "filter": {"order": 3, "kernel_name":"filter_gauss3d",
-            "parameters": {"sigma": [3, 3, 3]}},
-        "threshold": {"order": 4, "kernel_name":"threshold_std",
-            "parameters":{"nstd": 2}}
-    },
-
-    "process_config": {
-        "method": "Temporal Cross-Correlation",
-        "attributes": {
-            "function_name":"dff_moving_avg",
-            "parameters": {"pattern": "var_name" , "norm": null}
+    "preprocess_pipeline_config": [
+        {
+            "name": "resize",
+            "function": "zoom",
+            "args": ["d_frame_rs", "d_frame"],
+            "buffer": {"name": "d_frame_rs", "size": [128, 128]},
+            "circ_buffer": {"name": "buffer_rs", "size": [32, 128, 128]},
+            "return": "circ_buffer"
+        },
+        {
+            "name": "baseline",
+            "function": "baseline_calc_carbox",
+            "args": ["buffer_rs"],
+            "buffer": {"name": "bs", "size": [128, 128]},
+            "circ_buffer": null,
+            "return": "buffer"
+        },
+        {
+            "name": "dff",
+            "function": "dff",
+            "args": ["buffer_rs", "bs"],
+            "buffer": {"name": "d_dff", "size": [128, 128]},
+            "circ_buffer": {"name": "buffer_dff", "size": [32, 128, 128]},
+            "return": "circ_buffer"
+        },
+        {
+            "name": "std",
+            "function": "cp.std",
+            "args": ["buffer_dff", "0", "cp.float32", "d_std_map"],
+            "buffer": {"name": "d_std_map", "size": [128, 128]},
+            "circ_buffer": null,
+            "return": null
+        },
+        {
+            "name": "threshold",
+            "function": "std_threshold",
+            "args": ["cp.roll(buffer_th, ptr)", "pattern", "2"],
+            "buffer": {"name": "d_frame_seq_th", "size": [32, 128, 128]},
+            "circ_buffer": {"name": "buffer_th", "size": [32, 128, 128]},
+            "return": "buffer_th"
         }
-    },
+    ],
 
     "metric_config": {
         "method": "Temporal Cross-Correlation",
+        "function": "std_threshold",
+        "args": ["buffer_dff", "d_std_map", 2],
         "attributes": {
             "function_name":"temporal_cross_corr",
-            "pattern_path": "XXX/YYY.tiff",
+            "pattern_path": "/home/pb/PycharmProjects/WideFlow/test_patterns/pattern_smooth_threshold.tif",
             "parameters": {"threshold": 10}
         }
+    },
+
+    "visualization_config": {
+        "show_live_stream": true,
+        "show_rois_trace": false,
+        "show_pattern_weight": false
     }
 }
