@@ -3,6 +3,7 @@ import cupy as cp
 import cupyx.scipy.ndimage as csn
 
 
+
 # update_buffer = cp.RawKernel(r'''
 #     extern "C" __global__
 #     void copyKernel(double* x3d, double* x2d, int frameIdx, int capacity) {
@@ -62,20 +63,15 @@ def resize(cp_2d_arr, cp_2d_arr_rs):
     csn.affine_transform(cp_2d_arr, trans_mat, output_shape=(n_rows_rs, n_cols_rs), output=cp_2d_arr_rs)
 
 
-def zoom(cp_2d_arr, cp_2d_arr_zm):
+def zoom(cp_2d_arr_zm, cp_2d_arr):
     zm_factor = (cp_2d_arr_zm.shape[0] / cp_2d_arr.shape[0], cp_2d_arr_zm.shape[1] / cp_2d_arr.shape[1])
     csn.zoom(cp_2d_arr, zm_factor, cp_2d_arr_zm)
-
-
-def nd_std(cp_nd_arr, ax):
-    n = cp_nd_arr.shape[0]
-    return cp.sum(cp.square(cp_nd_arr - cp.sum(cp_nd_arr, axis=ax) / n), axis=ax) / n
 
 
 def std_threshold(cp_3d_arr, std_map, steps):
     cp_3d_arr_mean = cp.mean(cp_3d_arr, 0)
     cp_3d_arr[cp_3d_arr < cp_3d_arr_mean - steps*std_map] = 0
-    return cp_3d_arr
+    return cp.mean(cp_3d_arr)
 
 
 def cross_corr(x3d, y3d):
@@ -86,9 +82,29 @@ def cross_corr(x3d, y3d):
     return cp.mean(cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy)))
 
 
+def extract_rois_timeseries(x3d, rois_dict, shape):
+    rois_time_series = [None] * len(rois_dict)
+    for i, roi_dict in enumerate(rois_dict):
+        pixels_id_list = roi_dict["PixelIdxList"]
+        unravel_idx = np.unravel_index(pixels_id_list, shape=shape)
+        rois_time_series[i] = cp.mean(x3d[:, unravel_idx[0], unravel_idx[1]], 1)
+
+    return rois_time_series
+
+
+def cross_corr_cp(x3d, y3d, corr):
+    csn.correlate(x3d, y3d, corr)
+    return cp.mean(corr)
+
+
 @cp.fuse()
 def dff(x2d, bs):
     return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
+
+
+# def nd_std(cp_nd_arr, ax):
+#     n = cp_nd_arr.shape[0]
+#     return cp.sum(cp.square(cp_nd_arr - cp.sum(cp_nd_arr, axis=ax) / n), axis=ax) / n
 
 
 # def run_preprocesses(cp_2d_arr, processes_list):
