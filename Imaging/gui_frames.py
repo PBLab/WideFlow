@@ -1,16 +1,23 @@
 import wx
+from pubsub.pub import Publisher
+import os
+from utils.imaging_utils import load_config
+wildcard = "config json (*.json)|*.json|" \
+           "All files (*.*)|*.*"
 
 
-class AcquisitionConfig(wx.Frame):
-    def __init__(self, *args, **kwargs):
+class AcquisitionConfig(wx.Dialog):
+    def __init__(self, config, *args, **kwargs):
         super(AcquisitionConfig, self).__init__(*args, **kwargs)
+        self.configs = config
+        self.currentDirectory = os.getcwd()
         self.InitUI()
 
     def InitUI(self):
         self.main_layout()
         self.Move((0, 0))
-        self.SetSize((300, 300))
-        self.SetTitle('WideFlow')
+        self.SetSize((500, 300))
+        self.SetTitle('Session Configurations')
         self.Centre()
 
     def main_layout(self):
@@ -20,56 +27,56 @@ class AcquisitionConfig(wx.Frame):
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(9)
 
-        vbox_main = wx.BoxSizer(wx.VERTICAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
 
-        vbox_processes = wx.BoxSizer(wx.VERTICAL)
-        hbox_title = wx.BoxSizer(wx.HORIZONTAL)
-        vbox_processes.Add(hbox_title, flag=wx.LEFT, border=10)
+        txt_lbl = wx.StaticText(panel, wx.ID_ANY, "Select the Input File")
+        vbox.Add(txt_lbl)
 
-        st1 = wx.StaticText(panel, label='Processes')
-        st1.SetFont(font)
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(st1)
-        p1 = wx.CheckBox(panel, label='Process 1')
-        p1.SetFont(font)
-        hbox1.Add(p1)
-        m1 = wx.CheckBox(panel, label='metric 1')
-        m1.SetFont(font)
-        hbox1.Add(m1)
-        vbox_processes.Add(hbox1, flag=wx.LEFT, border=10)
-        vbox_processes.Add((-1, 25))
-
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        p2 = wx.CheckBox(panel, label='Process 2')
-        p2.SetFont(font)
-        hbox2.Add(p2)
-        m2 = wx.CheckBox(panel, label='metric 2')
-        m2.SetFont(font)
-        hbox2.Add(m2)
-        vbox_processes.Add(hbox2, flag=wx.LEFT, border=10)
-        vbox_processes.Add((-1, 25))
-
-        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-        p3 = wx.CheckBox(panel, label='Process 3')
-        p3.SetFont(font)
-        hbox3.Add(p3)
-        m3 = wx.CheckBox(panel, label='metric 3')
-        m3.SetFont(font)
-        hbox3.Add(m3)
-        vbox_processes.Add(hbox3, flag=wx.LEFT, border=10)
-        vbox_processes.Add((-1, 25))
-
-        vbox_main.Add(vbox_processes, flag=wx.LEFT, border=10)
-        vbox_main.Add((-1, 25))
-        panel.SetSizer(vbox_main)
+        openFileDlgBtn = wx.Button(panel, label="Browse")
+        vbox.Add(openFileDlgBtn, 0, wx.ALL, 10)
 
 
-# def main():
-#
-#     app = wx.App()
-#     main_gui = AcquisitionConfig(parent=None, title='blabla')
-#     main_gui.Show()
-#     app.MainLoop()
-#
-# if __name__ == '__main__':
-#     main()
+        panel.SetSizer(vbox)
+        self.Show()
+
+        openFileDlgBtn.Bind(wx.EVT_BUTTON, self.onOpenFile)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+
+    def onOpenFile(self, event):
+        dlg = wx.FileDialog(
+            self, message="Choose a file",
+            defaultDir=self.currentDirectory,
+            defaultFile="",
+            wildcard=wildcard,
+            style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPaths()
+            self.configs = load_config(path[0])
+
+    def onSaveFile(self, event):
+        pass
+
+    def onClose(self, evt):
+        # dlg = wx.MessageDialog(self, "Do you want to update the session configurations?", "Confirm Exit",
+        #                        wx.OK | wx.CANCEL | wx.ICON_QUESTION)
+        # result = dlg.ShowModal()
+        # dlg.Destroy()
+        # if result == wx.ID_CANCEL:
+        #     event = MyCustomEvent(resultOfDialog="User Clicked CANCEL")
+        #     self.GetEventHandler().ProcessEvent(event)
+        # else:  # result == wx.ID_OK
+        #     event = MyCustomEvent(resultOfDialog="User Clicked OK")
+        #     self.GetEventHandler().ProcessEvent(event)
+        self.Destroy()
+
+
+def main():
+
+    app = wx.App()
+    main_gui = AcquisitionConfig(parent=None)
+    main_gui.Show()
+    app.MainLoop()
+
+if __name__ == '__main__':
+    main()
