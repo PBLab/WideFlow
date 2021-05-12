@@ -113,6 +113,11 @@ def run_session(config, cam):
         ax = plt.gca()
         im = ax.imshow(cp.asnumpy(np.array(cp.asnumpy(locals()[frame_out_str]), dtype=np.uint8)), animated=True)
 
+    if visualization_config["show_rois_trace"]:
+        fig = plt.figure()
+        ax_roi = plt.gca()
+
+
     frame_counter = 0
     ptr = capacity - 1
     while frame_counter < acquisition_config["num_of_frames"]:
@@ -158,6 +163,10 @@ def run_session(config, cam):
             plt.pause(0.0001)
         t1_stop = perf_counter()
         print("Elapsed time:", t1_stop - t1_start)
+
+        if visualization_config["show_rois_trace"]:
+            pass
+
         frame_counter += 1
 
         # frames_seq[:, :, frame_counter-1] = frame_out
