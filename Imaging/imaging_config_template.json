@@ -52,6 +52,11 @@
         "num_of_frames": 50
     },
 
+    "feedback_config": {
+        "pattern_path": "/home/pb/PycharmProjects/WideFlow/test_patterns/pattern_smooth_threshold.tif",
+        "metric_threshold": 10
+    },
+
     "rois_data": {
         "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois.h5"
     },
@@ -101,18 +106,13 @@
 
     "metric_config": {
         "method": "Temporal Cross-Correlation",
-        "function": "std_threshold",
-        "args": ["buffer_dff", "d_std_map", 2],
-        "attributes": {
-            "function_name":"temporal_cross_corr",
-            "pattern_path": "/home/pb/PycharmProjects/WideFlow/test_patterns/pattern_smooth_threshold.tif",
-            "parameters": {"threshold": 10}
-        }
+        "function": "cross_corr",
+        "args": ["buffer_th", "pattern"]
     },
 
     "visualization_config": {
-        "show_live_stream": false,
-        "show_rois_trace": false,
-        "show_pattern_weight": false
+        "show_live_stream": true,
+        "show_rois_trace": true,
+        "show_pattern_weight": true
     }
 }
