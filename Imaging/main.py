@@ -2,10 +2,12 @@ from devices.cupy_cuda_kernels import *
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
+from utils.gen_utils import extract_rois_data
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
+from Imaging.utils.multiple_trace_plot import TracePlot
 from utils.load_tiff import load_tiff
-from utils.load_matlab_vector_field import load_allen_2d_cortex_rois
+from utils.load_matlab_vector_field import load_extended_rois_list
 
 import cupy as cp
 import numpy as np
@@ -15,7 +17,6 @@ import time
 from time import perf_counter
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
-from matplotlib.animation import FuncAnimation
 
 
 def run_session(config, cam):
@@ -24,12 +25,13 @@ def run_session(config, cam):
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
     acquisition_config = config["acquisition_config"]
+    feedback_config = config["feedback_config"]
     pipeline_config = config["preprocess_pipeline_config"]
     metric_config = config["metric_config"]
     visualization_config = config["visualization_config"]
 
     # load roi data file
-    rois_dict = load_allen_2d_cortex_rois(config["rois_data"]["file_path"])
+    rois_dict = load_extended_rois_list(config["rois_data"]["file_path"])
 
     # allocate circular buffer in device
     for process_config in pipeline_config:
@@ -48,8 +50,8 @@ def run_session(config, cam):
             locals()[name] = cp.asanyarray(np.empty(size))
 
     # set feedback metric
-    pattern = cp.asanyarray(load_tiff(metric_config["attributes"]["pattern_path"]))
-    metric_threshold = metric_config["attributes"]["parameters"]["threshold"]
+    pattern = cp.asanyarray(load_tiff(feedback_config["pattern_path"]))
+    feedback_threshold = feedback_config["metric_threshold"]
 
     # video writer settings
     vid_write_config = acquisition_config["vid_writer"]
@@ -114,9 +116,12 @@ def run_session(config, cam):
         im = ax.imshow(cp.asnumpy(np.array(cp.asnumpy(locals()[frame_out_str]), dtype=np.uint8)), animated=True)
 
     if visualization_config["show_rois_trace"]:
-        fig = plt.figure()
-        ax_roi = plt.gca()
+        plt.ion()
+        trace_plot = TracePlot(len(rois_dict), 0.05, list(rois_dict.keys()), capacity)
 
+    if visualization_config["show_pattern_weight"]:
+        plt.ion()
+        pattern_corr_plot = TracePlot(1, 1, 'pattern corr', capacity)
 
     frame_counter = 0
     ptr = capacity - 1
@@ -144,11 +149,11 @@ def run_session(config, cam):
                 eval(process["function"] + "(" + ",".join(process["args"]) + ")")
 
         # evaluate metric
-        result = eval(metric_config["function"] + "(" + ",".join(process["args"]) + ")")
+        result = eval(metric_config["function"] + "(" + ",".join(metric_config["args"]) + ")")
 
-        # send TTL if
+        # send TTL if metric above threshold
         cue = 0
-        if cp.asnumpy(result) > metric_threshold:
+        if cp.asnumpy(result) > feedback_threshold:
             cue = 1
             ser.sendTTL()
             t2_start = perf_counter()
@@ -161,13 +166,17 @@ def run_session(config, cam):
         if visualization_config["show_live_stream"]:
             im.set_data(frame_out)
             plt.pause(0.0001)
-        t1_stop = perf_counter()
-        print("Elapsed time:", t1_stop - t1_start)
 
         if visualization_config["show_rois_trace"]:
-            pass
+            rois_trace = extract_rois_data(cp.asnumpy(locals()["buffer_dff"][ptr, :, :]), rois_dict)
+            trace_plot.update_plot(np.array(rois_trace))
+
+        if visualization_config["show_pattern_weight"]:
+            pattern_corr_plot.update_plot(result)
 
         frame_counter += 1
+        t1_stop = perf_counter()
+        print("Elapsed time:", t1_stop - t1_start)
 
         # frames_seq[:, :, frame_counter-1] = frame_out
         # if frame_counter == 50:
@@ -184,7 +193,6 @@ def run_session(config, cam):
     ser.close()
     writer.close()
     metadata.save_file()
-    # print("__________________________delay time:", t2_stop - t2_start)
 
 
 if __name__ == "__main__":
