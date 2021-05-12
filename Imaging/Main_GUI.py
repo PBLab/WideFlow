@@ -109,6 +109,8 @@ class Camera:
     def __init__(self):
         self.sensor_size = (512, 512)
         self.exp_time = 10
+        self.binning = (3,3)
+        self.roi = (0, 2048, 0, 2048)
 
     def open(self):
         pass
@@ -117,6 +119,9 @@ class Camera:
         pass
 
     def get_frame(self):
+        return np.random.random(self.sensor_size)*255
+
+    def get_live_frame(self):
         return np.random.random(self.sensor_size)*255
 
     def start_live(self):
