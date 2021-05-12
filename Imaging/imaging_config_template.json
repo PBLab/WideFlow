@@ -111,7 +111,7 @@
     },
 
     "visualization_config": {
-        "show_live_stream": true,
+        "show_live_stream": false,
         "show_rois_trace": false,
         "show_pattern_weight": false
     }
