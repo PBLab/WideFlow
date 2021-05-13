@@ -61,17 +61,20 @@ def resize(cp_2d_arr, cp_2d_arr_rs):
     trans_mat[0][0] = n_rows_rs / n_rows
     trans_mat[1][1] = n_cols_rs / n_cols
     csn.affine_transform(cp_2d_arr, trans_mat, output_shape=(n_rows_rs, n_cols_rs), output=cp_2d_arr_rs)
+    return cp_2d_arr_rs
 
 
 def zoom(cp_2d_arr_zm, cp_2d_arr):
     zm_factor = (cp_2d_arr_zm.shape[0] / cp_2d_arr.shape[0], cp_2d_arr_zm.shape[1] / cp_2d_arr.shape[1])
     csn.zoom(cp_2d_arr, zm_factor, cp_2d_arr_zm)
+    return cp_2d_arr_zm
 
 
 def std_threshold(cp_3d_arr, std_map, steps):
     cp_3d_arr_mean = cp.mean(cp_3d_arr, 0)
-    cp_3d_arr[cp_3d_arr < cp_3d_arr_mean - steps*std_map] = 0
-    return cp.mean(cp_3d_arr)
+    cp_3d_arr_rs = cp_3d_arr
+    cp_3d_arr_rs[cp_3d_arr_rs < cp_3d_arr_mean - steps*std_map] = 0
+    return cp_3d_arr_rs
 
 
 def cross_corr(x3d, y3d):
@@ -80,6 +83,7 @@ def cross_corr(x3d, y3d):
     meuy = cp.mean(y3d)
     sigy = cp.std(y3d)
     return cp.mean(cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy)))
+    # return cp.mean(cp.multiply(x3d, y3d))
 
 
 def extract_rois_timeseries(x3d, rois_dict, shape):
