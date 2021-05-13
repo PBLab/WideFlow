@@ -5,7 +5,8 @@
         "core_attr": {
             "exp_time": 10,
             "binning": [1, 1],
-            "roi": [0, 2048, 0, 2048]
+            "roi": [0, 2048, 0, 2048],
+            "clear_mode": 0
         },
         "splice_plugins_enable": false,
         "splice_plugin_setting": [
@@ -40,25 +41,26 @@
 
     "serial_port_config": {
         "port_id": "/dev/ttyACM0",
-        "baudrate": 19200,
-        "timeout": 0.0
+        "baudrate": 9800,
+        "timeout": 1.0
     },
 
     "acquisition_config": {
         "enable_gpu" : 1,
-        "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 128, "ncols": 128, "frame_var": "d_frame_rs"},
+        "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "d_frame_rs"},
         "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/vid.avi",
         "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/meta.txt",
-        "num_of_frames": 50
+        "num_of_frames": 100,
+        "capacity": 32
     },
 
     "feedback_config": {
-        "pattern_path": "/home/pb/PycharmProjects/WideFlow/test_patterns/pattern_smooth_threshold.tif",
+        "pattern_path": "/home/pb/PycharmProjects/WideFlow/test_patterns/pattern_smooth_threshold_297_337_32.tif",
         "metric_threshold": 10
     },
 
     "rois_data": {
-        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois.h5"
+        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5"
     },
 
     "preprocess_pipeline_config": [
@@ -66,41 +68,48 @@
             "name": "resize",
             "function": "zoom",
             "args": ["d_frame_rs", "d_frame"],
-            "buffer": {"name": "d_frame_rs", "size": [128, 128]},
-            "circ_buffer": {"name": "buffer_rs", "size": [32, 128, 128]},
-            "return": "circ_buffer"
+            "allocate": [
+                {"name": "d_frame_rs", "size": [297, 337], "dtype": "float32"},
+                {"name": "buffer_rs", "size": [32, 297, 337], "dtype": "float32"}
+            ],
+            "return": {"buffer_type": "circ_buffer", "to":"buffer_rs"}
         },
         {
             "name": "baseline",
             "function": "baseline_calc_carbox",
             "args": ["buffer_rs"],
-            "buffer": {"name": "bs", "size": [128, 128]},
-            "circ_buffer": null,
-            "return": "buffer"
+            "allocate": [
+                {"name": "bs", "size": [297, 337], "dtype": "float32"}
+            ],
+            "return": {"buffer_type": "buffer", "to":"bs"}
         },
         {
             "name": "dff",
             "function": "dff",
-            "args": ["buffer_rs", "bs"],
-            "buffer": {"name": "d_dff", "size": [128, 128]},
-            "circ_buffer": {"name": "buffer_dff", "size": [32, 128, 128]},
-            "return": "circ_buffer"
+            "args": ["d_frame_rs", "bs"],
+            "allocate": [
+                {"name": "buffer_dff", "size": [32, 297, 337], "dtype": "float32"}
+            ],
+            "return": {"buffer_type": "circ_buffer", "to":"buffer_dff"}
         },
         {
             "name": "std",
             "function": "cp.std",
             "args": ["buffer_dff", "0", "cp.float32", "d_std_map"],
-            "buffer": {"name": "d_std_map", "size": [128, 128]},
-            "circ_buffer": null,
-            "return": null
+            "allocate": [
+                {"name": "d_std_map", "size": [297, 337], "dtype": "float32"}
+            ],
+            "return": {"buffer_type": "None", "to":"None"}
         },
         {
             "name": "threshold",
             "function": "std_threshold",
-            "args": ["cp.roll(buffer_th, ptr)", "pattern", "2"],
-            "buffer": {"name": "d_frame_seq_th", "size": [32, 128, 128]},
-            "circ_buffer": {"name": "buffer_th", "size": [32, 128, 128]},
-            "return": "buffer_th"
+            "args": ["buffer_dff", "d_std_map", "2"],
+            "allocate": [
+                {"name": "d_frame_seq_th", "size": [32, 297, 337], "dtype": "float32"},
+                {"name": "buffer_th", "size": [32, 297, 337], "dtype": "float32"}
+            ],
+            "return": {"buffer_type": "buffer", "to":"buffer_th"}
         }
     ],
 
@@ -111,8 +120,8 @@
     },
 
     "visualization_config": {
-        "show_live_stream": true,
-        "show_rois_trace": true,
-        "show_pattern_weight": true
+        "show_live_stream": false,
+        "show_rois_trace": false,
+        "show_pattern_weight": false
     }
 }
