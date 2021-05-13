@@ -3,11 +3,13 @@ import time
 
 
 class SerialControler(serial.Serial):
-    def __init__(self, port="/dev/ttyACM0", baudrate=19200, timeout=0.0):
+    def __init__(self, port="/dev/ttyACM0", baudrate=9800, timeout=1.0):
         super().__init__(port, baudrate, timeout=timeout)
 
     def sendTTL(self):
         self.write(b'H')
+        time.sleep(0.1)
+        self.write(b'L')
         # TODO: do more things if necessary
 
     def blink(self):
