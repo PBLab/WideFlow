@@ -32,22 +32,16 @@ def run_session(config, cam):
 
     # load roi data file
     rois_dict = load_extended_rois_list(config["rois_data"]["file_path"])
+    # circular buffers capacity
+    capacity = acquisition_config["capacity"]
 
-    # allocate circular buffer in device
+    # allocate memory in device
     for process_config in pipeline_config:
-        if process_config["circ_buffer"] is not None:
-            capacity = process_config["circ_buffer"]["size"][0]
-            break
+        if len(process_config["allocate"]) != 0:
+            for settings in process_config["allocate"]:
+                locals()[settings["name"]] = \
+                    cp.asanyarray(np.empty(shape=settings["size"], dtype=np.dtype(settings["dtype"])))
 
-    for process_config in pipeline_config:
-        if process_config["circ_buffer"] is not None:
-            name = process_config["circ_buffer"]["name"]
-            size = process_config["circ_buffer"]["size"]
-            locals()[name] = cp.asanyarray(np.empty(size))
-        if process_config["buffer"] is not None:
-            name = process_config["buffer"]["name"]
-            size = process_config["buffer"]["size"]
-            locals()[name] = cp.asanyarray(np.empty(size))
 
     # set feedback metric
     pattern = cp.asanyarray(load_tiff(feedback_config["pattern_path"]))
@@ -103,8 +97,9 @@ def run_session(config, cam):
         d_frame = cp.asanyarray(frame)
 
         process = pipeline_config[0]
-        eval(process["function"] + "(" + ",".join(process["args"]) + ")")
-        locals()[process["circ_buffer"]["name"]][ptr, :, :] = locals()[process["buffer"]["name"]]
+        # eval(process["function"] + "(" + ",".join(process["args"]) + ")")
+        # locals()[process["return"]["to"]][ptr, :, :] = locals()[process["buffer"]["name"]]
+        locals()[process["return"]["to"]][ptr, :, :] = eval(process["function"] + "(" + ",".join(process["args"]) + ")")
 
         frame_counter += 1
 
@@ -131,19 +126,20 @@ def run_session(config, cam):
         else:
             ptr += 1
 
-        t1_start = perf_counter()
+        frame_clock_start = perf_counter()
         frame = cam.get_live_frame()
+        print(frame[150,200])
         d_frame = cp.asanyarray(frame)
 
         # preprocessing pipeline
         for process in pipeline_config:
-            if process["return"] == "buffer":
-                locals()[process["buffer"]["name"]] = \
+            if process["return"]["buffer_type"] == "buffer":
+                locals()[process["return"]["to"]] = \
                     eval(process["function"] + "(" + ",".join(process["args"]) + ")")
 
-            elif process["return"] == "circ_buffer":
-                eval(process["function"] + "(" + ",".join(process["args"]) + ")")
-                locals()[process["circ_buffer"]["name"]][ptr, :, :] = locals()[process["buffer"]["name"]]
+            elif process["return"]["buffer_type"] == "circ_buffer":
+                locals()[process["return"]["to"]][ptr, :, :] = \
+                    eval(process["function"] + "(" + ",".join(process["args"]) + ")")
 
             else:
                 eval(process["function"] + "(" + ",".join(process["args"]) + ")")
@@ -153,15 +149,17 @@ def run_session(config, cam):
 
         # send TTL if metric above threshold
         cue = 0
+        # if cp.mean(locals()["d_frame_rs"])>1000:
         if cp.asnumpy(result) > feedback_threshold:
             cue = 1
             ser.sendTTL()
-            t2_start = perf_counter()
+            # ttl_clock_stop = perf_counter()
+            # print(f'time elapsed between signal to ttl output: {ttl_clock_stop-ttl_clock_start}')
             print('________________TTL SENT___________________')
 
         frame_out = np.array(cp.asnumpy(locals()[frame_out_str]), dtype=np.uint8)
         writer.writeFrame(frame_out)
-        metadata.write_frame_metadata(t1_start, cue)
+        metadata.write_frame_metadata(frame_clock_start, cue)
 
         if visualization_config["show_live_stream"]:
             im.set_data(frame_out)
@@ -175,24 +173,18 @@ def run_session(config, cam):
             pattern_corr_plot.update_plot(result)
 
         frame_counter += 1
-        t1_stop = perf_counter()
-        print("Elapsed time:", t1_stop - t1_start)
-
-        # frames_seq[:, :, frame_counter-1] = frame_out
-        # if frame_counter == 50:
-        #     ser.close()  # led is on
-        #     t2_start = perf_counter()
+        frame_clock_stop = perf_counter()
+        print("Elapsed time:", frame_clock_stop - frame_clock_start)
+        # if frame_counter == 80:
+        #     ser.sendTTL()  # led is on
+        #     ttl_clock_start = perf_counter()
         #     print('________________LED ON___________________')
-        #
-        # if buffer_dff[ptr, :, :].mean() > 0.03:
-        #     t2_stop = perf_counter()
-        #     break
 
+    metadata.save_file()
     cam.stop_live()
     cam.close()
     ser.close()
     writer.close()
-    metadata.save_file()
 
 
 if __name__ == "__main__":
@@ -206,3 +198,5 @@ if __name__ == "__main__":
     pvc.init_pvcam()
     cam = next(PVCamera.detect_camera())
     run_session(session_config, cam)
+    # import cProfile
+    # cProfile.run('run_session(session_config, cam)')
