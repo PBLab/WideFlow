@@ -1,5 +1,6 @@
 import time
 from utils.imaging_utils import load_config
+import numpy as np
 
 
 class AcquisitionMetaData:
@@ -9,8 +10,8 @@ class AcquisitionMetaData:
         self.config = config or load_config(session_config_path)
         self.write_metafile_header()
 
-    def write_frame_metadata(self, timestemp, cue):
-        self.metatext += f"timestemp:{timestemp}    cue:{cue}"
+    def write_frame_metadata(self, timestemp, cue, result):
+        self.metatext += "timestemp:{:0.5f}    cue:{}   metric result:{:0.5f}\n".format(timestemp, cue, result.item())
 
     def write_metafile_header(self):
         self.metatext = str(self.datetime.tm_year) + '/' + str(self.datetime.tm_mon) + '/' + str(self.datetime.tm_mday) + ' - ' + str(self.datetime.tm_hour) + ':' + str(self.datetime.tm_min) + ':' + str(self.datetime.tm_sec) + '\n'
