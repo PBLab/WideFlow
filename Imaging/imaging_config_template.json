@@ -56,67 +56,115 @@
 
     "feedback_config": {
         "pattern_path": "/home/pb/PycharmProjects/WideFlow/test_patterns/pattern_smooth_threshold_297_337_32.tif",
-        "metric_threshold": 10
+        "metric_threshold": 0.3
     },
 
     "rois_data": {
-        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5"
+        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
+        "cortex_file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5"
     },
 
-    "preprocess_pipeline_config": [
+    "allocation_config": [
+        {"name": "d_frame_rs", "size": [297, 337], "dtype": "float32", "init": null},
+        {"name": "buffer_rs", "size": [32, 297, 337], "dtype": "float32", "init": null},
+        {"name": "bs", "size": [297, 337], "dtype": "float32", "init": null},
+        {"name": "buffer_dff", "size": [32, 297, 337], "dtype": "float32", "init": null},
+        {"name": "d_std_map", "size": [297, 337], "dtype": "float32", "init": null},
+        {"name": "d_frame_seq_th", "size": [32, 297, 337], "dtype": "float32", "init": null},
+        {"name": "buffer_th", "size": [32, 297, 337], "dtype": "float32", "init": null},
+        {"name": "d_buffer_th_mean", "size": [1], "dtype": "float32",
+            "init": {
+                    "function": "cp.zeros",
+                    "args": ["(1)", "dtype=cp.float32"]
+                       }
+            },
+        {"name": "d_buffer_th_std", "size": [1], "dtype": "float32",
+            "init": {
+                        "function": "cp.zeros",
+                        "args": ["(1)", "dtype=cp.float32"]
+                           }
+        },
+        {"name": "buffer_dff_temporal_mean", "size": [297, 337], "dtype": "float32",
+            "init": {
+                    "function": "cp.zeros",
+                    "args": ["(297, 337)", "dtype=cp.float32"]
+                       }
+            },
+        {"name": "d_pattern_std", "size": [], "dtype": "float32",
+            "init": {
+                "function": "cp.std",
+                "args": ["pattern", "dtype=cp.float32", "out=d_pattern_std"]
+                   }
+        },
+        {"name": "d_pattern_mean", "size": [], "dtype": "float32",
+            "init": {
+                "function": "cp.mean",
+                "args": ["pattern", "dtype=cp.float32", "out=d_pattern_mean"]
+            }
+        }
+    ],
+
+     "preprocess_pipeline_config": [
         {
             "name": "resize",
             "function": "zoom",
             "args": ["d_frame_rs", "d_frame"],
-            "allocate": [
-                {"name": "d_frame_rs", "size": [297, 337], "dtype": "float32"},
-                {"name": "buffer_rs", "size": [32, 297, 337], "dtype": "float32"}
-            ],
             "return": {"buffer_type": "circ_buffer", "to":"buffer_rs"}
         },
         {
             "name": "baseline",
             "function": "baseline_calc_carbox",
             "args": ["buffer_rs"],
-            "allocate": [
-                {"name": "bs", "size": [297, 337], "dtype": "float32"}
-            ],
             "return": {"buffer_type": "buffer", "to":"bs"}
         },
         {
             "name": "dff",
             "function": "dff",
             "args": ["d_frame_rs", "bs"],
-            "allocate": [
-                {"name": "buffer_dff", "size": [32, 297, 337], "dtype": "float32"}
-            ],
             "return": {"buffer_type": "circ_buffer", "to":"buffer_dff"}
         },
         {
-            "name": "std",
+            "name": "buffer_dff temporal std",
             "function": "cp.std",
             "args": ["buffer_dff", "0", "cp.float32", "d_std_map"],
-            "allocate": [
-                {"name": "d_std_map", "size": [297, 337], "dtype": "float32"}
-            ],
             "return": {"buffer_type": "None", "to":"None"}
+        },
+         {
+            "name": "buffer_dff temporal mean update",
+            "function": "update_temporal_mean",
+            "args": ["buffer_dff_temporal_mean", "buffer_dff[ptr-1, :, :]", "buffer_dff[ptr, :, :]", "capacity"],
+            "return": {"buffer_type": "buffer", "to": "buffer_dff_temporal_mean"}
         },
         {
             "name": "threshold",
             "function": "std_threshold",
-            "args": ["buffer_dff", "d_std_map", "2"],
-            "allocate": [
-                {"name": "d_frame_seq_th", "size": [32, 297, 337], "dtype": "float32"},
-                {"name": "buffer_th", "size": [32, 297, 337], "dtype": "float32"}
-            ],
+            "args": ["buffer_dff", "d_std_map", "2", "buffer_dff_temporal_mean"],
             "return": {"buffer_type": "buffer", "to":"buffer_th"}
+        },
+        {
+            "name": "buffer_th std update",
+            "function": "update_std",
+            "args": ["d_buffer_th_std", "buffer_th[ptr-1, :, :]", "buffer_th[ptr, :, :]", "capacity", "d_buffer_th_mean"],
+            "return": {"buffer_type": "buffer", "to":"d_buffer_th_std"}
+        },
+        {
+            "name": "buffer_th mean update",
+            "function": "update_mean",
+            "args": ["d_buffer_th_mean", "buffer_th[ptr-1, :, :]", "buffer_th[ptr, :, :]", "capacity", "None"],
+            "return": {"buffer_type": "buffer", "to":"d_buffer_th_mean"}
+        },
+        {
+            "name": "mask",
+            "function": "cp.multiply",
+            "args": ["buffer_th", "d_mask_stack", "buffer_th"],
+            "return": {"buffer_type": "None", "to":"None"}
         }
     ],
 
     "metric_config": {
         "method": "Temporal Cross-Correlation",
         "function": "cross_corr",
-        "args": ["buffer_th", "pattern"]
+        "args": ["cp.roll(buffer_th, ptr)", "pattern", "d_buffer_th_mean", "d_buffer_th_std", "d_pattern_mean", "d_pattern_std"]
     },
 
     "visualization_config": {
