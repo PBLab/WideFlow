@@ -1,6 +1,7 @@
 import wx
 from Imaging.VideoCapture import VideoCapture
-from Imaging.gui_frames import AcquisitionConfig
+from Imaging.gui_frames import ConfigurationWizard
+from Imaging.custom_event_handler import CustomEventTracker
 from Imaging.main import run_session
 from pubsub.pub import Publisher
 
@@ -93,8 +94,7 @@ class Main_GUI(wx.Frame):
         video_window.Show()
 
     def open_acquisition_configuration_window(self, event):
-        acquisition_config_window = AcquisitionConfig(parent=None, title='Session Acquisition Configurations',
-                                                      config=self.configuration)
+        acquisition_config_window = ConfigurationWizard(config=self.configuration)
         acquisition_config_window.Show()
 
     def start_acquisition(self, event):
@@ -106,11 +106,14 @@ class Main_GUI(wx.Frame):
 
 import numpy as np
 class Camera:
-    def __init__(self):
-        self.sensor_size = (512, 512)
+    def __init__(self, vid=None):
+        self.sensor_size = (2048, 2048)
         self.exp_time = 10
         self.binning = (3,3)
         self.roi = (0, 2048, 0, 2048)
+        self.clear_mode = 0
+        self.vid = vid
+        self.frame_idx = 0
 
     def open(self):
         pass
@@ -119,20 +122,37 @@ class Camera:
         pass
 
     def get_frame(self):
-        return np.random.random(self.sensor_size)*255
+        if self.vid is None:
+            return np.random.random(self.sensor_size)*255
+        else:
+            return self.vid[self.frame_idx, :, :]
+            self.frame_idx += 1
 
     def get_live_frame(self):
-        return np.random.random(self.sensor_size)*255
+        if self.vid is None:
+            return np.random.random(self.sensor_size) * 255
+        else:
+            self.frame_idx += 1
+            return self.vid[self.frame_idx, :, :]
 
     def start_live(self):
         pass
 
+    def stop_live(self):
+        pass
+
 def main():
+
     cam = Camera()
     # pvc.init_pvcam()
     # cam = next(PVCamera.detect_camera())
     app = wx.App()
     main_gui = Main_GUI(parent=None, title='blabla', cam=cam)
+
+    # (MyCustomEvent, EVT_CUSTOM) = wx.lib.newevent.NewEvent()
+    # eventTrackerHandle = CustomEventTracker(ConfigurationWizard.onClose)
+    # main_gui.PushEventHandler(eventTrackerHandle)
+
     main_gui.Show()
     app.MainLoop()
 
