@@ -70,20 +70,29 @@ def zoom(cp_2d_arr_zm, cp_2d_arr):
     return cp_2d_arr_zm
 
 
-def std_threshold(cp_3d_arr, std_map, steps):
-    cp_3d_arr_mean = cp.mean(cp_3d_arr, 0)
+def std_threshold(cp_3d_arr, std_map, steps, cp_3d_arr_temporal_mean):
     cp_3d_arr_rs = cp_3d_arr
-    cp_3d_arr_rs[cp_3d_arr_rs < cp_3d_arr_mean - steps*std_map] = 0
+    cp_3d_arr_rs[cp_3d_arr_rs < cp_3d_arr_temporal_mean - steps*std_map] = 0
     return cp_3d_arr_rs
 
 
-def cross_corr(x3d, y3d):
+def cross_corr(x3d, y3d, meux, sigx, meuy, sigy):
     meux = cp.mean(x3d)
     sigx = cp.std(x3d)
-    meuy = cp.mean(y3d)
-    sigy = cp.std(y3d)
-    return cp.mean(cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy)))
-    # return cp.mean(cp.multiply(x3d, y3d))
+    return cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy))
+
+
+def update_mean(mean, old_sample, new_sample, n, ax):
+    return mean - (cp.sum(old_sample, ax) - cp.sum(new_sample, ax)) / n
+
+
+def update_temporal_mean(mean, old_sample, new_sample, n):
+    return mean - (old_sample - new_sample) / n
+
+
+def update_std(current_std, old_sample, new_sample, n, old_mean, new_mean=None):
+    new_mean = new_mean or update_mean(old_mean, old_sample, new_sample, n, None)
+    return cp.sqrt(cp.divide(cp.sum((n-2)*cp.power(current_std, 2) + cp.multiply((new_sample - new_mean), (new_sample - old_mean))), n-1))
 
 
 def extract_rois_timeseries(x3d, rois_dict, shape):
@@ -94,11 +103,6 @@ def extract_rois_timeseries(x3d, rois_dict, shape):
         rois_time_series[i] = cp.mean(x3d[:, unravel_idx[0], unravel_idx[1]], 1)
 
     return rois_time_series
-
-
-def cross_corr_cp(x3d, y3d, corr):
-    csn.correlate(x3d, y3d, corr)
-    return cp.mean(corr)
 
 
 @cp.fuse()
