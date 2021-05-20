@@ -12,7 +12,7 @@ class TracePlot:
         self.labels = labels
         self.n_frames = n_frames
 
-        self.trace_space = np.linspace(start=0, stop=self.n_traces*self.expected_amp, num=self.n_traces)
+        self.trace_space = np.linspace(start=0, stop=self.n_traces*self.expected_amp/3, num=self.n_traces)
         self.traces_data = np.zeros((n_traces, n_frames))
         self.traces_lines = [None] * self.n_traces
 
