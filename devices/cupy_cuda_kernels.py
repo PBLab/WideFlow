@@ -77,8 +77,8 @@ def std_threshold(cp_3d_arr, std_map, steps, cp_3d_arr_temporal_mean):
 
 
 def cross_corr(x3d, y3d, meux, sigx, meuy, sigy):
-    meux = cp.mean(x3d)
-    sigx = cp.std(x3d)
+    # meux = cp.mean(x3d)
+    # sigx = cp.std(x3d)
     return cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy))
 
 
