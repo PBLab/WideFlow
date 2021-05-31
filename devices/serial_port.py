@@ -8,9 +8,8 @@ class SerialControler(serial.Serial):
 
     def sendTTL(self):
         self.write(b'H')
-        time.sleep(0.1)
-        self.write(b'L')
-        # TODO: do more things if necessary
+        # time.sleep(0.1)
+        # self.write(b'L')
 
     def blink(self):
         for i in range(10):
