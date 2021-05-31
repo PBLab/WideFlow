@@ -1,9 +1,8 @@
 import wx
 from Imaging.VideoCapture import VideoCapture
 from Imaging.gui_frames import ConfigurationWizard
-from Imaging.custom_event_handler import CustomEventTracker
+
 from Imaging.main import run_session
-from pubsub.pub import Publisher
 
 from pyvcam import pvc
 from devices.PVCam import PVCamera
@@ -15,6 +14,7 @@ class Main_GUI(wx.Frame):
         self.cam = cam
         self.configuration = None
         self.InitUI()
+        self.eventTrackerHandle = None
 
     def InitUI(self):
         self.menu_bar()
@@ -94,8 +94,11 @@ class Main_GUI(wx.Frame):
         video_window.Show()
 
     def open_acquisition_configuration_window(self, event):
-        acquisition_config_window = ConfigurationWizard(config=self.configuration)
+        acquisition_config_window = ConfigurationWizard(main_gui_self=self)
         acquisition_config_window.Show()
+
+    def on_configuration_update(self, config):
+        self.configuration = config
 
     def start_acquisition(self, event):
         try:
@@ -104,55 +107,15 @@ class Main_GUI(wx.Frame):
             print("An exception occurred")
             self.cam.close()
 
-import numpy as np
-class Camera:
-    def __init__(self, vid=None):
-        self.sensor_size = (2048, 2048)
-        self.exp_time = 10
-        self.binning = (3,3)
-        self.roi = (0, 2048, 0, 2048)
-        self.clear_mode = 0
-        self.vid = vid
-        self.frame_idx = 0
-
-    def open(self):
-        pass
-
-    def close(self):
-        pass
-
-    def get_frame(self):
-        if self.vid is None:
-            return np.random.random(self.sensor_size)*255
-        else:
-            return self.vid[self.frame_idx, :, :]
-            self.frame_idx += 1
-
-    def get_live_frame(self):
-        if self.vid is None:
-            return np.random.random(self.sensor_size) * 255
-        else:
-            self.frame_idx += 1
-            return self.vid[self.frame_idx, :, :]
-
-    def start_live(self):
-        pass
-
-    def stop_live(self):
-        pass
 
 def main():
-
+    from devices.mock_cam import Camera
     cam = Camera()
     # pvc.init_pvcam()
     # cam = next(PVCamera.detect_camera())
+
     app = wx.App()
     main_gui = Main_GUI(parent=None, title='blabla', cam=cam)
-
-    # (MyCustomEvent, EVT_CUSTOM) = wx.lib.newevent.NewEvent()
-    # eventTrackerHandle = CustomEventTracker(ConfigurationWizard.onClose)
-    # main_gui.PushEventHandler(eventTrackerHandle)
-
     main_gui.Show()
     app.MainLoop()
 

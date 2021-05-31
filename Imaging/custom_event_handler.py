@@ -5,7 +5,7 @@ import wx.lib.newevent
 
 
 class CustomEventTracker(wx.EvtHandler):
-    def __init__(self, processingCodeFunctionHandle):
+    def __init__(self, log, processingCodeFunctionHandle):
         wx.EvtHandler.__init__(self)
         self.processingCodeFunctionHandle = processingCodeFunctionHandle
         EVT_CUSTOM(self, self.MyCustomEventHandler)

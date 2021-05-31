@@ -7,20 +7,23 @@ from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
 from Imaging.utils.multiple_trace_plot import TracePlot
 from Imaging.utils.live_video import LiveVideo
-from Imaging.utils.create_matching_points import select_matching_points
+from Imaging.utils.plotter_parent_process import NBPlot
+from Imaging.utils.create_matching_points import *
 
 from utils.load_tiff import load_tiff
 from utils.load_matlab_vector_field import load_extended_rois_list
 
 import cupy as cp
+import cupyx.scipy.ndimage as csn
 import numpy as np
 import cv2
 from skvideo.io import FFmpegWriter
 
 import time
 from time import perf_counter
+from operator import itemgetter
 import matplotlib.pyplot as plt
-from matplotlib.widgets import RectangleSelector
+from matplotlib.widgets import RectangleSelector, Button
 import h5py
 
 
@@ -29,6 +32,7 @@ def run_session(config, cam):
     # session config
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
+    cortex_config = config["rois_data"]
     acquisition_config = config["acquisition_config"]
     feedback_config = config["feedback_config"]
     allocation_config = config["allocation_config"]
@@ -41,9 +45,9 @@ def run_session(config, cam):
 
     # load roi data file
     rois_dict = load_extended_rois_list(config["rois_data"]["file_path"])
-    with h5py.File(config["rois_data"]["cortex_file_path"]) as f:
-        cortex_mask = np.transpose(f["mask"].value)
-        cortex_map = np.transpose(f["map"].value)
+    with h5py.File(config["rois_data"]["cortex_file_path"], 'r') as f:
+        cortex_mask = np.transpose(f["mask"][()])
+        cortex_map = np.transpose(f["map"][()])
     d_mask = cp.asanyarray(cortex_mask)
     d_mask_stack = cp.stack((d_mask, ) * capacity, 0)
 
@@ -52,7 +56,7 @@ def run_session(config, cam):
     pattern = cp.multiply(pattern, d_mask_stack)
     feedback_threshold = feedback_config["metric_threshold"]
 
-    # allocate memory in device
+    # allocate memory in device - first stage allocation
     for allc_params in allocation_config:
         locals()[allc_params["name"]] = \
             cp.asanyarray(np.empty(shape=allc_params["size"], dtype=np.dtype(allc_params["dtype"])))
@@ -98,15 +102,17 @@ def run_session(config, cam):
 
     # select matching points for allen atlas alignment
     frame = cam.get_frame()
-    d_frame = cp.asanyarray(frame, dtype=cp.uint16)
-    d_frame_src_rs = cp.ndarray(cortex_map.shape, dtype=cp.uint16)
-    zoom(d_frame_src_rs, d_frame)
-    match_p_src, match_p_dst = select_matching_points(cp.asnumpy(d_frame_src_rs),
-                                                      cortex_map * np.random.random(cortex_map.shape), 13)
-    homography_transform = cv2.findHomography(match_p_src, match_p_dst)
+    appf = ApprovalFigure(frame, cortex_map * np.random.random(cortex_map.shape),
+                          cortex_config["cortex_matching_point"]["match_p_src"],
+                          cortex_config["cortex_matching_point"]["match_p_dst"],
+                          cortex_config["cortex_matching_point"]["minimal_n_points"])
 
-    cam.start_live()
+    src_cols = appf.src_cols
+    src_rows = appf.src_rows
+    coordinates = cp.asanyarray([src_cols, src_rows])
+
     # fill buffers before session starts
+    cam.start_live()
     frame_counter = 0
     ptr = capacity - 1
     while frame_counter < capacity:
@@ -118,12 +124,27 @@ def run_session(config, cam):
         frame = cam.get_live_frame()
         d_frame = cp.asanyarray(frame)
 
-        process = pipeline_config[0]
-        # eval(process["function"] + "(" + ",".join(process["args"]) + ")")
-        # locals()[process["return"]["to"]][ptr, :, :] = locals()[process["buffer"]["name"]]
-        locals()[process["return"]["to"]][ptr, :, :] = eval(process["function"] + "(" + ",".join(process["args"]) + ")")
+        for process in itemgetter(*acquisition_config["init_process_list"])(pipeline_config):
+            if process["return"]["buffer_type"] == "buffer":
+                locals()[process["return"]["to"]] = \
+                    eval(process["function"] + "(" + ",".join(process["args"]) + ")")
+
+            elif process["return"]["buffer_type"] == "circ_buffer":
+                locals()[process["return"]["to"]][ptr, :, :] = \
+                    eval(process["function"] + "(" + ",".join(process["args"]) + ")")
+
+            else:
+                eval(process["function"] + "(" + ",".join(process["args"]) + ")")
 
         frame_counter += 1
+
+    # allocate memory in device - second stage allocation
+    for allc_params in allocation_config["second_stage"]:
+        locals()[allc_params["name"]] = \
+            cp.asanyarray(np.empty(shape=allc_params["size"], dtype=np.dtype(allc_params["dtype"])))
+        if allc_params["init"] is not None:
+            locals()[allc_params["name"]] = \
+                eval(allc_params["init"]["function"] + "(" + ",".join(allc_params["init"]["args"]) + ")")
 
     # start session
     if visualization_config["show_live_stream"] or visualization_config["show_rois_trace"] or visualization_config["show_pattern_weight"]:
@@ -131,12 +152,15 @@ def run_session(config, cam):
 
     if visualization_config["show_live_stream"]:
         live_vid = LiveVideo()
+        # live_vid = NBPlot(LiveVideo)
 
     if visualization_config["show_rois_trace"]:
         trace_plot = TracePlot(len(rois_dict), 0.05, list(rois_dict.keys()), capacity)
+        # trace_plot = TracePlot(len(rois_dict), 0.05, list(rois_dict.keys()), capacity)
 
     if visualization_config["show_pattern_weight"]:
         pattern_corr_plot = TracePlot(1, 1, ['pattern corr'], capacity)
+        # pattern_corr_plot = TracePlot(1, 1, ['pattern corr'], capacity)
 
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
@@ -174,10 +198,11 @@ def run_session(config, cam):
             ser.sendTTL()
             print('________________TTL SENT___________________')
 
-        frame_out = np.array(cv2.normalize(cp.asnumpy(locals()[frame_out_str]), None, 0, 255, cv2.NORM_MINMAX), dtype=np.uint8)
         # frame_out = np.array(cv2.normalize(cp.asnumpy(locals()["buffer_dff"][ptr, :, :]), None, 0, 255, cv2.NORM_MINMAX), dtype=np.uint8)
+        frame_out = np.array(cv2.normalize(cp.asnumpy(locals()[frame_out_str]), None, 0, 255, cv2.NORM_MINMAX), dtype=np.uint8)
         writer.writeFrame(frame_out)
-        metadata.write_frame_metadata(frame_clock_start, cue, result)
+        serial_readout = ser.readSerial()
+        metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
 
         if visualization_config["show_live_stream"]:
             live_vid.update_frame(frame_out)
