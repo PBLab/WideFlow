@@ -3,9 +3,9 @@ import wx
 
 
 class ConfigurationPanel(wx.Panel):
-
-    def __init__(self, parent, config=None):
-        self.config = config
+    def __init__(self, parent, main_gui_self):
+        self.main_gui_self = main_gui_self
+        self.config = main_gui_self.configuration
         wx.Panel.__init__(self, parent)
 
         # define text controller
@@ -85,20 +85,14 @@ class ConfigurationPanel(wx.Panel):
 
     def onUpdateConfig(self, event):
         self.config = self.my_text.Value
+        self.main_gui_self.configuration = self.config
 
 
 class ConfigurationWizard(wx.Frame):
-
-    def __init__(self, config=None):
+    def __init__(self, main_gui_self=None):
         wx.Frame.__init__(self, None, title='Session Acquisition Configurations')
-        self.panel = ConfigurationPanel(self, config=config)
-        self.Bind(wx.EVT_CLOSE, self.onClose)
-        self.Show()
-
-    def onClose(self, event):
-        #TODO: return configuration value back to main GUI frame
-        config = self.panel.config
-        self.Close()
+        self.main_gui_self = main_gui_self
+        self.panel = ConfigurationPanel(self, main_gui_self=main_gui_self)
 
 
 if __name__ == '__main__':
