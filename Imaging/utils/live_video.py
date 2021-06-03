@@ -1,53 +1,36 @@
 import matplotlib.pyplot as plt
-from multiprocessing import Process
+from multiprocessing import shared_memory
 import numpy as np
-import time
 
 
 class LiveVideo:
-    def __init__(self, fig=None, ax=None, nrows=337, ncols=297):
-        self.fig = fig or plt.figure()
-        self.ax = ax or plt.gca()
-        self.im = self.ax.imshow(np.zeros((nrows, ncols), dtype=np.uint8), animated=True)
+    def __init__(self, query, frame_rate=50):
+        self.frame_rate = frame_rate
+        self.query = query
+        self.fig, self.ax = plt.subplots()
         self.ax.set_title('Live Video')
 
-    def update_frame(self, frame):
-        self.ax.clear()
-        self.ax.imshow(frame)
-        plt.pause(0.01)
+    def __call__(self, shared_mem_name):
+        existing_shm = shared_memory.SharedMemory(name=shared_mem_name)
+        image = np.ndarray(shape=(297, 337), dtype=np.float32, buffer=existing_shm.buf)
+        while True:
+            if self.query.empty():
+                continue
 
-    @staticmethod
-    def _update_frame(ax, frame):
-        ax.clear()
-        ax.imshow(frame)
-        plt.pause(0.1)
+            q = self.query.get()
+            print(f"-------------query: {q}-----------")
+            if q == "draw":
+                print(f"image max: {np.max(image)}")
+                self.ax.clear()
+                self.ax.imshow(image)
+                self.fig.canvas.draw()
+                plt.pause(1/self.frame_rate)
+            elif q == "terminate":
+                self.terminate()
+                break
+            else:
+                raise KeyError(f'LiveVideo query "{q}" is invalid')
 
+    def terminate(self):
+        plt.close(self.fig)
 
-# class LiveVideo:
-#     def __init__(self):
-#         self.fig, self.ax = plt.subplots()
-#         self.ax.set_title('Live Video')
-#
-#     def call_back(self):
-#         while self.pipe.poll():
-#             command = self.pipe.recv()
-#             if command is None:
-#                 return False
-#             else:
-#                 self.ax.clear()
-#                 self.ax.imshow(command)
-#         self.fig.canvas.draw()
-#         return True
-#
-#     def __call__(self, pipe):
-#
-#         print('Starting Live Video...')
-#
-#         self.pipe = pipe
-#
-#         timer = self.fig.canvas.new_timer(interval=10)
-#         timer.add_callback(self.call_back)
-#         timer.start()
-#
-#         print('...done Live Video')
-#         plt.show()
