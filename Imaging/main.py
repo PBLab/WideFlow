@@ -26,6 +26,9 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector, Button
 import h5py
 
+import multiprocessing as mp
+from multiprocessing import shared_memory, Queue
+
 
 def run_session(config, cam):
 
@@ -146,22 +149,49 @@ def run_session(config, cam):
             locals()[allc_params["name"]] = \
                 eval(allc_params["init"]["function"] + "(" + ",".join(allc_params["init"]["args"]) + ")")
 
-    # start session
-    if visualization_config["show_live_stream"] or visualization_config["show_rois_trace"] or visualization_config["show_pattern_weight"]:
-        plt.ion()
-
+    # initialize visualization processes
     if visualization_config["show_live_stream"]:
-        live_vid = LiveVideo()
-        # live_vid = NBPlot(LiveVideo)
+        live_stream_config = visualization_config["show_live_stream"]
+        a = np.ndarray(live_stream_config["size"],  dtype=np.dtype(live_stream_config["dtype"]))
+        live_vid_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+        shm_name = live_vid_shm.name
+        live_vid_frame = np.ndarray(live_stream_config["size"],  dtype=np.dtype(live_stream_config["dtype"]), buffer=live_vid_shm.buf)
+
+        live_vid_q = Queue(5)
+        live_vid = LiveVideo(live_vid_q)
+
+        live_vid_process = mp.Process(target=live_vid, args=(shm_name, ))
+        live_vid_process.start()
 
     if visualization_config["show_rois_trace"]:
-        trace_plot = TracePlot(len(rois_dict), 0.05, list(rois_dict.keys()), capacity)
-        # trace_plot = TracePlot(len(rois_dict), 0.05, list(rois_dict.keys()), capacity)
+        trace_plot_config = visualization_config["show_rois_trace"]
+        a = np.ndarray(trace_plot_config["size"], dtype=np.dtype(trace_plot_config["dtype"]))
+        trace_plot_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+        shm_name = trace_plot_shm.name
+        trace_plot_samples = np.ndarray(trace_plot_config["size"], dtype=np.dtype(trace_plot_config["dtype"]),
+                                    buffer=trace_plot_shm.buf)
+
+        rois_trace_q = Queue(5)
+        trace_plot = TracePlot(rois_trace_q, len(rois_dict), 0.05, list(rois_dict.keys()), capacity)
+
+        trace_plot_process = mp.Process(target=trace_plot, args=(shm_name,))
+        trace_plot_process.start()
 
     if visualization_config["show_pattern_weight"]:
-        pattern_corr_plot = TracePlot(1, 1, ['pattern corr'], capacity)
-        # pattern_corr_plot = TracePlot(1, 1, ['pattern corr'], capacity)
+        pattern_weight_config = visualization_config["show_pattern_weight"]
+        a = np.ndarray(pattern_weight_config["size"], dtype=np.dtype(pattern_weight_config["dtype"]))
+        pattern_corr_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+        shm_name = pattern_corr_shm.name
+        pattern_corr_sample = np.ndarray(pattern_weight_config["size"], dtype=np.dtype(pattern_weight_config["dtype"]),
+                                         buffer=pattern_corr_shm.buf)
 
+        pattern_corr_q = Queue(5)
+        pattern_corr_plot = TracePlot(pattern_corr_q, 1, 1, ['pattern corr'], capacity)
+
+        pattern_corr_process = mp.Process(target=pattern_corr_plot, args=(shm_name,))
+        pattern_corr_process.start()
+
+    # start session
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
     ptr = capacity - 1
@@ -205,25 +235,47 @@ def run_session(config, cam):
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
 
         if visualization_config["show_live_stream"]:
-            live_vid.update_frame(frame_out)
+            if not live_vid_q.full():
+                live_vid_q.put("draw")
+            live_vid_frame[:] = cp.asnumpy(locals()[live_stream_config["var_name"]][ptr, :, :])
 
         if visualization_config["show_rois_trace"]:
+            if not rois_trace_q.full():
+                rois_trace_q.put("draw")
             rois_trace = extract_rois_data(cp.asnumpy(locals()["buffer_dff"][ptr, :, :]), rois_dict)
-            trace_plot.update_plot(np.array(rois_trace))
+            rois_trace = np.reshape(rois_trace, (56, 1))
+            trace_plot_samples[:] = rois_trace
 
         if visualization_config["show_pattern_weight"]:
-            pattern_corr_plot.update_plot(result)
+            if not pattern_corr_q.full():
+                pattern_corr_q.put("draw")
+            pattern_corr_sample[:] = result
+
 
         frame_counter += 1
         frame_clock_stop = perf_counter()
         print(f'frame: {frame_counter}      metric results: {result}')
         print("Elapsed time:", frame_clock_stop - frame_clock_start)
 
+    if visualization_config["show_live_stream"]["status"]:
+        if live_vid_q.full():
+            live_vid_q.get()
+        live_vid_q.put("terminate")
+    if visualization_config["show_rois_trace"]["status"]:
+        if rois_trace_q.full():
+            rois_trace_q.get()
+        rois_trace_q.put("terminate")
+    if visualization_config["show_pattern_weight"]["status"]:
+        if pattern_corr_q.full():
+            pattern_corr_q.get()
+        pattern_corr_q.put("terminate")
+
     metadata.save_file()
     cam.stop_live()
     cam.close()
     ser.close()
     writer.close()
+    print("finished session")
 
 
 if __name__ == "__main__":

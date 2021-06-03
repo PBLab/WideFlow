@@ -232,8 +232,8 @@
     },
 
     "visualization_config": {
-        "show_live_stream": true,
-        "show_rois_trace": false,
+        "show_live_stream": {"status": true, "var_name": "buffer_dff", "size": [297, 337], "dtype": "float32"},
+        "show_rois_trace": {"status": false, "var_name": "rois_trace", "size": [56, 1], "dtype": "float32"},
         "show_pattern_weight": false
     }
 }
