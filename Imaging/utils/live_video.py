@@ -1,9 +1,10 @@
+from Imaging.utils.abstract_visualization import AbstractVis
 import matplotlib.pyplot as plt
 from multiprocessing import shared_memory
 import numpy as np
 
 
-class LiveVideo:
+class LiveVideo(AbstractVis):
     def __init__(self, query, frame_rate=50):
         self.frame_rate = frame_rate
         self.query = query
@@ -18,9 +19,7 @@ class LiveVideo:
                 continue
 
             q = self.query.get()
-            print(f"-------------query: {q}-----------")
             if q == "draw":
-                print(f"image max: {np.max(image)}")
                 self.ax.clear()
                 self.ax.imshow(image)
                 self.fig.canvas.draw()
