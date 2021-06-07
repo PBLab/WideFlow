@@ -43,9 +43,13 @@ def std_threshold(cp_3d_arr, cp_3d_arr_th, std_map, steps, cp_3d_arr_temporal_me
 
 
 def cross_corr(x3d, y3d, meux, sigx, meuy, sigy):
-    # meux = cp.mean(x3d)
-    # sigx = cp.std(x3d)
-    return cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy))
+    # return cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy))
+    mx = cp.mean(x3d)
+    sx = cp.std(x3d)
+    my = cp.mean(y3d)
+    sy = cp.std(y3d)
+    return cp.divide(cp.mean(cp.multiply(x3d - mx, y3d - my)), cp.multiply(sx, sy))
+
 
 
 def extract_rois_timeseries(x3d, rois_dict, shape):
