@@ -7,7 +7,6 @@ from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
 from Imaging.utils.multiple_trace_plot import TracePlot
 from Imaging.utils.live_video import LiveVideo
-from Imaging.utils.plotter_parent_process import NBPlot
 from Imaging.utils.create_matching_points import *
 
 from utils.load_tiff import load_tiff
@@ -60,7 +59,7 @@ def run_session(config, cam):
     feedback_threshold = feedback_config["metric_threshold"]
 
     # allocate memory in device - first stage allocation
-    for allc_params in allocation_config:
+    for allc_params in allocation_config["first_stage"]:
         locals()[allc_params["name"]] = \
             cp.asanyarray(np.empty(shape=allc_params["size"], dtype=np.dtype(allc_params["dtype"])))
         if allc_params["init"] is not None:
@@ -105,14 +104,29 @@ def run_session(config, cam):
 
     # select matching points for allen atlas alignment
     frame = cam.get_frame()
+    match_p_src = np.array(
+        [[0, 0], [0, 297], [337, 297], [337, 0], [401., 264.], [182., 438.], [191., 834.], [395., 822.], [453., 750.],
+         [518., 827.], [756., 820.],
+         [744., 443.], [573., 259.], [448., 254.], [455., 501.], [436., 389.], [450., 622.]])
+    match_p_dst = np.array(
+        [[0, 0], [0, 297], [337, 297], [337, 0], [155., 6.], [13., 118.], [17., 287.], [121., 287.], [167., 237.],
+         [214., 287.], [326., 286.], [324., 114.],
+         [242., 13.], [182., 5.], [167., 124.], [169., 64.], [167., 181.]])
     appf = ApprovalFigure(frame, cortex_map * np.random.random(cortex_map.shape),
-                          cortex_config["cortex_matching_point"]["match_p_src"],
-                          cortex_config["cortex_matching_point"]["match_p_dst"],
+                          match_p_src,
+                          match_p_dst,
                           cortex_config["cortex_matching_point"]["minimal_n_points"])
+    # appf = ApprovalFigure(frame, cortex_map * np.random.random(cortex_map.shape),
+    #                       cortex_config["cortex_matching_point"]["match_p_src"],
+    #                       cortex_config["cortex_matching_point"]["match_p_dst"],
+    #                       cortex_config["cortex_matching_point"]["minimal_n_points"])
 
     src_cols = appf.src_cols
     src_rows = appf.src_rows
     coordinates = cp.asanyarray([src_cols, src_rows])
+    if int(cp.__version__[0]) < 9:
+        coordinates = np.squeeze(coordinates)
+
 
     # fill buffers before session starts
     cam.start_live()
@@ -150,7 +164,7 @@ def run_session(config, cam):
                 eval(allc_params["init"]["function"] + "(" + ",".join(allc_params["init"]["args"]) + ")")
 
     # initialize visualization processes
-    if visualization_config["show_live_stream"]:
+    if visualization_config["show_live_stream"]["status"]:
         live_stream_config = visualization_config["show_live_stream"]
         a = np.ndarray(live_stream_config["size"],  dtype=np.dtype(live_stream_config["dtype"]))
         live_vid_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
@@ -163,7 +177,7 @@ def run_session(config, cam):
         live_vid_process = mp.Process(target=live_vid, args=(shm_name, ))
         live_vid_process.start()
 
-    if visualization_config["show_rois_trace"]:
+    if visualization_config["show_rois_trace"]["status"]:
         trace_plot_config = visualization_config["show_rois_trace"]
         a = np.ndarray(trace_plot_config["size"], dtype=np.dtype(trace_plot_config["dtype"]))
         trace_plot_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
@@ -177,7 +191,7 @@ def run_session(config, cam):
         trace_plot_process = mp.Process(target=trace_plot, args=(shm_name,))
         trace_plot_process.start()
 
-    if visualization_config["show_pattern_weight"]:
+    if visualization_config["show_pattern_weight"]["status"]:
         pattern_weight_config = visualization_config["show_pattern_weight"]
         a = np.ndarray(pattern_weight_config["size"], dtype=np.dtype(pattern_weight_config["dtype"]))
         pattern_corr_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
@@ -229,24 +243,24 @@ def run_session(config, cam):
             print('________________TTL SENT___________________')
 
         # frame_out = np.array(cv2.normalize(cp.asnumpy(locals()["buffer_dff"][ptr, :, :]), None, 0, 255, cv2.NORM_MINMAX), dtype=np.uint8)
-        frame_out = np.array(cv2.normalize(cp.asnumpy(locals()[frame_out_str]), None, 0, 255, cv2.NORM_MINMAX), dtype=np.uint8)
+        frame_out = np.array(cv2.normalize(cp.asnumpy(locals()[frame_out_str][ptr, :, :]), None, 0, 255, cv2.NORM_MINMAX), dtype=np.uint8)
         writer.writeFrame(frame_out)
         serial_readout = ser.readSerial()
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
 
-        if visualization_config["show_live_stream"]:
+        if visualization_config["show_live_stream"]["status"]:
             if not live_vid_q.full():
                 live_vid_q.put("draw")
             live_vid_frame[:] = cp.asnumpy(locals()[live_stream_config["var_name"]][ptr, :, :])
 
-        if visualization_config["show_rois_trace"]:
+        if visualization_config["show_rois_trace"]["status"]:
             if not rois_trace_q.full():
                 rois_trace_q.put("draw")
             rois_trace = extract_rois_data(cp.asnumpy(locals()["buffer_dff"][ptr, :, :]), rois_dict)
             rois_trace = np.reshape(rois_trace, (56, 1))
             trace_plot_samples[:] = rois_trace
 
-        if visualization_config["show_pattern_weight"]:
+        if visualization_config["show_pattern_weight"]["status"]:
             if not pattern_corr_q.full():
                 pattern_corr_q.put("draw")
             pattern_corr_sample[:] = result
@@ -286,8 +300,12 @@ if __name__ == "__main__":
     imaging_config_path = str(
         pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_config_template.json')
     session_config = load_config(imaging_config_path)
+
+    # from devices.mock_cam import Camera
+    # cam = Camera()
     pvc.init_pvcam()
     cam = next(PVCamera.detect_camera())
     run_session(session_config, cam)
+
     # import cProfile
     # cProfile.run('run_session(session_config, cam)')

@@ -18,9 +18,7 @@ class LiveVideo:
                 continue
 
             q = self.query.get()
-            print(f"-------------query: {q}-----------")
             if q == "draw":
-                print(f"image max: {np.max(image)}")
                 self.ax.clear()
                 self.ax.imshow(image)
                 self.fig.canvas.draw()

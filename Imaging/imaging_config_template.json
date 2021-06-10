@@ -47,7 +47,7 @@
 
     "acquisition_config": {
         "enable_gpu" : 1,
-        "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
+        "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "buffer_warp"},
         "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/vid.avi",
         "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/meta.txt",
         "num_of_frames": 100,
@@ -74,7 +74,7 @@
 
     "allocation_config": {
         "first_stage": [
-            {"name": "d_frame_warp_flat", "size": [100089, 1], "dtype": "uint16", "init": null},
+            {"name": "d_frame_warp_flat", "size": [100089], "dtype": "uint16", "init": null},
             {"name": "buffer_warp", "size": [32, 297, 337], "dtype": "float32", "init": null},
             {"name": "dff_oldest", "size": [297, 337], "dtype": "float32", "init": null},
             {"name": "th_oldest", "size": [297, 337], "dtype": "float32", "init": null},
@@ -234,6 +234,6 @@
     "visualization_config": {
         "show_live_stream": {"status": true, "var_name": "buffer_dff", "size": [297, 337], "dtype": "float32"},
         "show_rois_trace": {"status": false, "var_name": "rois_trace", "size": [56, 1], "dtype": "float32"},
-        "show_pattern_weight": false
+        "show_pattern_weight": {"status": false, "var_name": "result", "size": [1, 1], "dtype": "float32"}
     }
 }
