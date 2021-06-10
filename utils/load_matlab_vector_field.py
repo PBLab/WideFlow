@@ -50,7 +50,7 @@ def extend_rois_list(file_path, save_path, order='F'):
 
 
 def load_extended_rois_list(file_path):
-    with h5py.File(file_path) as f:
+    with h5py.File(file_path, 'r') as f:
         roi_list = {}
         for key, grp in f.items():
             roi_list[key] = {}
