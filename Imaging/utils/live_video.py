@@ -33,3 +33,4 @@ class LiveVideo(AbstractVis):
     def terminate(self):
         plt.close(self.fig)
 
+
