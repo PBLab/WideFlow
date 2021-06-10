@@ -66,12 +66,6 @@ def run_session(config, cam):
             locals()[allc_params["name"]] = \
                 eval(allc_params["init"]["function"] + "(" + ",".join(allc_params["init"]["args"]) + ")")
 
-    # video writer settings
-    vid_write_config = acquisition_config["vid_writer"]
-    frame_out_str = vid_write_config["frame_var"]
-    metadata = AcquisitionMetaData(session_config_path=None, config=config)
-    writer = FFmpegWriter(acquisition_config["vid_save_path"])
-
     # serial port
     ser = SerialControler(port=serial_config["port_id"],
                           baudrate=serial_config["baudrate"],
@@ -127,6 +121,17 @@ def run_session(config, cam):
     if int(cp.__version__[0]) < 9:
         coordinates = np.squeeze(coordinates)
 
+
+    # update config for metadata file
+    config["rois_data"]["cortex_matching_point"]["match_p_src"] = appf.match_p_src
+    config["rois_data"]["cortex_matching_point"]["match_p_dst"] = appf.match_p_dst
+    config["camera_config"]["core_attr"]["roi"] = cam.roi
+
+    # video writer settings
+    vid_write_config = acquisition_config["vid_writer"]
+    frame_out_str = vid_write_config["frame_var"]
+    metadata = AcquisitionMetaData(session_config_path=None, config=config)
+    writer = FFmpegWriter(acquisition_config["vid_save_path"])
 
     # fill buffers before session starts
     cam.start_live()
@@ -250,6 +255,7 @@ def run_session(config, cam):
 
         if visualization_config["show_live_stream"]["status"]:
             if not live_vid_q.full():
+
                 live_vid_q.put("draw")
             live_vid_frame[:] = cp.asnumpy(locals()[live_stream_config["var_name"]][ptr, :, :])
 

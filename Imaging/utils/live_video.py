@@ -1,9 +1,10 @@
+from Imaging.utils.abstract_visualization import AbstractVis
 import matplotlib.pyplot as plt
 from multiprocessing import shared_memory
 import numpy as np
 
 
-class LiveVideo:
+class LiveVideo(AbstractVis):
     def __init__(self, query, frame_rate=50):
         self.frame_rate = frame_rate
         self.query = query

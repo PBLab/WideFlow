@@ -1,10 +1,11 @@
+from Imaging.utils.abstract_visualization import AbstractVis
 import matplotlib.pyplot as plt
 from multiprocessing import shared_memory
 import numpy as np
 import random
 
 
-class TracePlot:
+class TracePlot(AbstractVis):
     def __init__(self, queue, n_traces, expected_amp, labels, n_frames, update_rate=10):
         self.queue = queue
         self.fig, self.ax = plt.subplots()
