@@ -84,7 +84,7 @@
 
     "visualization_config": {
         "show_live_stream": {
-            "status": false,
+            "status": true,
             "size": [297, 337], "dtype": "float32", "buffer": "threshold_buffer",
             "class": "LiveVideo", "params": {"image_shape": [297, 337], "frame_rate": 50}
         },
