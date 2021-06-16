@@ -161,7 +161,7 @@ def run_session(config, cam):
     with open(config["path"][:-6] + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
         json.dump(config, fp)
 
-    print("finished session")
+    print(f"session finished successfully at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
 
 
 if __name__ == "__main__":
