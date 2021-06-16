@@ -1,6 +1,6 @@
 import wx
 from Imaging.VideoCapture import VideoCapture
-from Imaging.gui_frames import ConfigurationWizard
+from Imaging.ConfigurationsWizard import ConfigurationWizard
 
 from Imaging.main_tests2 import run_session
 
