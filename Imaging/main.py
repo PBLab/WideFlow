@@ -1,16 +1,11 @@
-from core.pipelines.patterns_detection import PatternsDetection as Pipeline
+from core.pipelines.patterns_detection import PatternsDetection as PipeLine
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
-from utils.gen_utils import extract_rois_data
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
-from Imaging.utils.multiple_trace_plot import TracePlot
-from Imaging.utils.live_video import LiveVideo
+from Imaging.visualization import *
 from Imaging.utils.create_matching_points import *
-
-from utils.load_tiff import load_tiff
-from utils.load_matlab_vector_field import load_extended_rois_list
 
 import cupy as cp
 import numpy as np
@@ -18,9 +13,12 @@ from skvideo.io import FFmpegWriter
 
 import time
 from time import perf_counter
+from datetime import datetime
 import matplotlib.pyplot as plt
-from matplotlib.widgets import RectangleSelector, Button
+from matplotlib.widgets import RectangleSelector
+
 import h5py
+import json
 
 import multiprocessing as mp
 from multiprocessing import shared_memory, Queue
@@ -31,24 +29,17 @@ def run_session(config, cam):
     # session config
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
-    cortex_config = config["rois_data"]
+    cortex_config = config["rois_data_config"]
     acquisition_config = config["acquisition_config"]
     feedback_config = config["feedback_config"]
+    analysis_pipeline_config = config["analysis_pipeline_config"]
     visualization_config = config["visualization_config"]
 
-    # circular buffers capacity
-    capacity = acquisition_config["capacity"]
-
     # load roi data file
-    rois_dict = load_extended_rois_list(config["rois_data"]["file_path"])
     with h5py.File(config["rois_data"]["cortex_file_path"], 'r') as f:
-        cortex_mask = np.transpose(f["mask"][()])
         cortex_map = np.transpose(f["map"][()])
-    d_mask = cp.asanyarray(cortex_mask)
 
     # set feedback metric
-    pattern = cp.asanyarray(load_tiff(feedback_config["pattern_path"])) / 65535  # convert back from uint16 to original range
-    pattern = cp.multiply(pattern, d_mask)
     feedback_threshold = feedback_config["metric_threshold"]
 
     # serial port
@@ -77,7 +68,6 @@ def run_session(config, cam):
     plt.show()
     bbox = toggle_selector._rect_bbox
     if np.sum(bbox) > 1:
-        # convert to PyVcam format
         bbox = (int(bbox[1]), int(bbox[1]+bbox[3]), int(bbox[0]), int(bbox[0]+bbox[2]))
         cam.roi = bbox
 
@@ -102,49 +92,24 @@ def run_session(config, cam):
     writer = FFmpegWriter(acquisition_config["vid_save_path"])
 
     # initialize visualization processes
-    if visualization_config["show_live_stream"]["status"]:
-        live_stream_config = visualization_config["show_live_stream"]
-        a = np.ndarray(live_stream_config["size"],  dtype=np.dtype(live_stream_config["dtype"]))
-        live_vid_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
-        shm_name = live_vid_shm.name
-        live_vid_frame = np.ndarray(live_stream_config["size"],  dtype=np.dtype(live_stream_config["dtype"]), buffer=live_vid_shm.buf)
+    vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
+    for key, vis_config in visualization_config.items():
+        if vis_config["status"]:
+            a = np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]))
+            shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+            shm_name = shm.name
+            vis_shm.append(np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]), buffer=shm.buf))
 
-        live_vid_q = Queue(5)
-        live_vid = LiveVideo(live_vid_q)
+            vis_qs.append(Queue(5))
+            params = [key + '=' + str(val) for key, val in vis_config["params"].items()]
+            target = eval(vis_config["class"] + '(vis_qs[-1], ' + ','.join(params) + ')')       # LiveVideo(vis_qs[-1])
+            vis_processes.append(mp.Process(target=target, args=(shm_name,)))
+            vis_processes[-1].start()
 
-        live_vid_process = mp.Process(target=live_vid, args=(shm_name, ))
-        live_vid_process.start()
-
-    if visualization_config["show_rois_trace"]["status"]:
-        trace_plot_config = visualization_config["show_rois_trace"]
-        a = np.ndarray(trace_plot_config["size"], dtype=np.dtype(trace_plot_config["dtype"]))
-        trace_plot_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
-        shm_name = trace_plot_shm.name
-        trace_plot_samples = np.ndarray(trace_plot_config["size"], dtype=np.dtype(trace_plot_config["dtype"]),
-                                    buffer=trace_plot_shm.buf)
-
-        rois_trace_q = Queue(5)
-        trace_plot = TracePlot(rois_trace_q, len(rois_dict), 0.05, list(rois_dict.keys()), 30)
-
-        trace_plot_process = mp.Process(target=trace_plot, args=(shm_name,))
-        trace_plot_process.start()
-
-    if visualization_config["show_pattern_weight"]["status"]:
-        pattern_weight_config = visualization_config["show_pattern_weight"]
-        a = np.ndarray(pattern_weight_config["size"], dtype=np.dtype(pattern_weight_config["dtype"]))
-        pattern_corr_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
-        shm_name = pattern_corr_shm.name
-        pattern_corr_sample = np.ndarray(pattern_weight_config["size"], dtype=np.dtype(pattern_weight_config["dtype"]),
-                                         buffer=pattern_corr_shm.buf)
-
-        pattern_corr_q = Queue(5)
-        pattern_corr_plot = TracePlot(pattern_corr_q, 1, 1, ['pattern corr'], capacity)
-
-        pattern_corr_process = mp.Process(target=pattern_corr_plot, args=(shm_name,))
-        pattern_corr_process.start()
+            vis_buffers.append(vis_config["buffer"])
 
     # set pipeline
-    pipeline = Pipeline(cam, cortex_map.shape, capacity, coordinates, pattern)
+    pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
     pipeline.camera.start_live()
     pipeline.fill_buffers()
 
@@ -165,52 +130,37 @@ def run_session(config, cam):
             ser.sendTTL()
             print('________________TTL SENT___________________')
 
+        # save data
         writer.writeFrame(pipeline.frame)
         serial_readout = ser.readSerial()
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
 
-        if visualization_config["show_live_stream"]["status"]:
-            if not live_vid_q.full():
-                live_vid_q.put("draw")
-            live_vid_frame[:] = cp.asnumpy(getattr(pipeline, live_stream_config["attr"])[pipeline.ptr, :, :])
-
-        if visualization_config["show_rois_trace"]["status"]:
-            if not rois_trace_q.full():
-                rois_trace_q.put("draw")
-            rois_trace = extract_rois_data(cp.asnumpy(getattr(pipeline, pattern_weight_config["attr"])[pipeline.ptr, :, :]), rois_dict)
-            rois_trace = np.reshape(rois_trace, (56, 1))
-            trace_plot_samples[:] = rois_trace
-
-        if visualization_config["show_pattern_weight"]["status"]:
-            if not pattern_corr_q.full():
-                pattern_corr_q.put("draw")
-            pattern_corr_sample[:] = result
-
+        # update visualization
+        for i in range(len(vis_processes)):
+            if not vis_qs[i].full():
+                vis_qs[i].put("draw")
+            vis_shm[i][:] = cp.asnumpy(getattr(pipeline, vis_buffers[i])[pipeline.ptr, :, :])
 
         frame_counter += 1
         frame_clock_stop = perf_counter()
         print(f'frame: {frame_counter}      metric results: {result}')
         print("Elapsed time:", frame_clock_stop - frame_clock_start)
 
-    if visualization_config["show_live_stream"]["status"]:
-        if live_vid_q.full():
-            live_vid_q.get()
-        live_vid_q.put("terminate")
-    if visualization_config["show_rois_trace"]["status"]:
-        if rois_trace_q.full():
-            rois_trace_q.get()
-        rois_trace_q.put("terminate")
-    if visualization_config["show_pattern_weight"]["status"]:
-        if pattern_corr_q.full():
-            pattern_corr_q.get()
-        pattern_corr_q.put("terminate")
+    # terminate visualization processes
+    for i in range(len(vis_processes)):
+        if vis_qs[i].full():
+            vis_qs[i].get()
+        vis_qs[i].put("terminate")
 
     metadata.save_file()
-
     pipeline.camera.stop_live()
     pipeline.camera.close()
     ser.close()
     writer.close()
+    now = datetime.now()
+    with open(config["path"][:-6] + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
+        json.dump(config, fp)
+
     print("finished session")
 
 
