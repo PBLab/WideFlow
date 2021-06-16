@@ -2,7 +2,7 @@ import wx
 from Imaging.VideoCapture import VideoCapture
 from Imaging.gui_frames import ConfigurationWizard
 
-from Imaging.main import run_session
+from Imaging.main_tests2 import run_session
 
 from pyvcam import pvc
 from devices.PVCam import PVCamera
@@ -102,7 +102,7 @@ class Main_GUI(wx.Frame):
 
     def start_acquisition(self, event):
         try:
-            run_session(self.config, self.cam)
+            run_session(self.configuration, self.cam)
         except:
             print("An exception occurred")
             self.cam.close()
@@ -110,7 +110,10 @@ class Main_GUI(wx.Frame):
 
 def main():
     from devices.mock_cam import Camera
-    cam = Camera()
+    from utils.load_tiff import load_tiff
+    vid_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\A_thy1\\A_thy1_ch1.tif"
+    vid = load_tiff(vid_path)
+    cam = Camera(vid)
     # pvc.init_pvcam()
     # cam = next(PVCamera.detect_camera())
 
