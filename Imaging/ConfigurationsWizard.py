@@ -74,7 +74,9 @@ class ConfigurationPanel(wx.Panel):
                 with open(pathname, 'w') as file:
                     self.my_text.SaveFile(pathname)
             except IOError:
-                wx.LogError("Cannot save current data in file '%s'." % path
+                wx.LogError("Cannot save current data in file '%s'." % pathname)
+            self.file_path = pathname
+
     def onSave(self, event):
         try:
             with open(self.file_path, 'w') as file:
