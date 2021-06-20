@@ -82,11 +82,24 @@ def run_session(config, cam):
         cam.roi = bbox
 
     # select matching points for allen atlas alignment
+
     frame = cam.get_frame()
+    match_p_src = np.array(
+        [[0, 0], [0, 297], [337, 297], [337, 0], [401., 264.], [182., 438.], [191., 834.], [395., 822.], [453., 750.],
+         [518., 827.], [756., 820.],
+         [744., 443.], [573., 259.], [448., 254.], [455., 501.], [436., 389.], [450., 622.]])
+    match_p_dst = np.array(
+        [[0, 0], [0, 297], [337, 297], [337, 0], [155., 6.], [13., 118.], [17., 287.], [121., 287.], [167., 237.],
+         [214., 287.], [326., 286.], [324., 114.],
+         [242., 13.], [182., 5.], [167., 124.], [169., 64.], [167., 181.]])
+    # appf = ApprovalFigure(frame, cortex_map * np.random.random(cortex_map.shape),
+    #                       cortex_config["cortex_matching_point"]["match_p_src"],
+    #                       cortex_config["cortex_matching_point"]["match_p_dst"],
+    #                       cortex_config["cortex_matching_point"]["minimal_n_points"])
     appf = ApprovalFigure(frame, cortex_map * np.random.random(cortex_map.shape),
-                          cortex_config["cortex_matching_point"]["match_p_src"],
-                          cortex_config["cortex_matching_point"]["match_p_dst"],
-                          cortex_config["cortex_matching_point"]["minimal_n_points"])
+                                                match_p_src,
+                                                match_p_dst,
+                                                cortex_config["cortex_matching_point"]["minimal_n_points"])
 
     src_cols = appf.src_cols
     src_rows = appf.src_rows
@@ -144,13 +157,14 @@ def run_session(config, cam):
         pattern_corr_process.start()
 
     # set pipeline
-    pipeline = Pipeline(cam, cortex_map.shape, capacity, coordinates, pattern)
+    pipeline = Pipeline(cam, cortex_map.shape, capacity, coordinates, pattern, cp.asanyarray(cortex_mask, dtype=cp.float32))
     pipeline.camera.start_live()
     pipeline.fill_buffers()
 
     # start session
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
+    feedback_timeout = time.perf_counter()
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
         pipeline.process()
@@ -159,10 +173,12 @@ def run_session(config, cam):
         result = pipeline.evaluate()
 
         # send TTL if metric above threshold
+        feedback_time = perf_counter()
         cue = 0
-        if cp.asnumpy(result) > feedback_threshold:
+        if cp.asnumpy(result) > feedback_threshold and (feedback_time - feedback_timeout) > 10:
             cue = 1
             ser.sendTTL()
+            feedback_timeout = time.perf_counter()
             print('________________TTL SENT___________________')
 
         writer.writeFrame(pipeline.frame)
