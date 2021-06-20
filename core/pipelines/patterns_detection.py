@@ -51,6 +51,8 @@ class PatternsDetection(AbstractPipeLine):
         self.input[:] = cp.asanyarray(self.frame)
 
     def process(self):
+        # self.c = self.c + 1
+        # if self.c % 2:
         if self.ptr == self.capacity - 1:
             self.ptr = 0
         else:
