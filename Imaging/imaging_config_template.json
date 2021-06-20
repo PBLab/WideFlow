@@ -50,7 +50,7 @@
         "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
         "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/vid.avi",
         "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/meta.txt",
-        "num_of_frames": 100,
+        "num_of_frames": 300,
         "capacity": 32,
         "init_process_list": [0, 1]
     },
@@ -75,6 +75,6 @@
     "visualization_config": {
         "show_live_stream": {"status": true, "attr": "threshold_buffer", "size": [297, 337], "dtype": "float32"},
         "show_rois_trace": {"status": false, "attr": "dff_buffer", "size": [56, 1], "dtype": "float32"},
-        "show_pattern_weight": false
+        "show_pattern_weight": {"status": false, "attr": "dff_buffer", "size": [1, 1], "dtype": "float32"}
     }
 }
