@@ -1,4 +1,4 @@
-from Imaging.utils.abstract_visualization import AbstractVis
+from Imaging.visualization.abstract_visualization import AbstractVis
 import matplotlib.pyplot as plt
 from multiprocessing import shared_memory
 import numpy as np
@@ -23,7 +23,6 @@ class TracePlot(AbstractVis):
         self.HSV_tuples = [(x * 1.0 / self.n_traces, 0.5, 0.5) for x in range(self.n_traces)]
         random.shuffle(self.HSV_tuples)
         self.set_plot_axes_labels()
-        # plt.ion() TODO: check if necessary
 
     def set_plot_axes_labels(self):
         self.ax.set_xlabel("time")

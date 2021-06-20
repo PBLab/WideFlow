@@ -52,30 +52,28 @@ class StdThrehold(AbstractProcess):
         self.x3d_mean_map[:] = self.x3d_mean_map - \
                                (self.old_sample - self.new_sample) / self.capacity
 
-        # print(f"mean: {cp.sum(cp.mean(self.x3d, axis=0))}      updated_mean: {cp.sum(self.x3d_mean_map)}")
-
     def update_std_map(self):
-        # self.x3d_std_map[:] = \
-        #     cp.sqrt(
-        #         cp.divide(
-        #             cp.square(self.x3d[self.ptr, :, :] - self.x3d_mean_map) -
-        #             cp.square(self.old_sample - self.x3d_old_mean_map) +
-        #             cp.multiply(self.capacity - 1, cp.square(self.x3d_mean_map) - cp.square(self.x3d_old_mean_map)) -
-        #             2 * cp.multiply(self.capacity * self.x3d_mean_map - self.x3d[self.ptr, :, :],
-        #                             self.x3d_mean_map - self.x3d_old_mean_map)
-        #             , self.capacity
-        #         )
-        #         + cp.square(self.x3d_std_map)
-        #     )
+        self.x3d_std_map[:] = \
+            cp.sqrt(
+                cp.divide(
+                    cp.square(self.x3d[self.ptr, :, :] - self.x3d_mean_map) -
+                    cp.square(self.old_sample - self.x3d_old_mean_map) +
+                    cp.multiply(self.capacity - 1, cp.square(self.x3d_mean_map) - cp.square(self.x3d_old_mean_map)) -
+                    2 * cp.multiply(self.capacity * self.x3d_mean_map - self.x3d[self.ptr, :, :],
+                                    self.x3d_mean_map - self.x3d_old_mean_map)
+                    , self.capacity
+                )
+                + cp.square(self.x3d_std_map)
+            )
 
         self.x3d_std_map[:] = \
             cp.sqrt(
                 cp.divide(
-                    2 * self.capacity * cp.multiply(self.x3d_mean_map - self.x3d_old_mean_map, self.old_sample - self.x3d_old_mean_map) +
+                    2 * self.capacity * cp.multiply(self.x3d_mean_map - self.x3d_old_mean_map,
+                                                    self.old_sample - self.x3d_old_mean_map) +
                     self.capacity * (self.capacity - 1) * cp.square(self.x3d_mean_map - self.x3d_old_mean_map)
                     , self.capacity
                 )
                 + cp.square(self.x3d_std_map)
             )
 
-        # print(f"std: {cp.sum(cp.std(self.x3d, axis=0))}      updated_std: {cp.sum(self.x3d_std_map)}")

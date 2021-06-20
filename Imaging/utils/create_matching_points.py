@@ -8,16 +8,20 @@ from skimage.transform import PiecewiseAffineTransform, warp_coords
 
 
 def select_matching_points(src, dst, n_pairs):
+    smax = int(src.max())
+    dmax = int(dst.max())
+    src = cv2.UMat(np.stack((src, src, src), axis=2))
+    dst = cv2.UMat(np.stack((dst, dst, dst), axis=2))
 
     def select_point(event, x, y, flags, param):
 
         if event == cv2.EVENT_LBUTTONDOWN and len(match_p_src) < n_pairs and param == 1:
             match_p_src.append((x, y))
-            cv2.circle(src, (x, y), 4, (30255, 30255, 30255), 2)
+            cv2.circle(src, (x, y), 4, (0, 0, smax), 2)
             cv2.imshow("source", src)
         elif event == cv2.EVENT_LBUTTONDOWN and len(match_p_dst) < n_pairs and param == 2:
             match_p_dst.append((x, y))
-            cv2.circle(dst, (x, y), 4, (255, 255, 255), 2)
+            cv2.circle(dst, (x, y), 4, (0, dmax, 0), 2)
             cv2.imshow("Allen Cortex Map", dst)
 
     cv2.namedWindow("source", cv2.WINDOW_NORMAL)
