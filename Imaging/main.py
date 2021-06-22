@@ -40,7 +40,7 @@ def run_session(config, cam):
     visualization_config = config["visualization_config"]
 
     # load roi data file
-    with h5py.File(config["rois_data"]["cortex_file_path"], 'r') as f:
+    with h5py.File(config["rois_data_config"]["cortex_file_path"], 'r') as f:
         cortex_map = np.transpose(f["map"][()])
 
     # set feedback metric
@@ -88,8 +88,8 @@ def run_session(config, cam):
     coordinates = cp.asanyarray([src_cols, src_rows])
 
     # update config for metadata file
-    config["rois_data"]["cortex_matching_point"]["match_p_src"] = appf.match_p_src
-    config["rois_data"]["cortex_matching_point"]["match_p_dst"] = appf.match_p_dst
+    config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = appf.match_p_src
+    config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = appf.match_p_dst
     config["camera_config"]["core_attr"]["roi"] = cam.roi
 
     # video writer settings
