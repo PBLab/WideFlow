@@ -25,3 +25,4 @@ class PVCamera(Camera):
                 self.set_param(const.PARAM_PP_PARAM_INDEX, param[0])
                 self.set_param(const.PARAM_PP_PARAM, param[1])
                 # param_name = self.get_param(const.PARAM_PP_PARAM_NAME)
+
