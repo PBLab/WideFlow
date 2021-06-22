@@ -3,6 +3,7 @@
 
 from pyvcam.camera import Camera
 from pyvcam import constants as const
+import ctypes
 
 
 class PVCamera(Camera):
@@ -25,3 +26,16 @@ class PVCamera(Camera):
                 self.set_param(const.PARAM_PP_PARAM_INDEX, param[0])
                 self.set_param(const.PARAM_PP_PARAM, param[1])
                 # param_name = self.get_param(const.PARAM_PP_PARAM_NAME)
+
+    def set_smart_stream_acquisition(self, exposures_list):
+        n = len(exposures_list)
+        entries = ctypes.c_uint16(n)
+
+        c_array = ctypes.c_uint32 * n
+        params = c_array()
+        params[0:n] = exposures_list[0:n]
+
+        smrt_stream = const.smart_stream_type(entries, params)
+
+        self.set_param(const.PARAM_SMART_STREAM_MODE_ENABLED, True)  # TODO: check which value to enter here if any: 1, True, SMTMODE_ARBITRARY_ALL....
+        self.set_param(const.PARAM_SMART_STREAM_EXP_PARAMS, smrt_stream)
