@@ -37,5 +37,13 @@ class PVCamera(Camera):
 
         smrt_stream = const.smart_stream_type(entries, params)
 
-        self.set_param(const.PARAM_SMART_STREAM_MODE_ENABLED, True)  # TODO: check which value to enter here if any: 1, True, SMTMODE_ARBITRARY_ALL....
-        self.set_param(const.PARAM_SMART_STREAM_EXP_PARAMS, smrt_stream)
+        self.set_param(const.PARAM_SMART_STREAM_MODE_ENABLED, True)
+        # self.set_param(const.PARAM_SMART_STREAM_EXP_PARAMS, smrt_stream)
+        self.set_param(const.PARAM_SMART_STREAM_EXP_PARAMS, id(smrt_stream))
+
+
+class two_ch_smart_stream_type(ctypes.Structure):
+    _fields_ = [
+                ('entries', ctypes.c_uint16),
+                ('params', ctypes.c_uint32 * 2),
+               ]
