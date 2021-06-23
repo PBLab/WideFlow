@@ -7,6 +7,8 @@ import numpy as np
 from utils.load_tiff import load_tiff
 import h5py
 
+from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
+
 
 class HemoDynamicsDFF(AbstractPipeLine):
     def __init__(self, camera, mapping_coordinates, new_shape, capacity, pattern_path, mask_path, regression_n_samples):
@@ -48,6 +50,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         # set metric
         self.metric = Correlation(self.dff_buffer, self.pattern, ptr=0)
 
+        self.camera.set_param(PARAM_LAST_MUXED_SIGNAL, 2)  # setting camera active output wires to 2 - strobbing of two LEDs
         self.ptr = self.capacity - 1
 
     def fill_buffers(self):
