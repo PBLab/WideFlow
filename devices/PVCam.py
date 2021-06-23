@@ -40,3 +40,10 @@ class PVCamera(Camera):
         self.set_param(const.PARAM_SMART_STREAM_MODE_ENABLED, True)
         # self.set_param(const.PARAM_SMART_STREAM_EXP_PARAMS, smrt_stream)
         self.set_param(const.PARAM_SMART_STREAM_EXP_PARAMS, id(smrt_stream))
+
+
+class two_ch_smart_stream_type(ctypes.Structure):
+    _fields_ = [
+                ('entries', ctypes.c_uint16),
+                ('params', ctypes.c_uint32 * 2),
+               ]
