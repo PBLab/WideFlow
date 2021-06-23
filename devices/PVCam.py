@@ -7,9 +7,10 @@ import ctypes
 
 
 class PVCamera(Camera):
-    def __init__(self, exp_time=10, binning=(1, 1)):
+    def __init__(self, exp_time=10, binning=(1, 1), channels=1):
         super().__init__(exp_time, binning)
-        self.attr_count = const.ATTR_COUNT
+        self.channels = channels
+        self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
 
     def set_splice_post_processing_attributes(self, plugin_name, plugin_parameters_list):
         # search for plugin index in pp_table
@@ -37,13 +38,14 @@ class PVCamera(Camera):
 
         smrt_stream = const.smart_stream_type(entries, params)
 
+        self.set_param(const.PARAM_LAST_MUXED_SIGNAL, n)
         self.set_param(const.PARAM_SMART_STREAM_MODE_ENABLED, True)
-        # self.set_param(const.PARAM_SMART_STREAM_EXP_PARAMS, smrt_stream)
+        self.set_param(const.PARAM_SMART_STREAM_MODE, const.SMTMODE_ARBITRARY_ALL)
         self.set_param(const.PARAM_SMART_STREAM_EXP_PARAMS, id(smrt_stream))
 
 
-class two_ch_smart_stream_type(ctypes.Structure):
+class smart_stream_type(ctypes.Structure):  # TODO: consider changing the source code of "smart_stream_type" at constant file to this one
     _fields_ = [
                 ('entries', ctypes.c_uint16),
-                ('params', ctypes.c_uint32 * 2),
-               ]
+                ('params', ctypes.c_void_p),
+                ]
