@@ -1,0 +1,103 @@
+{
+    "name": "Imaging/training_config.json",
+
+    "path": "",
+
+    "camera_config": {
+        "core_attr": {
+            "exp_time": 10,
+            "binning": [1, 1],
+            "roi": [0, 2048, 0, 2048],
+            "clear_mode": 0
+        },
+        "splice_plugins_enable": false,
+        "splice_plugin_setting": [
+            {
+                "name": "pluginname1",
+                "parameters": [
+                    {
+                        "name": "module_call_order",
+                        "value":  1
+                    },
+                    {
+                        "name": "paramname",
+                        "value":  1
+                    }
+                ]
+            },
+            {
+                "name": "pluginname2",
+                "parameters": [
+                    {
+                        "name": "module_call_order",
+                        "value":  1
+                    },
+                    {
+                        "name": "paramname",
+                        "value":  1
+                    }
+                ]
+            }
+                                 ]
+    },
+
+    "serial_port_config": {
+        "port_id": "/dev/ttyACM0",
+        "baudrate": 9800,
+        "timeout": 0.0
+    },
+
+    "acquisition_config": {
+        "enable_gpu" : 1,
+        "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
+        "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/id01/training_sessions/t1_vid.avi",
+        "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/id01/training_sessions/t1_meta.txt",
+        "num_of_frames": 15000,
+        "capacity": 32
+    },
+
+    "feedback_config": {
+        "metric_threshold": 0.5,
+        "inter_feedback_delay": 1e3
+    },
+
+    "rois_data_config": {
+        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
+        "cortex_file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
+        "cortex_matching_point": {
+              "match_p_src": null,
+              "match_p_dst": null,
+              "minimal_n_points": 17
+          }
+    },
+
+    "analysis_pipeline_config": {
+        "pipeline": "TrainingPipe",
+        "args": {
+            "time_delay": 10,
+            "min_frame_count": 1000,
+            "max_frame_count": 2000,
+            "new_shape": [297, 337]
+        }
+    },
+
+    "visualization_config": {
+        "show_live_stream": {
+            "status": true,
+            "size": [297, 337], "dtype": "float32", "buffer": "threshold_buffer",
+            "class": "LiveVideo", "params": {"image_shape": [297, 337], "frame_rate": 50}
+        },
+        "show_rois_trace": {
+            "status":false,
+            "size": [297, 337], "dtype": "float32", "buffer": "threshold_buffer",
+            "class": "ROIsTracePlot", "params": {
+                "rois_dict_path": ["/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_extended.h5"],
+                "image_shape": [297, 337], "n_traces": 56, "expected_amp": 0.05, "n_frames": 30}
+        },
+        "show_pattern_weight": {
+            "status": false,
+            "size": [297, 337], "dtype": "float32", "buffer": "threshold_buffer",
+            "class": "ROIsTracePlot", "params": {"image_shape": [297, 337], "frame_rate": 50}
+        }
+     }
+}
