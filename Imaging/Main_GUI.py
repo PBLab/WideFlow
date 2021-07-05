@@ -2,7 +2,7 @@ import wx
 from Imaging.VideoCapture import VideoCapture
 from Imaging.ConfigurationsWizard import ConfigurationWizard
 
-from Imaging.main_tests2 import run_session
+from Imaging.main import run_session
 
 from pyvcam import pvc
 from devices.PVCam import PVCamera
