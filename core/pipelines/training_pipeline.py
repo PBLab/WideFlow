@@ -9,7 +9,7 @@ import h5py
 
 
 class TrainingPipe(AbstractPipeLine):
-    def __init__(self, camera, mapping_coordinates, min_frame_count, max_frame_count, new_shape):
+    def __init__(self, camera, mapping_coordinates, min_frame_count, max_frame_count, new_shape, mask_path):
         """
 
         :param min_frame_count: int - minimal number of pipeline circles between rewards
@@ -20,6 +20,7 @@ class TrainingPipe(AbstractPipeLine):
         self.min_frame_delay = min_frame_count
         self.max_frame_delay = max_frame_count
         self.new_shape = new_shape
+        self.mask_path = mask_path
         self.mask = self.load_datasets()
 
         self.input_shape = self.camera.shape
