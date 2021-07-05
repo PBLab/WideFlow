@@ -109,13 +109,13 @@ class Main_GUI(wx.Frame):
 
 
 def main():
-    from devices.mock_cam import Camera
-    from utils.load_tiff import load_tiff
-    vid_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\A_thy1\\A_thy1_ch1.tif"
-    vid = load_tiff(vid_path)
-    cam = Camera(vid)
-    # pvc.init_pvcam()
-    # cam = next(PVCamera.detect_camera())
+    # from devices.mock_cam import Camera
+    # from utils.load_tiff import load_tiff
+    # vid_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\A_thy1\\A_thy1_ch1.tif"
+    # vid = load_tiff(vid_path)
+    # cam = Camera(vid)
+    pvc.init_pvcam()
+    cam = next(PVCamera.detect_camera())
 
     app = wx.App()
     main_gui = Main_GUI(parent=None, title='blabla', cam=cam)
