@@ -36,7 +36,7 @@ class PVCamera(Camera):
         params = c_array()
         params[0:n] = exposures_list[0:n]
 
-        smrt_stream = const.smart_stream_type(entries, params)
+        smrt_stream = smart_stream_type(entries, params)
 
         self.set_param(const.PARAM_LAST_MUXED_SIGNAL, n)
         self.set_param(const.PARAM_SMART_STREAM_MODE_ENABLED, True)
@@ -48,4 +48,4 @@ class smart_stream_type(ctypes.Structure):  # TODO: consider changing the source
     _fields_ = [
                 ('entries', ctypes.c_uint16),
                 ('params', ctypes.c_void_p),
-                ]
+               ]
