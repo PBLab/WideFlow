@@ -133,7 +133,7 @@ def run_session(config, cam):
         if cp.asnumpy(result) > feedback_threshold:
             cue = 1
             ser.sendTTL()
-            print('________________TTL SENT___________________')
+            print('________________TTL HAS BEEN SENT___________________')
 
         # save data
         writer.writeFrame(pipeline.frame)
