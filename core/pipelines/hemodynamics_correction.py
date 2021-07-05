@@ -1,24 +1,25 @@
 from core.abstract_pipeline import AbstractPipeLine
 from core.processes import *
-from core.metrics.correlation import Correlation
+from core.metrics import ROIMean
 import cupy as cp
 import numpy as np
 
-from utils.load_tiff import load_tiff
+from utils.load_matlab_vector_field import load_extended_rois_list
 import h5py
 
 from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
-    def __init__(self, camera, mapping_coordinates, new_shape, capacity, pattern_path, mask_path, regression_n_samples):
+    def __init__(self, camera, mapping_coordinates, new_shape, capacity, rois_dict_path, mask_path, roi_name, regression_n_samples):
         self.camera = camera
         self.new_shape = new_shape
         self.capacity = capacity + capacity % 2  # make sure capacity is an odd number
         self.mapping_coordinates = mapping_coordinates
-        self.pattern_path = pattern_path
+        self.rois_dict_path = rois_dict_path
         self.mask_path = mask_path
-        self.mask, self.pattern = self.load_pattern()
+        self.mask, self.rois_dict = self.load_datasets()
+        self.roi_name = roi_name
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
 
         self.input_shape = self.camera.shape
@@ -48,7 +49,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.processes_list_ch2 = [map_coord, masking_ch2, dff_ch2, Hemo_correct]
 
         # set metric
-        self.metric = Correlation(self.dff_buffer, self.pattern, ptr=0)
+        roi_pixels_list = self.rois_dict[self.roi_name]["PixelIdxList"]
+        self.metric = ROIMean(self.dff_buffer, roi_pixels_list, ptr=0)
 
         self.camera.set_param(PARAM_LAST_MUXED_SIGNAL, 2)  # setting camera active output wires to 2 - strobbing of two LEDs
         self.ptr = self.capacity - 1
@@ -126,13 +128,11 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.metric.evaluate()
         return self.metric.result
 
-    def load_pattern(self):
+    def load_datasets(self):
         with h5py.File(self.mask_path, 'r') as f:
             mask = np.transpose(f["mask"][()])
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
-        pattern = load_tiff(self.pattern_path) / 65535  # convert back from uint16 to original range
-        pattern = cp.asanyarray(pattern, dtype=cp.float32)
-        pattern = cp.multiply(pattern, mask)
+        rois_dict = load_extended_rois_list(self.rois_dict_path)
 
-        return mask, pattern
+        return mask, rois_dict
