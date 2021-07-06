@@ -14,7 +14,7 @@ class AcquisitionMetaData:
         self.metatext += "timestemp:{:0.5f}" \
                          "    cue:{}    " \
                          "metric result:{:0.5f}    " \
-                         "serial readout:{}\n".format(timestemp, cue, result.item(), readout)
+                         "serial readout:{}\n".format(timestemp, cue, result, readout)
 
     def write_metafile_header(self):
         self.metatext = str(self.datetime.tm_year) + '/'\
