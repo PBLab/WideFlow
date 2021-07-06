@@ -52,7 +52,7 @@
         "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
         "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/3243/test/t1_vid.avi",
         "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/3243/test/t1_meta.txt",
-        "num_of_frames": 15000,
+        "num_of_frames": 1000,
         "capacity": 32
     },
 
