@@ -7,9 +7,14 @@ import ctypes
 
 
 class PVCamera(Camera):
-    def __init__(self, exp_time=10, binning=(1, 1), channels=1):
+    def __init__(self, exp_time=10, binning=(1, 1), channels=2):
         super().__init__(exp_time, binning)
         self.channels = channels
+        self.start_up()
+
+    def start_up(self):
+        self.clear_mode("Pre-Sequence")
+        self.exp_out_mode("All Rows")
         self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
 
     def set_splice_post_processing_attributes(self, plugin_name, plugin_parameters_list):
