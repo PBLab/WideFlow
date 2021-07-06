@@ -17,12 +17,13 @@ class TrainingPipe(AbstractPipeLine):
         """
         self.camera = camera
         self.mapping_coordinates = mapping_coordinates
-        self.min_frame_delay = min_frame_count
-        self.max_frame_delay = max_frame_count
+        self.min_frame_count = min_frame_count
+        self.max_frame_count = max_frame_count
         self.new_shape = new_shape
         self.mask_path = mask_path
         self.mask = self.load_datasets()
 
+        self.capacity = 1
         self.input_shape = self.camera.shape
         self.frame = np.ndarray(self.new_shape)
         self.input = cp.ndarray(self.input_shape)
@@ -33,6 +34,10 @@ class TrainingPipe(AbstractPipeLine):
         masking = Mask(self.warped_input, self.mask, self.warped_buffer, ptr=0)
         self.processes_list = [map_coord, masking]
 
+        self.cue = 0
+        self.cue_delay = 0
+
+        self.ptr = self.capacity - 1
         self.counter = 0
 
     def fill_buffers(self):
@@ -42,6 +47,11 @@ class TrainingPipe(AbstractPipeLine):
         self.frame = self.camera.get_live_frame()
 
     def process(self):
+        if self.ptr == self.capacity - 1:
+            self.ptr = 0
+        else:
+            self.ptr += 1
+
         self.get_input()
         for process in self.processes_list:
             process.process()
@@ -49,15 +59,15 @@ class TrainingPipe(AbstractPipeLine):
     def evaluate(self):
 
         if self.counter == 0:
-            cue = 0
-            cue_delay = random.choice(range(self.min_frame_count, self.max_frame_count, 1))
+            self.cue = 0
+            self.cue_delay = random.choice(range(self.min_frame_count, self.max_frame_count, 1))
 
         self.counter += 1
-        if self.counter == cue_delay:
+        if self.counter == self.cue_delay:
             self.counter = 0
-            cue = 1
+            self.cue = 1
 
-        return cue
+        return self.cue
 
     def load_datasets(self):
         with h5py.File(self.mask_path, 'r') as f:
