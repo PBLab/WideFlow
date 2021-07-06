@@ -22,7 +22,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.roi_name = roi_name
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
 
-        self.input_shape = self.camera.shape
+        self.input_shape = (self.camera.shape[1], self.camera.shape[0])
 
         # allocate memory
         self.frame = np.ndarray(self.input_shape)
@@ -74,6 +74,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
             process.initialize_buffers()
 
         # collect data to calculate regression coefficient for the hemodynamic correction
+        print("\nCollect data to calculate regression coefficient for the hemodynamic correction...")
         ch1i, ch2i = 0, 0
         for i in range(self.regression_n_samples*2):
             if self.ptr == self.capacity - 1:
@@ -83,7 +84,6 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
             self.get_input()
             if not i % 2:
-                print(self.camera.frame_idx)
                 for process in self.processes_list[:3]:
                     process.initialize_buffers()
                 self.regression_buffer[ch1i, :, :, 0] = cp.asnumpy(self.dff_buffer[self.ptr, :, :])
@@ -94,6 +94,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
                     process.initialize_buffers()
                 self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
                 ch2i += 1
+        print("Done collecting data for hemodynamic correction\n")
 
         self.processes_list_ch2[3].initialize_buffers(
             self.regression_buffer[:, :, :, 0],
@@ -116,7 +117,6 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
         self.get_input()
         if not self.ptr % 2:  # first channel processing
-            print(self.camera.frame_idx)
             for process in self.processes_list:
                 process.process()
 
