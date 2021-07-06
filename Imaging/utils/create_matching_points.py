@@ -10,6 +10,7 @@ from skimage.transform import PiecewiseAffineTransform, warp_coords
 def select_matching_points(src, dst, n_pairs):
     smax = int(src.max())
     dmax = int(dst.max())
+
     src = cv2.UMat(np.stack((src, src, src), axis=2))
     dst = cv2.UMat(np.stack((dst, dst, dst), axis=2))
 
