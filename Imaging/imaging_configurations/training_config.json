@@ -50,8 +50,8 @@
     "acquisition_config": {
         "enable_gpu" : 1,
         "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
-        "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/id01/training_sessions/t1_vid.avi",
-        "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/id01/training_sessions/t1_meta.txt",
+        "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/3243/test/t1_vid.avi",
+        "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/3243/test/t1_meta.txt",
         "num_of_frames": 15000,
         "capacity": 32
     },
@@ -74,10 +74,10 @@
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
         "args": {
-            "time_delay": 10,
             "min_frame_count": 1000,
             "max_frame_count": 2000,
-            "new_shape": [297, 337]
+            "new_shape": [297, 337],
+            "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_regions_crystal_skull.mat"
         }
     },
 

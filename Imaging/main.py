@@ -1,4 +1,4 @@
-from core.pipelines.patterns_detection import PatternsDetection as PipeLine
+from core.pipelines.training_pipeline import TrainingPipe as PipeLine
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     import pathlib
 
     imaging_config_path = str(
-        pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_config_template.json')
+        pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_configurations'/ 'training_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()
