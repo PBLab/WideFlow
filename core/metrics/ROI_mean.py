@@ -14,6 +14,8 @@ class ROIMean(AbstractMetric):
 
         self.pixels_inds = np.unravel_index(self.roi_pixels_list, (self.shape[2], self.shape[1]))
 
+        self.result = 0
+
     def initialize_buffers(self):
         self.ptr = self.capacity - 1
 
@@ -23,5 +25,5 @@ class ROIMean(AbstractMetric):
         else:
             self.ptr += 1
 
-        return cp.mean(self.x[self.ptr, self.pixels_inds[1], self.pixels_inds[0]])
+        self.result = cp.asnumpy(cp.mean(self.x[self.ptr, self.pixels_inds[1], self.pixels_inds[0]]))
 
