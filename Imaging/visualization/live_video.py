@@ -27,6 +27,7 @@ class LiveVideo(AbstractVis):
                 self.fig.canvas.draw()
                 plt.pause(1/self.frame_rate)
             elif q == "terminate":
+                print("live video terminating")
                 self.terminate()
                 break
             else:
