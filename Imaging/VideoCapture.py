@@ -11,7 +11,7 @@ class VideoCapture(wx.Frame):
         self.height = cam.sensor_size[0]
         self.width = cam.sensor_size[1]
         # weight and height should be driven from camera shape instead the sensor size
-        self.imageBit = wx.BitmapFromImage(wx.EmptyImage(self.height, self.width))
+        self.imageBit = wx.Bitmap(wx.EmptyImage(self.height, self.width))
         self.frame = np.array(self.cam.get_frame(), dtype=np.float32)
         # self.frame = np.zeros((self.height, self.width, 3))
         self.bmp = wx.Bitmap.FromBuffer(self.width, self.height, self.frame)
@@ -59,13 +59,15 @@ class VideoCapture(wx.Frame):
     def NextFrame(self, event):
         # frame = self.cam.get_frame()
         # self.frame = np.stack((frame, frame, frame), axis=2)
-        self.frame = np.array(self.cam.get_frame(), dtype=np.float32)
+        self.frame = np.array(self.cam.get_live_frame(), dtype=np.float32)
         self.bmp.CopyFromBuffer(self.frame)
         self.staticBit.SetBitmap(self.bmp)
         self.Refresh()
 
     def onClose(self, event):
+        self.cam.stop_live()
         self.cam.close()
+        self.Unbind(wx.EVT_TIMER)
         self.Destroy()
 
     def play(self, event):
