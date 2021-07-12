@@ -52,14 +52,14 @@
         "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
         "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/vid.avi",
         "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/meta.txt",
-        "num_of_frames": 2000,
+        "num_of_frames": 1000,
         "capacity": 32
     },
 
     "feedback_config": {
         "pattern_path": "/home/pb/PycharmProjects/WideFlow/test_patterns/pattern_smooth_threshold_297_337_32.tif",
-        "metric_threshold": 0.3,
-        "inter_feedback_delay": 1e3
+        "metric_threshold": 0.01,
+        "inter_feedback_delay": 10e3
     },
 
     "rois_data_config": {
