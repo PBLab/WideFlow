@@ -10,6 +10,7 @@ class VideoCapture(wx.Frame):
         self.cam.open()
         self.height = cam.sensor_size[0]
         self.width = cam.sensor_size[1]
+        # weight and height should be driven from camera shape instead the sensor size
         self.imageBit = wx.BitmapFromImage(wx.EmptyImage(self.height, self.width))
         self.frame = np.array(self.cam.get_frame(), dtype=np.float32)
         # self.frame = np.zeros((self.height, self.width, 3))
@@ -28,7 +29,7 @@ class VideoCapture(wx.Frame):
 
         self.main_layout()
         self.Move((0, 0))
-        self.SetSize((300, 300))
+        self.SetSize((600, 600))
         self.SetTitle('live')
         self.Centre()
 
@@ -42,13 +43,15 @@ class VideoCapture(wx.Frame):
         btn_play = wx.Button(self.panel, label='play', size=(70, 30))
         self.btn_play = btn_play
         hbox.Add(btn_play)
-        vbox.Add(hbox, flag=wx.ALIGN_LEFT, border=10)
+        vbox.Add(hbox, flag=wx.ALIGN_TOP, border=10)
         vbox.Add((-1, 25))
 
         self.staticBit = wx.StaticBitmap(self.panel, wx.ID_ANY, self.imageBit)
+        self.staticBit.SetPosition((0, 35))
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         hbox2.Add(self.staticBit, border=10)
         vbox.Add(hbox2)
+        vbox.Add((-1, 25))
 
         self.Bind(wx.EVT_BUTTON, self.play, btn_play)
         self.Bind(wx.EVT_CLOSE, self.onClose)
@@ -60,7 +63,6 @@ class VideoCapture(wx.Frame):
         self.bmp.CopyFromBuffer(self.frame)
         self.staticBit.SetBitmap(self.bmp)
         self.Refresh()
-        print('frame!!')
 
     def onClose(self, event):
         self.cam.close()

@@ -78,18 +78,18 @@ def run_session(config, cam):
 
     # select matching points for allen atlas alignment
     frame = cam.get_frame()
-    appf = ApprovalFigure(frame, cortex_map * np.random.random(cortex_map.shape),
+    mps = MatchingPointSelector(frame, cortex_map * np.random.random(cortex_map.shape),
                           cortex_config["cortex_matching_point"]["match_p_src"],
                           cortex_config["cortex_matching_point"]["match_p_dst"],
                           cortex_config["cortex_matching_point"]["minimal_n_points"])
 
-    src_cols = appf.src_cols
-    src_rows = appf.src_rows
+    src_cols = mps.src_cols
+    src_rows = mps.src_rows
     coordinates = cp.asanyarray([src_cols, src_rows])
 
     # update config for metadata file
-    config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = appf.match_p_src
-    config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = appf.match_p_dst
+    config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = mps.match_p_src
+    config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = mps.match_p_dst
     config["camera_config"]["core_attr"]["roi"] = cam.roi
 
     # video writer settings
