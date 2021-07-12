@@ -2,14 +2,11 @@ from core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
-from utils.gen_utils import extract_rois_data
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
 from Imaging.visualization import *
 from Imaging.utils.create_matching_points import *
 
-from utils.load_tiff import load_tiff
-from utils.load_matlab_vector_field import load_extended_rois_list
 
 import cupy as cp
 import numpy as np
@@ -45,6 +42,7 @@ def run_session(config, cam):
 
     # set feedback metric
     feedback_threshold = feedback_config["metric_threshold"]
+    inter_feedback_delay = feedback_config["inter_feedback_delay"]
 
     # serial port
     ser = SerialControler(port=serial_config["port_id"],
@@ -121,6 +119,7 @@ def run_session(config, cam):
     # start session
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
+    feedback_time = 0
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
         pipeline.process()
@@ -130,7 +129,8 @@ def run_session(config, cam):
 
         # send TTL if metric above threshold
         cue = 0
-        if cp.asnumpy(result) > feedback_threshold:
+        if cp.asnumpy(result) > feedback_threshold and (frame_clock_start - feedback_time)*1000 > inter_feedback_delay:
+            feedback_time = perf_counter()
             cue = 1
             ser.sendTTL()
             print('________________TTL HAS BEEN SENT___________________')
@@ -156,13 +156,17 @@ def run_session(config, cam):
         if vis_qs[i].full():
             vis_qs[i].get()
         vis_qs[i].put("terminate")
+        vis_processes[i].join()
+        vis_processes[i].terminate()
 
     metadata.save_file()
+    writer.close()
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
+
     ser.close()
-    writer.close()
+
     now = datetime.now()
     with open(config["path"][:-6] + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
         json.dump(config, fp)
