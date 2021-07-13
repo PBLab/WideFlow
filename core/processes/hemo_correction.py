@@ -35,6 +35,8 @@ class HemoCorrect(AbstractProcess):
                 self.regression_coeff[0][i, j] = theta[0]
                 self.regression_coeff[1][i, j] = theta[1]
 
+        self.ptr = self.capacity - 1
+
     def process(self):
         if self.ptr == self.capacity - 1:
             self.ptr = 0
