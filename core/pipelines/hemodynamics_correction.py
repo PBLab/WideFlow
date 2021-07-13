@@ -94,7 +94,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
                     process.initialize_buffers()
                 self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
                 ch2i += 1
-        print("Done collecting data for hemodynamic correction\n")
+        print("Done collecting the data\n")
 
         self.processes_list_ch2[3].initialize_buffers(
             self.regression_buffer[:, :, :, 0],
