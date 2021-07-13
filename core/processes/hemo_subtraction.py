@@ -20,6 +20,8 @@ class HemoSubtraction(AbstractProcess):
         self.sub_mean[:] = cp.mean(self.dff[self.ptr, :, :])
         self.dff[self.ptr, :, :] = self.dff[self.ptr, :, :] - self.sub_mean
 
+        self.ptr = self.capacity - 1
+
     def process(self):
         if self.ptr == self.capacity - 1:
             self.ptr = 0
