@@ -156,6 +156,7 @@ def run_session(config, cam):
         if vis_qs[i].full():
             vis_qs[i].get()
         vis_qs[i].put("terminate")
+        vis_qs[i]
 
     metadata.save_file()
 
