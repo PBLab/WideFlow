@@ -120,6 +120,7 @@ def main():
     app = wx.App()
     main_gui = Main_GUI(parent=None, title='blabla', cam=cam)
     main_gui.Show()
+
     app.MainLoop()
 
 
