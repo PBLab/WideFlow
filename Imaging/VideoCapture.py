@@ -8,10 +8,11 @@ class VideoCapture(wx.Frame):
         super(VideoCapture, self).__init__(*args, **kwargs)
         self.cam = cam
         self.cam.open()
+        # TODO: height and width determined by frames dims, or cam.shape
         self.height = cam.sensor_size[0]
         self.width = cam.sensor_size[1]
         # weight and height should be driven from camera shape instead the sensor size
-        self.imageBit = wx.Bitmap(wx.EmptyImage(self.height, self.width))
+        self.imageBit = wx.Bitmap(wx.Image(self.height, self.width))
         self.frame = np.array(self.cam.get_frame(), dtype=np.float32)
         # self.frame = np.zeros((self.height, self.width, 3))
         self.bmp = wx.Bitmap.FromBuffer(self.width, self.height, self.frame)
