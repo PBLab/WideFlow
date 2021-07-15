@@ -138,6 +138,7 @@ def run_session(config, cam):
         # save data
         writer.writeFrame(pipeline.frame)
         serial_readout = ser.readSerial()
+
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
 
         # update visualization
@@ -150,6 +151,7 @@ def run_session(config, cam):
         frame_clock_stop = perf_counter()
         print(f'frame: {frame_counter}      metric results: {result}')
         print("Elapsed time:", frame_clock_stop - frame_clock_start)
+        print(f'serial_readout: {serial_readout}')
 
     # terminate visualization processes
     for i in range(len(vis_processes)):
