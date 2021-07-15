@@ -74,7 +74,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
             process.initialize_buffers()
 
         # collect data to calculate regression coefficient for the hemodynamic correction
-        print("\nCollecting data to calculate regression coefficient for the hemodynamic correction...")
+        print("\nCollecting data to calculate regression coefficient for hemodynamics effects attenuation...")
         ch1i, ch2i = 0, 0
         for i in range(self.regression_n_samples*2):
             if self.ptr == self.capacity - 1:
