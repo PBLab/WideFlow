@@ -14,6 +14,7 @@ class PVCamera(Camera):
 
     def start_up(self):
         self.clear_mode("Pre-Sequence")
+        self.set_param(const.PARAM_CLEAR_CYCLES, 2)
         self.exp_out_mode("All Rows")
         self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
 
