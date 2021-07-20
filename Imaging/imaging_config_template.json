@@ -6,8 +6,8 @@
     "camera_config": {
         "core_attr": {
             "exp_time": 50,
-            "binning": [1, 1],
-            "roi": [0, 2048, 0, 2048],
+            "binning": [2, 2],
+            "roi": [0, 1024, 0, 1024],
             "clear_mode": 0
         },
         "splice_plugins_enable": false,
@@ -69,7 +69,8 @@
               "match_p_src": null,
               "match_p_dst": null,
               "minimal_n_points": 17
-          }
+          },
+        "reference_image_path": ""
     },
 
     "analysis_pipeline_config": {

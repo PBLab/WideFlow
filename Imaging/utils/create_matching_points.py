@@ -87,7 +87,7 @@ def select_matching_points(src_np, dst_np, n_pairs, src_p_init=[], dst_p_init=[]
 
 
 class MatchingPointSelector:
-    def __init__(self, image_src, image_dst, match_p_src=None, match_p_dst=None, n_matching_pairs=17):
+    def __init__(self, image_src, image_dst, match_p_src=None, match_p_dst=None, n_matching_pairs=20):
         self.image_src = image_src
         self.image_dst = image_dst
         self.n_matching_pairs = n_matching_pairs
@@ -130,8 +130,8 @@ class MatchingPointSelector:
 
         image_warp = map_coordinates(self.image_src, [self.src_cols, self.src_rows])
         image_warp = np.reshape(image_warp, (self.dst_n_rows, self.dst_n_cols))
-        self.match_p_src = None
-        self.match_p_dst = None
+        # self.match_p_src = None
+        # self.match_p_dst = None
         return image_warp
 
     def accept(self, event):
@@ -141,6 +141,8 @@ class MatchingPointSelector:
         self.fig.set_visible(not self.fig.get_visible())
         plt.draw()
 
+        self.match_p_src = None
+        self.match_p_dst = None
         self.image_warp = self.warp_image()
 
         self.fig.set_visible(not self.fig.get_visible())

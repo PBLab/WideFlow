@@ -6,11 +6,16 @@ from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
 from Imaging.visualization import *
 from Imaging.utils.create_matching_points import *
+from utils.load_tiff import load_tiff
+from utils.load_bbox import load_bbox
 
 
 import cupy as cp
 import numpy as np
+from skimage.io import imsave
 from skvideo.io import FFmpegWriter
+from scipy.signal import fftconvolve
+import os
 
 import time
 from time import perf_counter
@@ -63,18 +68,36 @@ def run_session(config, cam):
 
     # select roi
     frame = cam.get_frame()
-    fig, ax = plt.subplots()
-    ax.imshow(cp.asnumpy(frame))
-    toggle_selector = RectangleSelector(ax, onselect, drawtype='box')
-    fig.canvas.mpl_connect('key_press_event', toggle_selector)
-    plt.show()
-    bbox = toggle_selector._rect_bbox
-    if np.sum(bbox) > 1:
-        # convert to PyVcam format
-        bbox = (int(bbox[1]), int(bbox[1]+bbox[3]), int(bbox[0]), int(bbox[0]+bbox[2]))
+    if not os.path.exists(config["rois_data_config"]["reference frame path"]):
+        fig, ax = plt.subplots()
+        ax.imshow(cp.asnumpy(frame))
+        toggle_selector = RectangleSelector(ax, onselect, drawtype='box')
+        fig.canvas.mpl_connect('key_press_event', toggle_selector)
+        plt.show()
+        bbox = toggle_selector._rect_bbox
+        if np.sum(bbox) > 1:
+            # convert to PyVcam format
+            bbox = (int(bbox[1]), int(bbox[1]+bbox[3]), int(bbox[0]), int(bbox[0]+bbox[2]))
+            cam.roi = bbox
+
+        config["rois_data_config"]["reference frame path"] = str(
+            pathlib.PurePath(config["path"]).joinpath("reference_image"))
+        imsave(config["rois_data_config"]["reference frame path"], frame)
+
+    else:  # if a reference image exist, use
+        ref_image = load_tiff(config["rois_data_config"]["reference frame path"] + "reference_image.tif")
+        ref_bbox = load_bbox(config["rois_data_config"]["reference frame path"] + "bbox.txt")
+        ref_image_roi = ref_image[ref_bbox[0]: ref_bbox[1], ref_bbox[2]: ref_bbox[3]]
+
+        corr = fftconvolve(frame, np.fliplr(np.flipud(ref_image_roi)))
+        (yi, xi) = np.unravel_index(np.argmax(corr), corr.shape)
+        yi = yi - (corr.shape[0] - frame.shape[0])
+        xi = xi - (corr.shape[1] - frame.shape[1])
+        bbox = (yi, yi + (ref_bbox[1] - ref_bbox[0]), xi, xi + ref_bbox + (ref_bbox[3] - ref_bbox[2]))
         cam.roi = bbox
 
     # select matching points for allen atlas alignment
+
     frame = cam.get_frame()
     mps = MatchingPointSelector(frame, cortex_map * np.random.random(cortex_map.shape),
                           cortex_config["cortex_matching_point"]["match_p_src"],
