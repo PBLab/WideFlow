@@ -7,7 +7,7 @@ import ctypes
 
 
 class PVCamera(Camera):
-    def __init__(self, exp_time=10, binning=(1, 1), channels=2):
+    def __init__(self, exp_time=10, binning=(2, 2), channels=2):
         super().__init__(exp_time, binning)
         self.channels = channels
         self.start_up()
