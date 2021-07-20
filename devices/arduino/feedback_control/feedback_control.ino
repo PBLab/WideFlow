@@ -45,6 +45,11 @@ void loop() {
       digitalWrite(valvePin, HIGH);
       analogWrite(ledPin, ledAnalogVal);
     }
+
+    if (incomingByte == 'R') {
+      lickPortStat = digitalRead(lickPortPin);
+      Serial.println(lickPortStat);
+    }
   }
 
   // if valveActivationTime passed since valve has been opened - close it
@@ -61,8 +66,8 @@ void loop() {
   }
 
   // check lickPort status
-  lickPortStat = digitalRead(lickPortPin);
-  Serial.print(lickPortStat);
+  //lickPortStat = digitalRead(lickPortPin);
+  //Serial.print(lickPortStat);
   //Serial.println(lickPortStat);
   //Serial.write(lickPortStat);
 }
