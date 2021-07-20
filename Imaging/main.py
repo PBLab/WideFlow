@@ -137,7 +137,7 @@ def run_session(config, cam):
 
         # save data
         writer.writeFrame(pipeline.frame)
-        serial_readout = ser.readSerial()
+        serial_readout = ser.getReadout()
 
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
 
