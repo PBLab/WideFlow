@@ -7,16 +7,26 @@ endMarker = 62
 
 
 class SerialControler(serial.Serial):
-    def __init__(self, port="/dev/ttyACM0", baudrate=9600, timeout=0.0):
-        super().__init__(port, baudrate, timeout=timeout)
-        self.waitForArduino()
+    def __init__(self, port="/dev/ttyACM0", baudrate=9600, timeout=None, write_timeout=None):
+        super().__init__(port, baudrate, timeout=timeout, write_timeout=write_timeout)
+        # self.waitForArduino()
 
     def sendTTL(self):
         self.sendToArduino("H")
 
+    def getReadout(self):
+        self.sendToArduino("R")
+        ck = self.recvFromArduino()
+        return ck
+
     def sendToArduino(self, strings):
-        strings = "<" + ','.join(strings) + ">"
+        strings = "<" + ''.join(strings) + ">"
         self.write(strings.encode('utf-8'))
+        # self.write("<".encode('utf-8'))
+        # for s in strings:
+        #     self.write(s.encode('utf-8'))
+        #
+        # self.write(">".encode('utf-8'))
 
     def recvFromArduino(self):
         ck = ""
@@ -51,5 +61,6 @@ class SerialControler(serial.Serial):
             msg = self.recvFromArduino()
             if msg == "Arduino is ready":
                 print(msg + "\n")
+                break
 
 
