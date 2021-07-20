@@ -11,7 +11,7 @@ from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
-    def __init__(self, camera, mapping_coordinates, new_shape, capacity, rois_dict_path, mask_path, roi_name, regression_n_samples):
+    def __init__(self, camera, mapping_coordinates, new_shape, capacity, rois_dict_path, mask_path, rois_names, regression_n_samples):
         self.camera = camera
         self.new_shape = new_shape
         self.capacity = capacity + capacity % 2  # make sure capacity is an odd number
@@ -19,7 +19,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.rois_dict_path = rois_dict_path
         self.mask_path = mask_path
         self.mask, self.rois_dict = self.load_datasets()
-        self.roi_name = roi_name
+        self.rois_names = rois_names
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
 
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
@@ -49,8 +49,13 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.processes_list_ch2 = [map_coord, masking_ch2, dff_ch2, Hemo_correct]
 
         # set metric
-        roi_pixels_list = self.rois_dict[self.roi_name]["PixelIdxList"]
-        self.metric = ROIMean(self.dff_buffer, roi_pixels_list, ptr=0)
+        rois_pixels_list = []
+        for roi_name in self.rois_names:
+            roi_pixels_list = self.rois_dict[roi_name]["PixelIdxList"]
+            for roi_pixels in roi_pixels_list:
+                rois_pixels_list.append(roi_pixels)
+
+        self.metric = ROIMean(self.dff_buffer, rois_pixels_list, ptr=0)
 
         self.camera.set_param(PARAM_LAST_MUXED_SIGNAL, 2)  # setting camera active output wires to 2 - strobbing of two LEDs
         self.ptr = self.capacity - 1
