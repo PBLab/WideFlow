@@ -1,4 +1,4 @@
-from core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
+from core.pipelines.training_pipeline import TrainingPipe as PipeLine
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
@@ -68,7 +68,7 @@ def run_session(config, cam):
 
     # select roi
     frame = cam.get_frame()
-    if not os.path.exists(config["rois_data_config"]["reference frame path"]):
+    if not os.path.exists(config["rois_data_config"]["reference_image_path"]):
         fig, ax = plt.subplots()
         ax.imshow(cp.asnumpy(frame))
         toggle_selector = RectangleSelector(ax, onselect, drawtype='box')
@@ -80,9 +80,9 @@ def run_session(config, cam):
             bbox = (int(bbox[1]), int(bbox[1]+bbox[3]), int(bbox[0]), int(bbox[0]+bbox[2]))
             cam.roi = bbox
 
-        config["rois_data_config"]["reference frame path"] = str(
-            pathlib.PurePath(config["path"]).joinpath("reference_image"))
-        imsave(config["rois_data_config"]["reference frame path"], frame)
+        # config["rois_data_config"]["reference frame path"] = str(
+        #     pathlib.PurePath(config["path"]).joinpath("reference_image.jpeg"))
+        # imsave(config["rois_data_config"]["reference frame path"], frame)
 
     else:  # if a reference image exist, use
         ref_image = load_tiff(config["rois_data_config"]["reference frame path"] + "reference_image.tif")
@@ -140,6 +140,7 @@ def run_session(config, cam):
     pipeline.fill_buffers()
 
     # start session
+    time.sleep(1)
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
     feedback_time = 0
@@ -155,7 +156,7 @@ def run_session(config, cam):
         if cp.asnumpy(result) > feedback_threshold and (frame_clock_start - feedback_time)*1000 > inter_feedback_delay:
             feedback_time = perf_counter()
             cue = 1
-            ser.sendTTL()
+            ser.sendFeedback()
             print('________________TTL HAS BEEN SENT___________________')
 
         # save data
@@ -176,14 +177,6 @@ def run_session(config, cam):
         print("Elapsed time:", frame_clock_stop - frame_clock_start)
         print(f'serial_readout: {serial_readout}')
 
-    # terminate visualization processes
-    for i in range(len(vis_processes)):
-        if vis_qs[i].full():
-            vis_qs[i].get()
-        vis_qs[i].put("terminate")
-        vis_processes[i].join()
-        vis_processes[i].terminate()
-
     metadata.save_file()
     writer.close()
 
@@ -193,8 +186,16 @@ def run_session(config, cam):
     ser.close()
 
     now = datetime.now()
-    with open(config["path"][:-6] + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
+    with open(config["path"] + config["name"] + "_" + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
         json.dump(config, fp)
+
+    # terminate visualization processes
+    for i in range(len(vis_processes)):
+        if vis_qs[i].full():
+            vis_qs[i].get()
+        vis_qs[i].put("terminate")
+        vis_processes[i].join()
+        vis_processes[i].terminate()
 
     print(f"session finished successfully at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
 
@@ -209,16 +210,9 @@ if __name__ == "__main__":
     #     pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_configurations'/ 'training_config.json')
     imaging_config_path = str(
         pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_config_template.json')
+            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_configurations' / '3422_training_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()
     cam = next(PVCamera.detect_camera())
     run_session(session_config, cam)
-    # try:
-    #     run_session(session_config, cam)
-    # except:
-    #     cam.close()
-
-    # import cProfile
-    # cProfile.run('run_session(session_config, cam)')
