@@ -43,7 +43,7 @@
 
     "serial_port_config": {
         "port_id": "/dev/ttyACM0",
-        "baudrate": 9800,
+        "baudrate": 9600,
         "timeout": 0.0
     },
 
