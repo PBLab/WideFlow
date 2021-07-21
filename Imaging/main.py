@@ -78,10 +78,6 @@ def run_session(config, cam):
             bbox = (int(bbox[1]), int(bbox[1]+bbox[3]), int(bbox[0]), int(bbox[0]+bbox[2]))
             cam.roi = bbox
 
-        # config["rois_data_config"]["reference frame path"] = str(
-        #     pathlib.PurePath(config["path"]).joinpath("reference_image.jpeg"))
-        # imsave(config["rois_data_config"]["reference frame path"], frame)
-
     else:  # if a reference image exist, use
         ref_image = load_tiff(config["rois_data_config"]["reference frame path"] + "reference_image.tif")
         ref_bbox = load_bbox(config["rois_data_config"]["reference frame path"] + "bbox.txt")
