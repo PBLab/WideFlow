@@ -12,8 +12,6 @@ from utils.load_bbox import load_bbox
 
 import cupy as cp
 import numpy as np
-from skimage.io import imsave
-from skvideo.io import FFmpegWriter
 from scipy.signal import fftconvolve
 import os
 
@@ -115,7 +113,9 @@ def run_session(config, cam):
 
     # video writer settings
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
-    writer = FFmpegWriter(acquisition_config["vid_save_path"])
+    vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
+                   shape=(acquisition_config["num_of_frames"],
+                          acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["nrows"]))
 
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
@@ -160,7 +160,8 @@ def run_session(config, cam):
             print('________________TTL HAS BEEN SENT___________________')
 
         # save data
-        writer.writeFrame(pipeline.frame)
+        vid_mem[frame_counter] = pipeline.frame
+        vid_mem.flush()
         serial_readout = ser.getReadout()
 
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
@@ -178,7 +179,6 @@ def run_session(config, cam):
         print(f'serial_readout: {serial_readout}')
 
     metadata.save_file()
-    writer.close()
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
