@@ -68,7 +68,8 @@
               "match_p_src": null,
               "match_p_dst": null,
               "minimal_n_points": 17
-          }
+          },
+        "reference_image_path": ""
     },
 
     "analysis_pipeline_config": {
