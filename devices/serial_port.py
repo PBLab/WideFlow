@@ -1,4 +1,5 @@
 import serial
+import time
 
 
 encoding = 'utf-8'
@@ -10,23 +11,27 @@ class SerialControler(serial.Serial):
     def __init__(self, port="/dev/ttyACM0", baudrate=9600, timeout=None, write_timeout=None):
         super().__init__(port, baudrate, timeout=timeout, write_timeout=write_timeout)
         # self.waitForArduino()
+        time.sleep(1)
+        self.flushInput()
+        self.flushOutput()
 
-    def sendTTL(self):
+    def sendFeedback(self):
         self.sendToArduino("H")
 
     def getReadout(self):
         self.sendToArduino("R")
         ck = self.recvFromArduino()
-        return ck
+        return ck[0]
+
+    def openValve(self):
+        self.sendToArduino("V")
+
+    def closeValve(self):
+        self.sendToArduino("v")
 
     def sendToArduino(self, strings):
         strings = "<" + ''.join(strings) + ">"
         self.write(strings.encode('utf-8'))
-        # self.write("<".encode('utf-8'))
-        # for s in strings:
-        #     self.write(s.encode('utf-8'))
-        #
-        # self.write(">".encode('utf-8'))
 
     def recvFromArduino(self):
         ck = ""
@@ -35,14 +40,16 @@ class SerialControler(serial.Serial):
 
         # wait for the start character
         while ord(x) != startMarker:
-            x = self.read()
+            if self.in_waiting:
+                x = self.read(1)
 
         # save data until the end marker is found
         while ord(x) != endMarker:
             if ord(x) != startMarker:
                 ck = ck + x.decode("utf-8")  # change for Python3
                 byteCount += 1
-            x = self.read()
+            if self.in_waiting:
+                x = self.read(1)
 
         return ck
 
