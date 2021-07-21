@@ -7,7 +7,7 @@
         "core_attr": {
             "exp_time": 10,
             "binning": [2, 2],
-            "roi": [0, 1024, 0, 1024],
+            "roi": [0, 2048, 0, 2048],
             "clear_mode": 0
         },
         "splice_plugins_enable": false,
@@ -43,16 +43,16 @@
 
     "serial_port_config": {
         "port_id": "/dev/ttyACM0",
-        "baudrate": 9800,
+        "baudrate": 9600,
         "timeout": 0.0
     },
 
     "acquisition_config": {
         "enable_gpu" : 1,
-        "vid_writer": {"fourcc": "MJPG", "fps": 25, "nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
+        "vid_writer": {"nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
         "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/3243/test/t1_vid.avi",
         "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/3243/test/t1_meta.txt",
-        "num_of_frames": 1000,
+        "num_of_frames": 30000,
         "capacity": 32
     },
 
@@ -74,8 +74,8 @@
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
         "args": {
-            "min_frame_count": 1000,
-            "max_frame_count": 2000,
+            "min_frame_count": 2000,
+            "max_frame_count": 4000,
             "new_shape": [297, 337],
             "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5"
         }
