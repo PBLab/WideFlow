@@ -3,20 +3,46 @@
 
 from pyvcam.camera import Camera
 from pyvcam import constants as const
+from pyvcam import pvc
 import ctypes
 
 
 class PVCamera(Camera):
-    def __init__(self, exp_time=10, binning=(2, 2), channels=2):
-        super().__init__(exp_time, binning)
+    def __init__(self, name, exp_time=10, binning=(2, 2), channels=2):
+        super().__init__(name)
+        self.__exp_time = exp_time
+        self.__binning = binning
         self.channels = channels
-        self.start_up()
+
+    @classmethod
+    def detect_camera(cls, **kwargs):
+        """Detects and creates a new Camera object.
+
+        Returns:
+            A Camera object.
+        """
+        cam_count = 0
+        total = pvc.get_cam_total()
+        while cam_count < total:
+            try:
+                yield PVCamera(pvc.get_cam_name(cam_count), **kwargs)
+                cam_count += 1
+            except RuntimeError:
+                raise RuntimeError('Failed to create a detected camera.')
 
     def start_up(self):
-        self.clear_mode("Pre-Sequence")
+        print("setting camera startup config")
+        self.clear_mode = "Pre-Sequence"
         self.set_param(const.PARAM_CLEAR_CYCLES, 2)
-        self.exp_out_mode("All Rows")
+        self.exp_out_mode = "All Rows"
         self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
+
+        # print("setting camera startup config")
+        # self.set_param(const.PARAM_CLEAR_MODE, const.clear_modes["Pre-Sequence"])
+        # self.set_param(const.PARAM_CLEAR_CYCLES, 2)
+        # self.__exp_out_mode = const.exp_out_modes["All Rows"]
+        # self.update_mode()
+        # self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
 
     def set_splice_post_processing_attributes(self, plugin_name, plugin_parameters_list):
         # search for plugin index in pp_table
