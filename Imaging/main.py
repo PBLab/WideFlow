@@ -55,6 +55,7 @@ def run_session(config, cam):
 
     # open camera and set camera settings
     cam.open()
+    cam.start_up()
     for key, value in camera_config["core_attr"].items():
         if type(getattr(cam, key)) == type(value):
             setattr(cam, key, value)
@@ -112,7 +113,7 @@ def run_session(config, cam):
     # video writer settings
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
     dat_shape = (acquisition_config["num_of_frames"],
-                          acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["nrows"])
+                          acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["ncols"])
     vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
                    shape=dat_shape)
 
