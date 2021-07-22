@@ -23,6 +23,7 @@ from matplotlib.widgets import RectangleSelector
 
 import h5py
 import json
+from tifffile import TiffWriter
 
 import multiprocessing as mp
 from multiprocessing import shared_memory, Queue
@@ -98,7 +99,7 @@ def run_session(config, cam):
                           cortex_config["cortex_matching_point"]["match_p_src"],
                           cortex_config["cortex_matching_point"]["match_p_dst"],
                           cortex_config["cortex_matching_point"]["minimal_n_points"])
-    camera_config
+
     src_cols = mps.src_cols
     src_rows = mps.src_rows
     coordinates = cp.asanyarray([src_cols, src_rows])
@@ -110,9 +111,10 @@ def run_session(config, cam):
 
     # video writer settings
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
+    dat_shape = (acquisition_config["num_of_frames"],
+                          acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["nrows"])
     vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
-                   shape=(acquisition_config["num_of_frames"],
-                          acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["ncols"]))
+                   shape=dat_shape)
 
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
@@ -154,7 +156,7 @@ def run_session(config, cam):
             feedback_time = perf_counter()
             cue = 1
             ser.sendFeedback()
-            print('________________TTL HAS BEEN SENT___________________')
+            print('________________FEEDBACK HAS BEEN SENT___________________')
 
         # save data
         vid_mem[frame_counter] = pipeline.frame
@@ -182,6 +184,22 @@ def run_session(config, cam):
 
     ser.close()
 
+    print("converting imaging dat file into tiff, this might take a few minutes")
+    try:
+        del vid_mem  # closes the dat file
+        data = np.reshape(np.fromfile(acquisition_config["vid_save_path"], dtype=np.uint16), dat_shape)
+        with TiffWriter(acquisition_config["vid_save_path"][:-4] + '.tif') as tif:
+            for fr in data:
+                tif.write(fr, contiguous=True)
+        del data
+        os.remove(acquisition_config["vid_save_path"])
+
+    except:
+        print("something went wrong while converting to tiff. dat file still exist in folder")
+
+    finally:
+        print("done")
+
     now = datetime.now()
     with open(config["path"] + config["name"] + "_" + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
         json.dump(config, fp)
@@ -194,6 +212,10 @@ def run_session(config, cam):
         vis_processes[i].join()
         vis_processes[i].terminate()
 
+    mempool = cp.get_default_memory_pool()
+    pinned_mempool = cp.get_default_pinned_memory_pool()
+    mempool.free_all_blocks()
+    pinned_mempool.free_all_blocks()
     print(f"session finished successfully at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
 
 
