@@ -65,6 +65,7 @@ def run_session(config, cam):
             cam.set_splice_post_processing_attributes(plugin_dict["name"], plugin_dict["parameters"])
 
     # select roi
+    cam.binning = (1, 1)  # set no binning for ROI selection
     frame = cam.get_frame()
     if not os.path.exists(config["rois_data_config"]["reference_image_path"]):
         fig, ax = plt.subplots()
@@ -89,7 +90,7 @@ def run_session(config, cam):
         xi = xi - (corr.shape[1] - frame.shape[1])
         bbox = (yi, yi + (ref_bbox[1] - ref_bbox[0]), xi, xi + ref_bbox + (ref_bbox[3] - ref_bbox[2]))
         cam.roi = bbox
-
+    cam.binning = tuple(camera_config["core_attr"]["binning"])
     # select matching points for allen atlas alignment
 
     frame = cam.get_frame()
@@ -97,7 +98,7 @@ def run_session(config, cam):
                           cortex_config["cortex_matching_point"]["match_p_src"],
                           cortex_config["cortex_matching_point"]["match_p_dst"],
                           cortex_config["cortex_matching_point"]["minimal_n_points"])
-
+    camera_config
     src_cols = mps.src_cols
     src_rows = mps.src_rows
     coordinates = cp.asanyarray([src_cols, src_rows])
