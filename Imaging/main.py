@@ -13,6 +13,7 @@ import cupy as cp
 import numpy as np
 from scipy.signal import fftconvolve
 import os
+import sys
 
 import time
 from time import perf_counter
@@ -201,6 +202,8 @@ def run_session(config, cam):
 
     except:
         print("something went wrong while converting to tiff. dat file still exist in folder")
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
 
     finally:
         print("done")
