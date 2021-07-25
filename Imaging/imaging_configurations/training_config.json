@@ -49,7 +49,7 @@
 
     "acquisition_config": {
         "enable_gpu" : 1,
-        "vid_writer": {"nrows": 1024, "ncols": 1024, "frame_var": "d_frame_warp"},
+        "vid_writer": {"nrows": 1024, "ncols": 1024, "frame_var": "frame"},
         "vid_save_path": "/home/pb/WideFlow_prj/3423/22072021/t1_vid.dat",
         "meta_save_path": "/home/pb/WideFlow_prj/3423/22072021/t1_meta.txt",
         "num_of_frames": 20000,
@@ -76,7 +76,7 @@
         "pipeline": "TrainingPipe",
         "args": {
             "min_frame_count": 2000,
-            "max_frame_count": 3000,
+            "max_frame_count": 4000,
             "new_shape": [297, 337],
             "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5"
         }
@@ -85,7 +85,7 @@
     "visualization_config": {
         "show_live_stream": {
             "status": true,
-            "size": [297, 337], "dtype": "float32", "buffer": "warped_buffer",
+            "size": [297, 337], "dtype": "float32", "buffer": "dff_buffer",
             "class": "LiveVideo", "params": {"image_shape": [297, 337], "frame_rate": 50}
         }
      }

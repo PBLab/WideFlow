@@ -29,10 +29,12 @@ class TrainingPipe(AbstractPipeLine):
         self.input = cp.ndarray(self.input_shape)
         self.warped_input = cp.ndarray((self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.warped_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
+        self.dff_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
 
         map_coord = MapCoordinates(self.input, self.warped_input, self.mapping_coordinates, self.new_shape)
         masking = Mask(self.warped_input, self.mask, self.warped_buffer, ptr=0)
-        self.processes_list = [map_coord, masking]
+        dff = DFF(self.dff_buffer, self.warped_buffer, ptr=0)
+        self.processes_list = [map_coord, masking, dff]
 
         self.cue = 0
         self.cue_delay = 0
@@ -45,6 +47,7 @@ class TrainingPipe(AbstractPipeLine):
 
     def get_input(self):
         self.frame = self.camera.get_live_frame()
+        self.input[:] = cp.asanyarray(self.frame)
 
     def process(self):
         if self.ptr == self.capacity - 1:

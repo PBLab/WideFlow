@@ -42,6 +42,8 @@ class SerialControler(serial.Serial):
         while ord(x) != startMarker:
             if self.in_waiting:
                 x = self.read(1)
+                if len(x) == 0:  # avoid calling ord(x) on an empty string
+                    x = "z"
 
         # save data until the end marker is found
         while ord(x) != endMarker:
@@ -50,6 +52,8 @@ class SerialControler(serial.Serial):
                 byteCount += 1
             if self.in_waiting:
                 x = self.read(1)
+                if len(x) == 0:  # avoid calling ord(x) on an empty string
+                    x = "z"
 
         return ck
 
