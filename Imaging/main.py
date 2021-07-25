@@ -1,4 +1,5 @@
-from core.pipelines.training_pipeline import TrainingPipe as PipeLine
+# from core.pipelines.training_pipeline import TrainingPipe as PipeLine
+from core.pipelines import *
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
@@ -134,11 +135,14 @@ def run_session(config, cam):
             vis_buffers.append(vis_config["buffer"])
 
     # set pipeline
-    pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
+    # pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
+    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, coordinates, **analysis_pipeline_config['args'])")
     pipeline.camera.start_live()
     pipeline.fill_buffers()
 
     # start session
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     time.sleep(1)
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
@@ -160,7 +164,7 @@ def run_session(config, cam):
             print('________________FEEDBACK HAS BEEN SENT___________________')
 
         # save data
-        vid_mem[frame_counter] = pipeline.frame
+        vid_mem[frame_counter] = getattr(pipeline, acquisition_config["frame_var"])
         vid_mem.flush()
         serial_readout = ser.getReadout()
 
@@ -178,6 +182,8 @@ def run_session(config, cam):
         print("Elapsed time:", frame_clock_stop - frame_clock_start)
         print(f'serial_readout: {serial_readout}')
 
+    ###########################################################################################################
+    ###########################################################################################################
     metadata.save_file()
 
     pipeline.camera.stop_live()
