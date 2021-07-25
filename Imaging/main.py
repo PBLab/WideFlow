@@ -9,7 +9,6 @@ from Imaging.utils.create_matching_points import *
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
 
-
 import cupy as cp
 import numpy as np
 from scipy.signal import fftconvolve
@@ -30,7 +29,6 @@ from multiprocessing import shared_memory, Queue
 
 
 def run_session(config, cam):
-
     # session config
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
@@ -78,7 +76,7 @@ def run_session(config, cam):
         bbox = toggle_selector._rect_bbox
         if np.sum(bbox) > 1:
             # convert to PyVcam format
-            bbox = (int(bbox[1]), int(bbox[1]+bbox[3]), int(bbox[0]), int(bbox[0]+bbox[2]))
+            bbox = (int(bbox[1]), int(bbox[1] + bbox[3]), int(bbox[0]), int(bbox[0] + bbox[2]))
             cam.roi = bbox
 
     else:  # if a reference image exist, use
@@ -97,9 +95,9 @@ def run_session(config, cam):
 
     frame = cam.get_frame()
     mps = MatchingPointSelector(frame, cortex_map * np.random.random(cortex_map.shape),
-                          cortex_config["cortex_matching_point"]["match_p_src"],
-                          cortex_config["cortex_matching_point"]["match_p_dst"],
-                          cortex_config["cortex_matching_point"]["minimal_n_points"])
+                                cortex_config["cortex_matching_point"]["match_p_src"],
+                                cortex_config["cortex_matching_point"]["match_p_dst"],
+                                cortex_config["cortex_matching_point"]["minimal_n_points"])
 
     src_cols = mps.src_cols
     src_rows = mps.src_rows
@@ -113,9 +111,9 @@ def run_session(config, cam):
     # video writer settings
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
     dat_shape = (acquisition_config["num_of_frames"],
-                          acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["ncols"])
+                 acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["ncols"])
     vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
-                   shape=dat_shape)
+                        shape=dat_shape)
 
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
@@ -128,7 +126,7 @@ def run_session(config, cam):
 
             vis_qs.append(Queue(5))
             params = [key + '=' + str(val) for key, val in vis_config["params"].items()]
-            target = eval(vis_config["class"] + '(vis_qs[-1], ' + ','.join(params) + ')')       # LiveVideo(vis_qs[-1])
+            target = eval(vis_config["class"] + '(vis_qs[-1], ' + ','.join(params) + ')')  # LiveVideo(vis_qs[-1])
             vis_processes.append(mp.Process(target=target, args=(shm_name,)))
             vis_processes[-1].start()
 
@@ -153,7 +151,8 @@ def run_session(config, cam):
 
         # send TTL if metric above threshold
         cue = 0
-        if cp.asnumpy(result) > feedback_threshold and (frame_clock_start - feedback_time)*1000 > inter_feedback_delay:
+        if cp.asnumpy(result) > feedback_threshold and (
+                frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
             feedback_time = perf_counter()
             cue = 1
             ser.sendFeedback()
@@ -187,12 +186,17 @@ def run_session(config, cam):
 
     print("converting imaging dat file into tiff, this might take a few minutes")
     try:
+        frame_offset = frame.nbytes
+        frame_shape = frame.shape
         del vid_mem  # closes the dat file
-        data = np.reshape(np.fromfile(acquisition_config["vid_save_path"], dtype=np.uint16), dat_shape)
         with TiffWriter(acquisition_config["vid_save_path"][:-4] + '.tif') as tif:
-            for fr in data:
-                tif.write(fr, contiguous=True)
-        del data
+            for i in range(acquisition_config["num_of_frames"]):
+                fr_data = np.reshape(np.fromfile(acquisition_config["vid_save_path"], dtype=np.uint16,
+                                                 count=frame_shape[0]*frame_shape[1],
+                                                 offset=frame_offset * i),
+                                     frame_shape)
+                tif.write(fr_data, contiguous=True)
+        del fr_data
         os.remove(acquisition_config["vid_save_path"])
 
     except:
@@ -217,11 +221,11 @@ def run_session(config, cam):
     pinned_mempool = cp.get_default_pinned_memory_pool()
     mempool.free_all_blocks()
     pinned_mempool.free_all_blocks()
-    print(f"session finished successfully at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
+    print(
+        f"session finished successfully at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
 
 
 if __name__ == "__main__":
-
     from pyvcam import pvc
     from devices.PVCam import PVCamera
     import pathlib
