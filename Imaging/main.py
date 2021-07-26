@@ -78,7 +78,9 @@ def run_session(config, cam):
         bbox = toggle_selector._rect_bbox
         if np.sum(bbox) > 1:
             # convert to PyVcam format
+            bbox = (bbox[0]/cam.binning[0], bbox[1]*cam.binning[0], bbox[2]/cam.binning[1], bbox[3]*cam.binning[1])
             bbox = (int(bbox[1]), int(bbox[1] + bbox[3]), int(bbox[0]), int(bbox[0] + bbox[2]))
+            # bbox = (bbox[0], bbox[1]*cam.binning[0], bbox[2], bbox[3]*cam.binning[1])
             cam.roi = bbox
 
     else:  # if a reference image exist, use
@@ -106,8 +108,8 @@ def run_session(config, cam):
     coordinates = cp.asanyarray([src_cols, src_rows])
 
     # update config for metadata file
-    config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = mps.match_p_src
-    config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = mps.match_p_dst
+    config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = mps.match_p_src.tolist()
+    config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = mps.match_p_dst.tolist()
     config["camera_config"]["core_attr"]["roi"] = cam.roi
 
     # video writer settings
@@ -164,7 +166,8 @@ def run_session(config, cam):
             print('________________FEEDBACK HAS BEEN SENT___________________')
 
         # save data
-        vid_mem[frame_counter] = getattr(pipeline, acquisition_config["frame_var"])
+        # vid_mem[frame_counter] = getattr(pipeline, acquisition_config["frame_var"])
+        vid_mem[frame_counter] = pipeline.frame
         vid_mem.flush()
         serial_readout = ser.getReadout()
 
@@ -191,20 +194,20 @@ def run_session(config, cam):
 
     ser.close()
 
-    print("converting imaging dat file into tiff, this might take a few minutes")
+    print("converting imaging dat file into tiff, this might take few minutes")
     try:
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         del vid_mem  # closes the dat file
-        with TiffWriter(acquisition_config["vid_save_path"][:-4] + '.tif') as tif:
-            for i in range(acquisition_config["num_of_frames"]):
-                fr_data = np.reshape(np.fromfile(acquisition_config["vid_save_path"], dtype=np.uint16,
-                                                 count=frame_shape[0]*frame_shape[1],
-                                                 offset=frame_offset * i),
-                                     frame_shape)
-                tif.write(fr_data, contiguous=True)
-        del fr_data
-        os.remove(acquisition_config["vid_save_path"])
+        # with TiffWriter(acquisition_config["vid_save_path"][:-4] + '.tif', bigtiff=True) as tif:
+        #     for i in range(acquisition_config["num_of_frames"]):
+        #         fr_data = np.reshape(np.fromfile(acquisition_config["vid_save_path"], dtype=np.uint16,
+        #                                          count=frame_shape[0]*frame_shape[1],
+        #                                          offset=frame_offset * i),
+        #                              frame_shape)
+        #         tif.write(fr_data, contiguous=True)
+        # del fr_data
+        # os.remove(acquisition_config["vid_save_path"])
 
     except:
         print("something went wrong while converting to tiff. dat file still exist in folder")
