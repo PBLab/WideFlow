@@ -3,6 +3,7 @@ from core.pipelines import *
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
+from utils.convert_dat_to_tif import convert_dat_to_tif
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
 from Imaging.visualization import *
@@ -199,15 +200,9 @@ def run_session(config, cam):
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         del vid_mem  # closes the dat file
-        # with TiffWriter(acquisition_config["vid_save_path"][:-4] + '.tif', bigtiff=True) as tif:
-        #     for i in range(acquisition_config["num_of_frames"]):
-        #         fr_data = np.reshape(np.fromfile(acquisition_config["vid_save_path"], dtype=np.uint16,
-        #                                          count=frame_shape[0]*frame_shape[1],
-        #                                          offset=frame_offset * i),
-        #                              frame_shape)
-        #         tif.write(fr_data, contiguous=True)
-        # del fr_data
-        # os.remove(acquisition_config["vid_save_path"])
+        convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset, frame_shape,
+                           str(frame.dtype), acquisition_config["num_of_frames"])
+        os.remove(acquisition_config["vid_save_path"])
 
     except:
         print("something went wrong while converting to tiff. dat file still exist in folder")
