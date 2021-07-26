@@ -193,15 +193,28 @@ def run_session(config, cam):
 
     print("converting imaging dat file into tiff, this might take a few minutes")
     try:
-        frame_offset = frame.nbytes
-        frame_shape = frame.shape
+        # frame_offset = frame.nbytes
+        # frame_shape = frame.shape
+        # del vid_mem  # closes the dat file
+        # with TiffWriter(acquisition_config["vid_save_path"][:-4] + '.tif') as tif:
+        #     for i in range(acquisition_config["num_of_frames"]):
+        #         fr_data = np.reshape(np.fromfile(acquisition_config["vid_save_path"], dtype=np.uint16,
+        #                                          count=frame_shape[0]*frame_shape[1],
+        #                                          offset=frame_offset * i),
+        #                              frame_shape)
+        #         tif.write(fr_data, contiguous=True)
+        # del fr_data
+        # os.remove(acquisition_config["vid_save_path"])
+        frames_offset = frame.nbytes * 2000
+        frames_shape = (2000, frame.shape[0], frame.shape[1])
         del vid_mem  # closes the dat file
-        with TiffWriter(acquisition_config["vid_save_path"][:-4] + '.tif') as tif:
-            for i in range(acquisition_config["num_of_frames"]):
-                fr_data = np.reshape(np.fromfile(acquisition_config["vid_save_path"], dtype=np.uint16,
-                                                 count=frame_shape[0]*frame_shape[1],
-                                                 offset=frame_offset * i),
-                                     frame_shape)
+        for i in range(int(np.ceil(acquisition_config["num_of_frames"] / 2000))):
+            with TiffWriter(acquisition_config["vid_save_path"][:-4] + '_' + str(i) + '.tif') as tif:
+                fr_data = np.reshape(np.fromfile(acquisition_config["vid_save_path"],
+                                                 dtype=np.uint16,
+                                                 count=np.prod(frames_shape),
+                                                 offset=frames_offset * i),
+                                         frames_shape)
                 tif.write(fr_data, contiguous=True)
         del fr_data
         os.remove(acquisition_config["vid_save_path"])
