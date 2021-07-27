@@ -10,6 +10,9 @@
             "roi": [0, 2048, 0, 2048],
             "clear_mode": 0
         },
+        "attr": {
+            "channels": 1
+        },
         "splice_plugins_enable": false,
         "splice_plugin_setting": [
             {
