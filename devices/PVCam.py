@@ -37,13 +37,6 @@ class PVCamera(Camera):
         self.exp_out_mode = "All Rows"
         self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
 
-        # print("setting camera startup config")
-        # self.set_param(const.PARAM_CLEAR_MODE, const.clear_modes["Pre-Sequence"])
-        # self.set_param(const.PARAM_CLEAR_CYCLES, 2)
-        # self.__exp_out_mode = const.exp_out_modes["All Rows"]
-        # self.update_mode()
-        # self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
-
     def set_splice_post_processing_attributes(self, plugin_name, plugin_parameters_list):
         # search for plugin index in pp_table
         pp_index = None
