@@ -12,11 +12,12 @@ from os.path import isfile, join
 
 
 class AutoEncoderDataSet(Dataset):
-    def __init__(self, dirs_list, n_frames, transforms=None):
+    def __init__(self, files_list, n_frames, transforms=None):
         super(AutoEncoderDataSet, self).__init__()
 
-        self.dirs_list = dirs_list
-        self.files_list = self.create_files_list()
+        # self.dirs_list = dirs_list
+        # self.files_list = self.create_files_list()
+        self.files_list = files_list
         self.n_frames = n_frames
         self.transforms = transforms
 
@@ -93,3 +94,11 @@ class ToTensor():
         # torch image with 1 channel: 1 X T X H X W
 
         return torch.Tensor(np.expand_dims(vid.transpose((2, 0, 1)), 0))
+
+
+class GrayScale():
+    def __call__(self, vid, vmin=None, vmax=None):
+        vmin = vmin or np.min(vid)
+        vmax = vmax or np.max(vid)
+
+        return (vid - vmin) / (vmax - vmin + np.finfo(float).eps)
