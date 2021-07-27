@@ -1,118 +1,105 @@
+import os
 import wx
 
 
-class CameraConfig(wx.Frame):
-    def __init__(self, *args, **kwargs):
-        super(CameraConfig, self).__init__(*args, **kwargs)
-        self.InitUI()
+class ConfigurationPanel(wx.Panel):
+    def __init__(self, parent, main_gui_self):
+        self.main_gui_self = main_gui_self
+        self.config = main_gui_self.configuration
+        wx.Panel.__init__(self, parent)
 
-    def InitUI(self):
-        self.Move((0, 0))
-        self.SetSize((300, 300))
-        self.SetTitle('WideFlow')
-        self.Centre()
+        # define text controller
+        self.my_text = wx.TextCtrl(self, style=wx.TE_MULTILINE)
 
-    def main_layout(self):
-        panel = wx.Panel(self)
-        panel.SetBackgroundColour("gray")
+        # define buttons
+        btn_load = wx.Button(self, label='Open JSON File')
+        btn_load.Bind(wx.EVT_BUTTON, self.onOpen)
 
-        font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(9)
+        btn_save = wx.Button(self, label='Save File')
+        btn_save.Bind(wx.EVT_BUTTON, self.onSave)
 
-        vbox = wx.BoxSizer(wx.VERTICAL)
+        btn_save_as = wx.Button(self, label='Save File As')
+        btn_save_as.Bind(wx.EVT_BUTTON, self.onSaveAs)
 
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        st1 = wx.StaticText(panel, label='frame rate')
-        st1.SetFont(font)
-        hbox1.Add(st1, flag=wx.RIGHT, border=8)
-        tc = wx.TextCtrl(panel)
-        hbox1.Add(tc, proportion=1)
-        vbox.Add(hbox1, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, border=10)
-        vbox.Add((-1, 25))
+        btn_update = wx.Button(self, label='Update\nConfigurations')
+        btn_update.Bind(wx.EVT_BUTTON, self.onUpdateConfig)
 
-        hbox5 = wx.BoxSizer(wx.HORIZONTAL)
-        cb1 = wx.CheckBox(panel, label='option 1')
-        cb1.SetFont(font)
-        hbox5.Add(cb1)
-        cb2 = wx.CheckBox(panel, label='option 2')
-        cb2.SetFont(font)
-        hbox5.Add(cb2, flag=wx.LEFT, border=10)
-        cb3 = wx.CheckBox(panel, label='option 3')
-        cb3.SetFont(font)
-        hbox5.Add(cb3, flag=wx.LEFT, border=10)
-        vbox.Add(hbox5, flag=wx.LEFT, border=10)
-        vbox.Add((-1, 25))
+        # create panel layout
+        btn_sizer = wx.BoxSizer(wx.VERTICAL)
+        btn1 = wx.BoxSizer(wx.HORIZONTAL)
+        btn1.Add(btn_load, 0, wx.ALL|wx.CENTER, 5)
+        btn1.Add(btn_save, 0, wx.ALL|wx.CENTER, 5)
+        btn1.Add(btn_save_as, 0, wx.ALL|wx.CENTER, 5)
+        btn_sizer.Add(btn1)
 
+        btn2 = wx.BoxSizer(wx.HORIZONTAL)
+        btn2.Add(btn_update, 0, wx.ALL | wx.CENTER, 5)
+        btn_sizer.Add(btn2)
 
-class AcquisitionConfig(wx.Frame):
-    def __init__(self, *args, **kwargs):
-        super(AcquisitionConfig, self).__init__(*args, **kwargs)
-        self.InitUI()
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.my_text, 1, wx.ALL | wx.EXPAND)
+        sizer.Add(btn_sizer, 1, wx.ALL | wx.EXPAND)
 
-    def InitUI(self):
-        self.main_layout()
-        self.Move((0, 0))
-        self.SetSize((300, 300))
-        self.SetTitle('WideFlow')
-        self.Centre()
+        self.SetSizer(sizer)
 
-    def main_layout(self):
-        panel = wx.Panel(self)
-        panel.SetBackgroundColour("gray")
+    def onOpen(self, event):
+        wildcard = "TXT files (*.json)|*.json"
+        dialog = wx.FileDialog(self, "Open Text Files", wildcard=wildcard,
+                               style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
 
-        font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(9)
+        if dialog.ShowModal() == wx.ID_CANCEL:
+            return
 
-        vbox_main = wx.BoxSizer(wx.VERTICAL)
+        path = dialog.GetPath()
+        self.file_path = path
 
-        vbox_processes = wx.BoxSizer(wx.VERTICAL)
-        hbox_title = wx.BoxSizer(wx.HORIZONTAL)
-        vbox_processes.Add(hbox_title, flag=wx.LEFT, border=10)
+        if os.path.exists(path):
+            with open(path) as fobj:
+                for line in fobj:
+                    self.my_text.WriteText(line)
 
-        st1 = wx.StaticText(panel, label='Processes')
-        st1.SetFont(font)
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(st1)
-        p1 = wx.CheckBox(panel, label='Process 1')
-        p1.SetFont(font)
-        hbox1.Add(p1)
-        m1 = wx.CheckBox(panel, label='metric 1')
-        m1.SetFont(font)
-        hbox1.Add(m1)
-        vbox_processes.Add(hbox1, flag=wx.LEFT, border=10)
-        vbox_processes.Add((-1, 25))
+        self.config = self.my_text.Value
 
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        p2 = wx.CheckBox(panel, label='Process 2')
-        p2.SetFont(font)
-        hbox2.Add(p2)
-        m2 = wx.CheckBox(panel, label='metric 2')
-        m2.SetFont(font)
-        hbox2.Add(m2)
-        vbox_processes.Add(hbox2, flag=wx.LEFT, border=10)
-        vbox_processes.Add((-1, 25))
+    def onSaveAs(self, event):
+        with wx.FileDialog(self, "Save as", wildcard="TXT files (*.json)|*.json",
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
 
-        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-        p3 = wx.CheckBox(panel, label='Process 3')
-        p3.SetFont(font)
-        hbox3.Add(p3)
-        m3 = wx.CheckBox(panel, label='metric 3')
-        m3.SetFont(font)
-        hbox3.Add(m3)
-        vbox_processes.Add(hbox3, flag=wx.LEFT, border=10)
-        vbox_processes.Add((-1, 25))
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return  # the user changed their mind
 
-        vbox_main.Add(vbox_processes, flag=wx.LEFT, border=10)
-        vbox_main.Add((-1, 25))
-        panel.SetSizer(vbox_main)
+            # save the current contents in the file
+            pathname = fileDialog.GetPath()
+            try:
+                with open(pathname, 'w') as file:
+                    self.my_text.SaveFile(pathname)
+            except IOError:
+                wx.LogError("Cannot save current data in file '%s'." % pathname)
+            self.file_path = pathname
+
+    def onSave(self, event):
+        try:
+            with open(self.file_path, 'w') as file:
+                self.my_text.SaveFile(self.file_path)
+        except IOError:
+            wx.LogError("Cannot save current data in file '%s'." % self.file_path)
+
+    def onUpdateConfig(self, event):
+        self.config = self.my_text.Value
+        self.main_gui_self.configuration = self.config
 
 
-def main():
+class ConfigurationWizard(wx.Frame):
+    def __init__(self, main_gui_self=None):
+        wx.Frame.__init__(self, None, title='Session Acquisition Configurations')
+        self.main_gui_self = main_gui_self
+        self.panel = ConfigurationPanel(self, main_gui_self=main_gui_self)
 
-    app = wx.App()
-    main_gui = AcquisitionConfig(parent=None, title='blabla')
-    main_gui.Show()
-    app.MainLoop()
 
 if __name__ == '__main__':
-    main()
+    app = wx.App(False)
+    frame = ConfigurationWizard()
+    app.MainLoop()
+
+
+
+

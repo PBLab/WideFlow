@@ -1,0 +1,128 @@
+import numpy as np
+import cupy as cp
+import cupyx.scipy.ndimage as csn
+
+
+def baseline_calc_carbox(cp_3d_arr, weights):
+    return cp.min(csn.convolve(cp_3d_arr, weights), 0)
+
+
+def resize(cp_2d_arr, cp_2d_arr_rs):
+    [n_rows, n_cols] = cp_2d_arr.shape
+    [n_rows_rs, n_cols_rs] = cp_2d_arr_rs.shape
+    trans_mat = cp.eye(3)
+    trans_mat[0][0] = n_rows_rs / n_rows
+    trans_mat[1][1] = n_cols_rs / n_cols
+    csn.affine_transform(cp_2d_arr, trans_mat, output_shape=(n_rows_rs, n_cols_rs), output=cp_2d_arr_rs)
+    return cp_2d_arr_rs
+
+
+def zoom(cp_2d_arr_zm, cp_2d_arr):
+    zm_factor = (cp_2d_arr_zm.shape[0] / cp_2d_arr.shape[0], cp_2d_arr_zm.shape[1] / cp_2d_arr.shape[1])
+    csn.zoom(cp_2d_arr, zm_factor, cp_2d_arr_zm)
+    return cp_2d_arr_zm
+
+
+def update_temporal_mean(curr_mean, old_sample, new_sample, n):
+    return curr_mean - (old_sample - new_sample) / n
+
+
+def update_mean(mean, old_sample, new_sample, n, ax):
+    return mean - (cp.sum(old_sample, ax) - cp.sum(new_sample, ax)) / n
+
+
+def update_std(current_std, old_sample, new_sample, n, old_mean, new_mean=None):
+    new_mean = new_mean or update_mean(old_mean, old_sample, new_sample, n, None)
+    return cp.sqrt(cp.divide(cp.sum((n-2)*cp.power(current_std, 2) + cp.multiply((new_sample - new_mean), (new_sample - old_mean))), n-1))
+
+
+def std_threshold(cp_3d_arr, cp_3d_arr_th, std_map, steps, cp_3d_arr_temporal_mean):
+    cp_3d_arr_th[:, :, :] = cp_3d_arr
+    cp_3d_arr_th[cp_3d_arr_th < cp_3d_arr_temporal_mean + steps*std_map] = 0
+    # TODO: fix configuration call for this function
+
+
+def cross_corr(x3d, y3d, meux, sigx, meuy, sigy):
+    # return cp.divide(cp.mean(cp.multiply(x3d - meux, y3d - meuy)), cp.multiply(sigx, sigy))
+    mx = cp.mean(x3d)
+    sx = cp.std(x3d)
+    my = cp.mean(y3d)
+    sy = cp.std(y3d)
+    return cp.divide(cp.mean(cp.multiply(x3d - mx, y3d - my)), cp.multiply(sx, sy))
+
+
+
+def extract_rois_timeseries(x3d, rois_dict, shape):
+    rois_time_series = [None] * len(rois_dict)
+    for i, roi_dict in enumerate(rois_dict):
+        pixels_id_list = roi_dict["PixelIdxList"]
+        unravel_idx = np.unravel_index(pixels_id_list, shape=shape)
+        rois_time_series[i] = cp.mean(x3d[:, unravel_idx[0], unravel_idx[1]], 1)
+
+    return rois_time_series
+
+
+def dff(x2d, bs):
+    return cp.divide(x2d - bs, bs + np.finfo(np.float32).eps)
+
+
+
+# update_buffer = cp.RawKernel(r'''
+#     extern "C" __global__
+#     void copyKernel(double* x3d, double* x2d, int frameIdx, int capacity) {
+#
+#         const int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+#         const int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+#         const int zIndex = blockDim.z * blockIdx.z + threadIdx.z;
+#
+#         if (frameIdx == capacity-1){
+#             frameIdx = 0;
+#             }
+#         else {
+#             frameIdx = frameIdx + 1;
+#             }
+#
+#         if (zIndex >= frameIdx & zIndex < frameIdx+1){
+#             x3d[zIndex][yIndex][xIndex] = x2d[yIndex][xIndex];
+#         }
+#
+#     }
+#     ''', 'copyKernel')
+
+
+# mean_kernel = cp.RawKernel(r'''
+#     #include </usr/local/cuda-8.0/include/npps_statistics_functions.h>
+# ... extern "C" __global__
+# ... void mean(const float* x, float* y) {
+# ...     int tid = blockDim.x * blockIdx.x + threadIdx.x;
+# ...     nppsMean_StdDev_32f_C1MR_Ctx
+# ... }
+# ... ''', 'mean')
+#
+#
+# std_kernel = cp.RawKernel(r'''
+#     #include </usr/local/cuda-8.0/include/npps_statistics_functions.h>
+# ... extern "C" __global__
+# ... void std(const float* x, float* y) {
+# ...     int tid = blockDim.x * blockIdx.x + threadIdx.x;
+# ...     nppsStdDev_32f(x, , y,
+# ... }
+# ... ''', 'std')
+
+
+# def nd_std(cp_nd_arr, ax):
+#     n = cp_nd_arr.shape[0]
+#     return cp.sum(cp.square(cp_nd_arr - cp.sum(cp_nd_arr, axis=ax) / n), axis=ax) / n
+
+
+# def run_preprocesses(cp_2d_arr, processes_list):
+#     for process in processes_list:
+#         cp_2d_arr = eval(process[0] + "(" + ",".join(process[1:]) + ")")
+#
+#     return cp_2d_arr
+
+
+# mem = cp.cuda.BaseMemory(4294967295, (10,10), 0)
+# ptr=cp.cuda.MemoryPointer(mem,0)
+# a = cp.ndarray((10, 10), memptr=ptr)
+
