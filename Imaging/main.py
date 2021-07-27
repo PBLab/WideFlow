@@ -63,6 +63,9 @@ def run_session(config, cam):
         else:
             setattr(cam, key, type(getattr(cam, key))(value))
 
+    for key, value in camera_config["attr"].items():
+        setattr(cam, key, value)
+
     if camera_config["splice_plugins_enable"]:
         for plugin_dict in camera_config["splice_plugins_settings"]:
             cam.set_splice_post_processing_attributes(plugin_dict["name"], plugin_dict["parameters"])
