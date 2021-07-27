@@ -56,15 +56,15 @@ def run_session(config, cam):
 
     # open camera and set camera settings
     cam.open()
+    for key, value in camera_config["attr"].items():
+        setattr(cam, key, value)
+
     cam.start_up()
     for key, value in camera_config["core_attr"].items():
         if type(getattr(cam, key)) == type(value):
             setattr(cam, key, value)
         else:
             setattr(cam, key, type(getattr(cam, key))(value))
-
-    for key, value in camera_config["attr"].items():
-        setattr(cam, key, value)
 
     if camera_config["splice_plugins_enable"]:
         for plugin_dict in camera_config["splice_plugins_settings"]:
