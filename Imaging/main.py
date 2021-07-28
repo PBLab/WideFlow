@@ -32,6 +32,12 @@ from multiprocessing import shared_memory, Queue
 
 
 def run_session(config, cam):
+    # free gpu memory
+    mempool = cp.get_default_memory_pool()
+    pinned_mempool = cp.get_default_pinned_memory_pool()
+    mempool.free_all_blocks()
+    pinned_mempool.free_all_blocks()
+
     # session config
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
@@ -225,6 +231,7 @@ def run_session(config, cam):
         vis_qs[i].put("terminate")
         vis_processes[i].join()
         vis_processes[i].terminate()
+
 
     mempool = cp.get_default_memory_pool()
     pinned_mempool = cp.get_default_pinned_memory_pool()
