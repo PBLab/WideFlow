@@ -23,6 +23,7 @@ class PVCamera(Camera):
         """
         cam_count = 0
         total = pvc.get_cam_total()
+
         while cam_count < total:
             try:
                 yield PVCamera(pvc.get_cam_name(cam_count), **kwargs)
