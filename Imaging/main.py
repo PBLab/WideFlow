@@ -1,4 +1,4 @@
-# from core.pipelines.training_pipeline import TrainingPipe as PipeLine
+# from core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
 from core.pipelines import *
 from devices.serial_port import SerialControler
 
@@ -10,10 +10,12 @@ from Imaging.visualization import *
 from Imaging.utils.create_matching_points import *
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
+from utils.load_matching_points import load_matching_points
 
 import cupy as cp
 import numpy as np
 from scipy.signal import fftconvolve
+import cv2
 import os
 import sys
 
@@ -65,12 +67,13 @@ def run_session(config, cam):
     for key, value in camera_config["attr"].items():
         setattr(cam, key, value)
 
-    cam.start_up()
     for key, value in camera_config["core_attr"].items():
         if type(getattr(cam, key)) == type(value):
             setattr(cam, key, value)
         else:
             setattr(cam, key, type(getattr(cam, key))(value))
+
+    cam.start_up()
 
     if camera_config["splice_plugins_enable"]:
         for plugin_dict in camera_config["splice_plugins_settings"]:
@@ -90,17 +93,23 @@ def run_session(config, cam):
             # convert to PyVcam format
             bbox = (int(bbox[0]), int(bbox[0] + bbox[2]), int(bbox[1]), int(bbox[1] + bbox[3]))
             cam.roi = bbox
+            #  camera ROI is defined as: (x_min, x_max, y_min, y_max)
+            #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
 
     else:  # if a reference image exist, use
         ref_image = load_tiff(config["rois_data_config"]["reference frame path"] + "reference_image.tif")
         ref_bbox = load_bbox(config["rois_data_config"]["reference frame path"] + "bbox.txt")
-        ref_image_roi = ref_image[ref_bbox[0]: ref_bbox[1], ref_bbox[2]: ref_bbox[3]]
+        match_p_src, match_p_dst = load_matching_points(config["rois_data_config"]["reference frame path"] + "matching_points.txt")
+        cortex_config["cortex_matching_point"]["match_p_src"] = match_p_src
+        cortex_config["cortex_matching_point"]["match_p_dst"] = match_p_dst
+
+        ref_image_roi = ref_image[ref_bbox[2]: ref_bbox[3], ref_bbox[0]: ref_bbox[1]]
 
         corr = fftconvolve(frame, np.fliplr(np.flipud(ref_image_roi)))
         (yi, xi) = np.unravel_index(np.argmax(corr), corr.shape)
         yi = yi - (corr.shape[0] - frame.shape[0])
         xi = xi - (corr.shape[1] - frame.shape[1])
-        bbox = (yi, yi + (ref_bbox[1] - ref_bbox[0]), xi, xi + ref_bbox + (ref_bbox[3] - ref_bbox[2]))
+        bbox = (xi, xi + (ref_bbox[1] - ref_bbox[0]), yi, yi + (ref_bbox[3] - ref_bbox[2]))
         cam.roi = bbox
     cam.binning = tuple(camera_config["core_attr"]["binning"])
 
@@ -200,6 +209,7 @@ def run_session(config, cam):
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
+    pipeline.clear_buffers()
 
     ser.close()
 
@@ -231,7 +241,6 @@ def run_session(config, cam):
         vis_qs[i].put("terminate")
         vis_processes[i].join()
         vis_processes[i].terminate()
-
 
     mempool = cp.get_default_memory_pool()
     pinned_mempool = cp.get_default_pinned_memory_pool()
