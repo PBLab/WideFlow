@@ -45,6 +45,12 @@ class TrainingPipe(AbstractPipeLine):
     def fill_buffers(self):
         pass
 
+    def clear_buffers(self):
+        self.input = None
+        self.warped_input = None
+        self.warped_buffer = None
+        self.dff_buffer = None
+
     def get_input(self):
         self.frame = self.camera.get_live_frame()
         self.input[:] = cp.asanyarray(self.frame)
