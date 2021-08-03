@@ -110,6 +110,14 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.metric.initialize_buffers()
         self.ptr = self.capacity - 1
 
+    def clear_buffers(self):
+        self.input = None
+        self.warped_input = None
+        self.warped_buffer = None
+        self.warped_buffer_ch2 = None
+        self.dff_buffer = None
+        self.dff_buffer_ch2 = None
+
     def get_input(self):
         self.frame = self.camera.get_live_frame()
         self.input[:] = cp.asanyarray(self.frame)
