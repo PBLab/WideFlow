@@ -11,7 +11,7 @@ import cv2
 
 
 # ############## change path to the folder the reference image is at, and binning factor according the one used whole imaging ############## #
-reference_base_path = 'Z:/Rotem/WideFlow prj/3424/'
+reference_base_path = 'Z:/Rotem/WideFlow prj/3422/'
 binning = (2, 2)
 # ########################################################################################################################################## #
 
