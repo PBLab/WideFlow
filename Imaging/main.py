@@ -1,6 +1,8 @@
 # from core.pipelines.training_pipeline import TrainingPipe as PipeLine
 from core.pipelines import *
 from devices.serial_port import SerialControler
+# from devices.FLIRCam import FLIRCam
+from Imaging.behavioral_camera import behavioral_camera
 
 from utils.imaging_utils import load_config
 from utils.convert_dat_to_tif import convert_dat_to_tif
@@ -28,12 +30,17 @@ import json
 from tifffile import TiffWriter
 
 import multiprocessing as mp
-from multiprocessing import shared_memory, Queue
+if int(sys.version[2]) > 7:
+    from multiprocessing import shared_memory, Queue
+    from multiprocessing.shared_memory import SharedMemory
+else:
+    from shared_numpy import SharedMemory, Queue
 
 
 def run_session(config, cam):
     # session config
     camera_config = config["camera_config"]
+    behavioral_camera_config = config["behavioral_camera_config"]
     serial_config = config["serial_port_config"]
     cortex_config = config["rois_data_config"]
     acquisition_config = config["acquisition_config"]
@@ -114,16 +121,21 @@ def run_session(config, cam):
     # video writer settings
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
     dat_shape = (acquisition_config["num_of_frames"],
-                 acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["ncols"])
+                 frame.shape[0], frame.shape[1])
     vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
                         shape=dat_shape)
+
+    # initialize behavioral camera
+    # behavioral_cam = FLIRCam(behavioral_camera_config)
+    # behavioral_cam_qs = Queue(5)
+    # behavioral_process = mp.Process(target=behavioral_camera, args=(behavioral_cam, behavioral_cam_qs))
 
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
     for key, vis_config in visualization_config.items():
         if vis_config["status"]:
             a = np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]))
-            shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+            shm = SharedMemory(create=True, size=a.nbytes)
             shm_name = shm.name
             vis_shm.append(np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]), buffer=shm.buf))
 
@@ -150,6 +162,7 @@ def run_session(config, cam):
     feedback_time = 0
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
+        # behavioral_cam_qs.put("grab")
         pipeline.process()
 
         # evaluate metric
@@ -181,7 +194,7 @@ def run_session(config, cam):
         frame_counter += 1
         frame_clock_stop = perf_counter()
         print(f'frame: {frame_counter}      metric results: {result}')
-        print("Elapsed time:", frame_clock_stop - frame_clock_start)
+        # print("Elapsed time:", frame_clock_stop - frame_clock_start)
         print(f'serial_readout: {serial_readout}')
 
     ###########################################################################################################
@@ -191,6 +204,8 @@ def run_session(config, cam):
     pipeline.camera.stop_live()
     pipeline.camera.close()
 
+    # behavioral_cam_qs.put("terminate")
+
     ser.close()
 
     print("converting imaging dat file into tiff, this might take few minutes")
@@ -198,7 +213,8 @@ def run_session(config, cam):
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         del vid_mem  # closes the dat file
-        convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset, frame_shape,
+        convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
+                           (2000, frame_shape[0], frame_shape[1]),
                            str(frame.dtype), acquisition_config["num_of_frames"])
         os.remove(acquisition_config["vid_save_path"])
 
