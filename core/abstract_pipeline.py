@@ -11,6 +11,10 @@ class AbstractPipeLine(ABC):
         pass
 
     @abstractmethod
+    def clear_buffers(self):
+        pass
+
+    @abstractmethod
     def get_input(self, input):
         pass
 

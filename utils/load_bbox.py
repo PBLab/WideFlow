@@ -12,3 +12,5 @@ def load_bbox(path):
     coordinates = []
     for coor in coortext:
         coordinates.append(int(coor.split(':')[1]))
+
+    return coordinates

@@ -23,6 +23,7 @@ class PVCamera(Camera):
         """
         cam_count = 0
         total = pvc.get_cam_total()
+
         while cam_count < total:
             try:
                 yield PVCamera(pvc.get_cam_name(cam_count), **kwargs)
@@ -36,13 +37,6 @@ class PVCamera(Camera):
         self.set_param(const.PARAM_CLEAR_CYCLES, 2)
         self.exp_out_mode = "All Rows"
         self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
-
-        # print("setting camera startup config")
-        # self.set_param(const.PARAM_CLEAR_MODE, const.clear_modes["Pre-Sequence"])
-        # self.set_param(const.PARAM_CLEAR_CYCLES, 2)
-        # self.__exp_out_mode = const.exp_out_modes["All Rows"]
-        # self.update_mode()
-        # self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
 
     def set_splice_post_processing_attributes(self, plugin_name, plugin_parameters_list):
         # search for plugin index in pp_table
