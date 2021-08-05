@@ -168,11 +168,9 @@ def run_session(config, cam):
         frame_clock_start = perf_counter()
         pipeline.process()
 
-        # evaluate metric
-        result = pipeline.evaluate()
-
-        # send TTL if metric above threshold
+        # evaluate metric and send TTL if metric above threshold
         cue = 0
+        result = pipeline.evaluate()
         if cp.asnumpy(result) > feedback_threshold and (
                 frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
             feedback_time = perf_counter()
