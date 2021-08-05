@@ -1,13 +1,13 @@
-# from core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
+from wideflow.core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
 from core.pipelines import *
-from devices.serial_port import SerialControler
+from wideflow.devices.serial_port import SerialControler
 
 from wideflow.utils.imaging_utils import load_config
 from wideflow.utils.convert_dat_to_tif import convert_dat_to_tif
-from Imaging.utils.acquisition_metadata import AcquisitionMetaData
-from Imaging.utils.roi_select import *
-from Imaging.visualization import *
-from Imaging.utils.create_matching_points import *
+from wideflow.Imaging.utils.acquisition_metadata import AcquisitionMetaData
+from wideflow.Imaging.utils.roi_select import *
+from wideflow.Imaging.visualization import *
+from wideflow.Imaging.utils.create_matching_points import *
 from wideflow.utils.load_tiff import load_tiff
 from wideflow.utils.load_bbox import load_bbox
 from wideflow.utils.load_matching_points import load_matching_points
@@ -96,9 +96,9 @@ def run_session(config, cam):
             #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
 
     else:  # if a reference image exist, use
-        ref_image = load_tiff(config["rois_data_config"]["reference frame path"] + "reference_image.tif")
-        ref_bbox = load_bbox(config["rois_data_config"]["reference frame path"] + "bbox.txt")
-        match_p_src, match_p_dst = load_matching_points(config["rois_data_config"]["reference frame path"] + "matching_points.txt")
+        ref_image = load_tiff(config["rois_data_config"]["reference_image_path"] + "reference_image.tif")
+        ref_bbox = load_bbox(config["rois_data_config"]["reference_image_path"] + "bbox.txt")
+        match_p_src, match_p_dst = load_matching_points(config["rois_data_config"]["reference_image_path"] + "matching_points.txt")
         cortex_config["cortex_matching_point"]["match_p_src"] = match_p_src
         cortex_config["cortex_matching_point"]["match_p_dst"] = match_p_dst
 
@@ -108,15 +108,17 @@ def run_session(config, cam):
         (yi, xi) = np.unravel_index(np.argmax(corr), corr.shape)
         yi = yi - (corr.shape[0] - frame.shape[0])
         xi = xi - (corr.shape[1] - frame.shape[1])
-        bbox = (xi, xi + (ref_bbox[1] - ref_bbox[0]), yi, yi + (ref_bbox[3] - ref_bbox[2]))
+        bbox = (int(xi), int(xi + (ref_bbox[1] - ref_bbox[0])), int(yi), int(yi + (ref_bbox[3] - ref_bbox[2])))
         cam.roi = bbox
     cam.binning = tuple(camera_config["core_attr"]["binning"])
 
     # select matching points for allen atlas alignment
     frame = cam.get_frame()
+    match_p_src = np.array(cortex_config["cortex_matching_point"]["match_p_src"])
+    match_p_dst = np.array(cortex_config["cortex_matching_point"]["match_p_dst"])
     mps = MatchingPointSelector(frame, cortex_map * np.random.random(cortex_map.shape),
-                                cortex_config["cortex_matching_point"]["match_p_src"],
-                                cortex_config["cortex_matching_point"]["match_p_dst"],
+                                match_p_src,
+                                match_p_dst,
                                 cortex_config["cortex_matching_point"]["minimal_n_points"])
 
     src_cols = mps.src_cols
@@ -152,8 +154,8 @@ def run_session(config, cam):
             vis_buffers.append(vis_config["buffer"])
 
     # set pipeline
-    # pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
-    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, coordinates, **analysis_pipeline_config['args'])")
+    pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
+    # pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, coordinates, **analysis_pipeline_config['args'])")
     pipeline.camera.start_live()
     pipeline.fill_buffers()
 
@@ -255,7 +257,7 @@ if __name__ == "__main__":
     #     pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_configurations'/ 'training_config.json')
     imaging_config_path = str(
         pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
+            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3422_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()

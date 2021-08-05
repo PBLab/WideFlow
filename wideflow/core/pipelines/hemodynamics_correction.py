@@ -1,10 +1,10 @@
-from core.abstract_pipeline import AbstractPipeLine
-from core.processes import *
-from core.metrics import ROIMean
+from wideflow.core.abstract_pipeline import AbstractPipeLine
+from wideflow.core.processes import *
+from wideflow.core.metrics import ROIMean
 import cupy as cp
 import numpy as np
 
-from utils.load_matlab_vector_field import load_extended_rois_list
+from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
 import h5py
 
 from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
