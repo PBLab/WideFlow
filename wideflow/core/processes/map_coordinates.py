@@ -1,4 +1,4 @@
-from core.abstract_process import AbstractProcess
+from wideflow.core.abstract_process import AbstractProcess
 import cupyx.scipy.ndimage as csn
 import cupy as cp
 import numpy as np

@@ -1,5 +1,5 @@
-from core.abstract_pipeline import AbstractPipeLine
-from core.processes import *
+from wideflow.core.abstract_pipeline import AbstractPipeLine
+from wideflow.core.processes import *
 
 import numpy as np
 import cupy as cp

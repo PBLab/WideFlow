@@ -60,7 +60,7 @@
     },
 
     "feedback_config": {
-        "metric_threshold": 0.05,
+        "metric_threshold": 0.175,
         "inter_feedback_delay": 5e3
     },
 
