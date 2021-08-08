@@ -1,5 +1,5 @@
-from wideflow.core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
-from core.pipelines import *
+# from wideflow.core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
+from wideflow.core.pipelines import *
 from wideflow.devices.serial_port import SerialControler
 
 from wideflow.utils.imaging_utils import load_config
@@ -154,8 +154,8 @@ def run_session(config, cam):
             vis_buffers.append(vis_config["buffer"])
 
     # set pipeline
-    pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
-    # pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, coordinates, **analysis_pipeline_config['args'])")
+    # pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
+    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, coordinates, **analysis_pipeline_config['args'])")
     pipeline.camera.start_live()
     pipeline.fill_buffers()
 
