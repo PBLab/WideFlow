@@ -3,7 +3,7 @@ import time
 
 
 class Camera:
-    def __init__(self, vid=None):
+    def __init__(self, vid=None, exp_time=10, channels=2):
         if vid is None:
             self.sensor_size = (100, 100)
         else:
@@ -14,7 +14,11 @@ class Camera:
         self.clear_mode = 0
         self.vid = vid
         self.frame_idx = -1
-        self.shape = (self.roi[1]-self.roi[0], self.roi[3]-self.roi[2])
+        self.shape = (self.roi[3]-self.roi[2], self.roi[1]-self.roi[0])
+        self.channels = channels
+
+    def start_up(self):
+        pass
 
     def open(self):
         pass
@@ -28,7 +32,7 @@ class Camera:
             return np.random.random(self.sensor_size)*255
         else:
             time.sleep(0.02)
-            return self.vid[self.frame_idx, :, :]
+            return self.vid[self.frame_idx, self.roi[2]:self.roi[3], self.roi[0]:self.roi[1]]
 
     def get_live_frame(self):
         self.frame_idx += 1
@@ -36,10 +40,13 @@ class Camera:
             return np.random.random(self.sensor_size) * 255
         else:
             time.sleep(0.02)
-            return self.vid[self.frame_idx, self.roi[0]:self.roi[1], self.roi[2]:self.roi[3]]
+            return self.vid[self.frame_idx, self.roi[2]:self.roi[3], self.roi[0]:self.roi[1]]
 
     def start_live(self):
         pass
 
     def stop_live(self):
+        pass
+
+    def set_param(self, a, b):
         pass
