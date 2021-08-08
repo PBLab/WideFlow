@@ -59,6 +59,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
         self.camera.set_param(PARAM_LAST_MUXED_SIGNAL, 2)  # setting camera active output wires to 2 - strobbing of two LEDs
         self.ptr = self.capacity - 1
+        self.ptr_2c = self.capacity - 1
 
     def fill_buffers(self):
 
@@ -123,13 +124,14 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.input[:] = cp.asanyarray(self.frame)
 
     def process(self):
-        if self.ptr == self.capacity - 1:
-            self.ptr = 0
+        if self.ptr_2c == 2*self.capacity - 1:
+            self.ptr_2c = 0
         else:
-            self.ptr += 1
+            self.ptr_2c += 1
 
         self.get_input()
-        if not self.ptr % 2:  # first channel processing
+        if not self.ptr_2c % 2:  # first channel processing
+            self.ptr = int(self.ptr_2c / 2)
             for process in self.processes_list:
                 process.process()
 
