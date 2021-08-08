@@ -17,7 +17,7 @@ class HemoSubtraction(AbstractProcess):
 
     def initialize_buffers(self):
         self.dff[self.ptr, :, :] = self.dff[self.ptr, :, :] - self.hemo_dff[self.ptr, :, :]
-        self.sub_mean[:] = cp.mean(self.dff[self.ptr, :, :])
+        self.sub_mean[:] = cp.mean(self.dff, axis=0)
         self.dff[self.ptr, :, :] = self.dff[self.ptr, :, :] - self.sub_mean
 
         self.ptr = self.capacity - 1
@@ -29,7 +29,7 @@ class HemoSubtraction(AbstractProcess):
             self.ptr += 1
 
         self.dff[self.ptr, :, :] = self.dff[self.ptr, :, :] - self.hemo_dff[self.ptr, :, :]
-        self.sub_mean[:] = cp.mean(self.dff[self.ptr, :, :])
+        self.sub_mean[:] = cp.mean(self.dff, axis=0)
         self.dff[self.ptr, :, :] = self.dff[self.ptr, :, :] - self.sub_mean
 
 
