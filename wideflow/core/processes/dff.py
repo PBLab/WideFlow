@@ -15,7 +15,7 @@ class DFF(AbstractProcess):
         self.ptr = ptr
         self.eps = 1e-16
 
-        self.baseline = cp.ndarray(self.shape[-2:])
+        self.baseline = cp.ndarray(self.shape[-2:], dtype=self.signal.dtype)
 
     def initialize_buffers(self):
         self.calc_baseline()
@@ -34,5 +34,5 @@ class DFF(AbstractProcess):
                                              self.baseline + self.eps)
 
     def calc_baseline(self):
-        self.baseline = cp.min(csn.convolve(cp.roll(self.signal, -self.ptr, 0), self.weights), 0)
+        self.baseline[:] = cp.min(csn.convolve(cp.roll(self.signal, -self.ptr, 0), self.weights), 0)
 
