@@ -162,7 +162,6 @@ def run_session(config, cam):
     # start session
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    time.sleep(1)
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
     feedback_time = 0
@@ -182,7 +181,6 @@ def run_session(config, cam):
                   '_________________________________________________________')
 
         # save data
-        # vid_mem[frame_counter] = getattr(pipeline, acquisition_config["frame_var"])
         vid_mem[frame_counter] = pipeline.frame
         vid_mem.flush()
         serial_readout = ser.getReadout()
@@ -220,7 +218,8 @@ def run_session(config, cam):
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         del vid_mem  # closes the dat file
-        convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset, frame_shape,
+        convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
+                           (2000, frame_shape[0], frame_shape[1]),
                            str(frame.dtype), acquisition_config["num_of_frames"])
         os.remove(acquisition_config["vid_save_path"])
 
@@ -240,10 +239,6 @@ def run_session(config, cam):
         vis_processes[i].join()
         vis_processes[i].terminate()
 
-    mempool = cp.get_default_memory_pool()
-    pinned_mempool = cp.get_default_pinned_memory_pool()
-    mempool.free_all_blocks()
-    pinned_mempool.free_all_blocks()
     print(f"session finished successfully at: "
           f"{time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
 
@@ -253,8 +248,6 @@ if __name__ == "__main__":
     from wideflow.devices.PVCam import PVCamera
     import pathlib
 
-    # imaging_config_path = str(
-    #     pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'Imaging' / 'imaging_configurations'/ 'training_config.json')
     imaging_config_path = str(
         pathlib.Path(
             '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3422_config.json')
