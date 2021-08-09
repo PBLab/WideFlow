@@ -119,6 +119,11 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.dff_buffer = None
         self.dff_buffer_ch2 = None
 
+        mempool = cp.get_default_memory_pool()
+        pinned_mempool = cp.get_default_pinned_memory_pool()
+        mempool.free_all_blocks()
+        pinned_mempool.free_all_blocks()
+
     def get_input(self):
         self.frame = self.camera.get_live_frame()
         self.input[:] = cp.asanyarray(self.frame)
