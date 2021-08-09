@@ -16,6 +16,8 @@ def convert_dat_to_tif(path, nbytes, shape, type, nframes):
             tif.write(fr_data, contiguous=True)
 
     if last_tif_shape[0]:
+        if i == 0:
+            i = -1
         with TiffWriter(path[:-4] + '_' + str(i+1) + '.tif') as tif:
             fr_data = np.reshape(np.fromfile(path,
                                              dtype=np.dtype(type),
