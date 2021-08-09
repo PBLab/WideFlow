@@ -33,12 +33,6 @@ from multiprocessing import shared_memory, Queue
 
 
 def run_session(config, cam):
-    # free gpu memory
-    mempool = cp.get_default_memory_pool()
-    pinned_mempool = cp.get_default_pinned_memory_pool()
-    mempool.free_all_blocks()
-    pinned_mempool.free_all_blocks()
-
     # session config
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
@@ -95,7 +89,7 @@ def run_session(config, cam):
             #  camera ROI is defined as: (x_min, x_max, y_min, y_max)
             #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
 
-    else:  # if a reference image exist, use
+    else:  # if a reference image exist, use it to select roi and matching points
         ref_image = load_tiff(config["rois_data_config"]["reference_image_path"] + "reference_image.tif")
         ref_bbox = load_bbox(config["rois_data_config"]["reference_image_path"] + "bbox.txt")
         match_p_src, match_p_dst = load_matching_points(config["rois_data_config"]["reference_image_path"] + "matching_points.txt")
@@ -162,7 +156,6 @@ def run_session(config, cam):
     # start session
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    time.sleep(1)
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
     feedback_time = 0
@@ -182,7 +175,6 @@ def run_session(config, cam):
                   '_________________________________________________________')
 
         # save data
-        # vid_mem[frame_counter] = getattr(pipeline, acquisition_config["frame_var"])
         vid_mem[frame_counter] = pipeline.frame
         vid_mem.flush()
         serial_readout = ser.getReadout()
@@ -240,10 +232,6 @@ def run_session(config, cam):
         vis_processes[i].join()
         vis_processes[i].terminate()
 
-    mempool = cp.get_default_memory_pool()
-    pinned_mempool = cp.get_default_pinned_memory_pool()
-    mempool.free_all_blocks()
-    pinned_mempool.free_all_blocks()
     print(f"session finished successfully at: "
           f"{time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
 
