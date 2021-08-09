@@ -4,6 +4,7 @@ from wideflow.devices.serial_port import SerialControler
 
 from wideflow.utils.imaging_utils import load_config
 from wideflow.utils.convert_dat_to_tif import convert_dat_to_tif
+from wideflow.Imaging.utils.memmap_process import MemoryHandler
 from wideflow.Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from wideflow.Imaging.utils.roi_select import *
 from wideflow.Imaging.visualization import *
@@ -124,11 +125,20 @@ def run_session(config, cam):
     config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = mps.match_p_dst.tolist()
     config["camera_config"]["core_attr"]["roi"] = cam.roi
 
-    # video writer settings
+    # video writer settings and metadata handler
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
-    dat_shape = (acquisition_config["num_of_frames"], frame.shape[0], frame.shape[1])
-    vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
-                        shape=dat_shape)
+
+    data_shape = (acquisition_config["num_of_frames"], cam.shape[1], cam.shape[0])
+    a = np.ndarray(data_shape[-2:], dtype=frame.dtype)
+    data_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+    shm_name = data_shm.name
+    frame_shm = np.ndarray(data_shape[-2:], dtype=frame.dtype, buffer=data_shm.buf)
+    memq = Queue(1)
+    memory_handler = MemoryHandler(memq, acquisition_config["vid_save_path"], data_shape, frame.dtype)
+    mem_process = mp.Process(target=memory_handler, args=(shm_name,))
+    mem_process.start()
+    # vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
+    #                     shape=dat_shape)
 
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
@@ -175,8 +185,11 @@ def run_session(config, cam):
                   '_________________________________________________________')
 
         # save data
-        vid_mem[frame_counter] = pipeline.frame
-        vid_mem.flush()
+
+        frame_shm[:] = pipeline.frame
+        memq.put("flush")
+        # vid_mem[frame_counter] = pipeline.frame
+        # vid_mem.flush()
         serial_readout = ser.getReadout()
 
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
@@ -211,9 +224,10 @@ def run_session(config, cam):
     try:
         frame_offset = frame.nbytes
         frame_shape = frame.shape
-        del vid_mem  # closes the dat file
+        memq.put("terminate")  # closes the dat file
+        # del vid_mem  # closes the dat file
         convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
-                           (2000, frame_shape[0], frame_shape[1]),
+                           (2000, frame_shape[0], frame_shape[1]),  # 2000 frames are readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
         os.remove(acquisition_config["vid_save_path"])
 
