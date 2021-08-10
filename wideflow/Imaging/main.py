@@ -1,4 +1,3 @@
-# from wideflow.core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
 from wideflow.core.pipelines import *
 from wideflow.devices.serial_port import SerialControler
 
@@ -16,7 +15,6 @@ from wideflow.utils.load_matching_points import load_matching_points
 import cupy as cp
 import numpy as np
 from scipy.signal import fftconvolve
-import cv2
 import os
 import sys
 
@@ -137,8 +135,6 @@ def run_session(config, cam):
     memory_handler = MemoryHandler(memq, acquisition_config["vid_save_path"], data_shape, frame.dtype)
     mem_process = mp.Process(target=memory_handler, args=(shm_name,))
     mem_process.start()
-    # vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
-    #                     shape=dat_shape)
 
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
