@@ -30,7 +30,11 @@ import h5py
 import json
 
 import multiprocessing as mp
-from multiprocessing import shared_memory, Queue
+if int(sys.version[2]) >= 8:
+    from multiprocessing import shared_memory, Queue
+else:
+    from multiprocess import shared_memory
+    from multiprocess.queues import Queue
 
 
 def run_session(config, cam):
@@ -137,8 +141,6 @@ def run_session(config, cam):
     memory_handler = MemoryHandler(memq, acquisition_config["vid_save_path"], data_shape, frame.dtype)
     mem_process = mp.Process(target=memory_handler, args=(shm_name,))
     mem_process.start()
-    # vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
-    #                     shape=dat_shape)
 
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
@@ -160,7 +162,6 @@ def run_session(config, cam):
     # set pipeline
     # pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
     pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, coordinates, **analysis_pipeline_config['args'])")
-    pipeline.camera.start_live()
     pipeline.fill_buffers()
 
     # start session
@@ -169,6 +170,7 @@ def run_session(config, cam):
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
     feedback_time = 0
+    pipeline.camera.start_live()
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
         pipeline.process()
@@ -188,8 +190,6 @@ def run_session(config, cam):
 
         frame_shm[:] = pipeline.frame
         memq.put("flush")
-        # vid_mem[frame_counter] = pipeline.frame
-        # vid_mem.flush()
         serial_readout = ser.getReadout()
 
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
@@ -225,9 +225,8 @@ def run_session(config, cam):
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         memq.put("terminate")  # closes the dat file
-        # del vid_mem  # closes the dat file
         convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
-                           (2000, frame_shape[0], frame_shape[1]),  # 2000 frames are readable using Fiji imagej
+                           (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
         os.remove(acquisition_config["vid_save_path"])
 
