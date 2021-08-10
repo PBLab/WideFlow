@@ -1,4 +1,3 @@
-# from wideflow.core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
 from wideflow.core.pipelines import *
 from wideflow.devices.serial_port import SerialControler
 
@@ -16,7 +15,6 @@ from wideflow.utils.load_matching_points import load_matching_points
 import cupy as cp
 import numpy as np
 from scipy.signal import fftconvolve
-import cv2
 import os
 import sys
 
