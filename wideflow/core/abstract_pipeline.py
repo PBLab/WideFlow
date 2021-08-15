@@ -26,3 +26,7 @@ class AbstractPipeLine(ABC):
     def evaluate(self):
         return
 
+    @abstractmethod
+    def update_config(self):
+        pass
+
