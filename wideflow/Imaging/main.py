@@ -105,15 +105,6 @@ def run_session(config, cam):
         cam.roi = bbox
     cam.binning = tuple(camera_config["core_attr"]["binning"])
 
-    # select matching points for allen atlas alignment
-    frame = cam.get_frame()
-    match_p_src = np.array(cortex_config["cortex_matching_point"]["match_p_src"])
-    match_p_dst = np.array(cortex_config["cortex_matching_point"]["match_p_dst"])
-    mps = MatchingPointSelector(frame, cortex_map * np.random.random(cortex_map.shape),
-                                match_p_src,
-                                match_p_dst,
-                                cortex_config["cortex_matching_point"]["minimal_n_points"])
-
     # video writer settings and metadata handler
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
 
