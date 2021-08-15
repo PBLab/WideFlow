@@ -65,16 +65,7 @@
         "inter_feedback_delay": 10e3
     },
 
-    "rois_data_config": {
-        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
-        "cortex_file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
-        "cortex_matching_point": {
-              "match_p_src": null,
-              "match_p_dst": null,
-              "minimal_n_points": 17
-          },
-        "reference_image_path": ""
-    },
+    "reference_image_path": "",
 
     "analysis_pipeline_config": {
         "pipeline": "PatternsDetection",
