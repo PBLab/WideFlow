@@ -6,22 +6,23 @@ import cupy as cp
 import random
 
 import h5py
+from wideflow.Imaging.utils.create_matching_points import *
 
 
 class TrainingPipe(AbstractPipeLine):
-    def __init__(self, camera, mapping_coordinates, min_frame_count, max_frame_count, new_shape, mask_path):
+    def __init__(self, camera, min_frame_count, max_frame_count, new_shape, mask_path, match_p_src=None, match_p_dst=None):
         """
 
         :param min_frame_count: int - minimal number of pipeline circles between rewards
         :param max_frame_count: int - maximal number of pipeline circles between rewards
         """
         self.camera = camera
-        self.mapping_coordinates = mapping_coordinates
         self.min_frame_count = min_frame_count
         self.max_frame_count = max_frame_count
         self.new_shape = new_shape
         self.mask_path = mask_path
-        self.mask = self.load_datasets()
+        self.map, self.mask = self.load_datasets()
+        self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
 
         self.capacity = 1
         self.input_shape = self.camera.shape
@@ -78,10 +79,27 @@ class TrainingPipe(AbstractPipeLine):
 
         return self.cue
 
+    def update_config(self, config):
+        config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = self.match_p_src.tolist()
+        config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = self.match_p_dst.tolist()
+        config["camera_config"]["core_attr"]["roi"] = self.camera.roi
+        return config
+
     def load_datasets(self):
         with h5py.File(self.mask_path, 'r') as f:
             mask = np.transpose(f["mask"][()])
+            map = np.transpose(f["map"][()])
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
-        return mask
+        return map, mask
 
+    def find_mapping_coordinates(self, match_p_src, match_p_dst):
+        frame = self.camera.get_frame()
+        mps = MatchingPointSelector(frame, self.map * np.random.random(self.map.shape),
+                                    match_p_src,
+                                    match_p_dst,
+                                    25)
+        src_cols = mps.src_cols
+        src_rows = mps.src_rows
+        mapping_coordinates = cp.asanyarray([src_cols, src_rows])
+        return mps.match_p_src, mps.match_p_dst, mapping_coordinates
