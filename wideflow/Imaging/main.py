@@ -114,15 +114,6 @@ def run_session(config, cam):
                                 match_p_dst,
                                 cortex_config["cortex_matching_point"]["minimal_n_points"])
 
-    src_cols = mps.src_cols
-    src_rows = mps.src_rows
-    coordinates = cp.asanyarray([src_cols, src_rows])
-
-    # update config for metadata file
-    config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = mps.match_p_src.tolist()
-    config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = mps.match_p_dst.tolist()
-    config["camera_config"]["core_attr"]["roi"] = cam.roi
-
     # video writer settings and metadata handler
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
 
@@ -154,9 +145,7 @@ def run_session(config, cam):
             vis_buffers.append(vis_config["buffer"])
 
     # set pipeline
-    # pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
-    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, coordinates, **analysis_pipeline_config['args'])")
-    pipeline.camera.start_live()
+    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
     pipeline.fill_buffers()
 
     # start session
@@ -165,6 +154,7 @@ def run_session(config, cam):
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
     feedback_time = 0
+    pipeline.camera.start_live()
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
         pipeline.process()
@@ -181,13 +171,10 @@ def run_session(config, cam):
                   '_________________________________________________________')
 
         # save data
-
         frame_shm[:] = pipeline.frame
         memq.put("flush")
-        # vid_mem[frame_counter] = pipeline.frame
-        # vid_mem.flush()
-        serial_readout = ser.getReadout()
 
+        serial_readout = ser.getReadout()
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
 
         # update visualization
@@ -209,6 +196,7 @@ def run_session(config, cam):
     pipeline.camera.stop_live()
     pipeline.camera.close()
     pipeline.clear_buffers()
+    config = pipeline.update_config(config)
 
     ser.close()
 
@@ -221,13 +209,12 @@ def run_session(config, cam):
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         memq.put("terminate")  # closes the dat file
-        # del vid_mem  # closes the dat file
         convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
                            (2000, frame_shape[0], frame_shape[1]),  # 2000 frames are readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
         os.remove(acquisition_config["vid_save_path"])
 
-    except:
+    except RuntimeError:
         print("something went wrong while converting to tiff. dat file still exist in folder")
         print("Unexpected error:", sys.exc_info()[0])
         raise
