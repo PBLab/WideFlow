@@ -109,8 +109,8 @@ def run_session(config, cam):
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
 
     data_shape = (acquisition_config["num_of_frames"], cam.shape[1], cam.shape[0])
-    a = np.ndarray(data_shape[-2:], dtype=frame.dtype)
-    data_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+    temp_arr = np.ndarray(data_shape[-2:], dtype=frame.dtype)
+    data_shm = shared_memory.SharedMemory(create=True, size=temp_arr.nbytes)
     shm_name = data_shm.name
     frame_shm = np.ndarray(data_shape[-2:], dtype=frame.dtype, buffer=data_shm.buf)
     memq = Queue(1)
@@ -122,8 +122,8 @@ def run_session(config, cam):
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
     for key, vis_config in visualization_config.items():
         if vis_config["status"]:
-            a = np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]))
-            shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+            temp_arr = np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]))
+            shm = shared_memory.SharedMemory(create=True, size=temp_arr.nbytes)
             shm_name = shm.name
             vis_shm.append(np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]), buffer=shm.buf))
 
@@ -134,6 +134,7 @@ def run_session(config, cam):
             vis_processes[-1].start()
 
             vis_buffers.append(vis_config["buffer"])
+    del temp_arr
 
     # set pipeline
     pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
