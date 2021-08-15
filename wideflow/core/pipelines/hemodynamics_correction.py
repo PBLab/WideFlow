@@ -64,6 +64,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
     def fill_buffers(self):
 
         # initialize buffers
+        self.camera.start_live()
         for i in range(self.capacity*2):
             self.get_input()
             if not i % 2:
@@ -101,6 +102,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
                 ch2i += 1
         print("Done collecting the data\n")
+        self.camera.stop_live()
 
         self.processes_list_ch2[3].initialize_buffers(
             self.regression_buffer[:, :, :, 0],

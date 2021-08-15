@@ -24,7 +24,7 @@ class TrainingPipe(AbstractPipeLine):
         self.mask = self.load_datasets()
 
         self.capacity = 1
-        self.input_shape = self.camera.shape
+        self.input_shape = (self.camera.shape[1], self.camera.shape[0])
         self.frame = np.ndarray(self.new_shape)
         self.input = cp.ndarray(self.input_shape)
         self.warped_input = cp.ndarray((self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
