@@ -1,4 +1,8 @@
-from multiprocessing import shared_memory
+import sys
+if int(sys.version[2]) >= 8:
+    from multiprocessing import shared_memory
+else:
+    from multiprocess import shared_memory
 import numpy as np
 
 
