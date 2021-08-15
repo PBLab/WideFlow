@@ -109,30 +109,12 @@ def run_session(config, cam):
         cam.roi = bbox
     cam.binning = tuple(camera_config["core_attr"]["binning"])
 
-    # select matching points for allen atlas alignment
-    frame = cam.get_frame()
-    match_p_src = np.array(cortex_config["cortex_matching_point"]["match_p_src"])
-    match_p_dst = np.array(cortex_config["cortex_matching_point"]["match_p_dst"])
-    mps = MatchingPointSelector(frame, cortex_map * np.random.random(cortex_map.shape),
-                                match_p_src,
-                                match_p_dst,
-                                cortex_config["cortex_matching_point"]["minimal_n_points"])
-
-    src_cols = mps.src_cols
-    src_rows = mps.src_rows
-    coordinates = cp.asanyarray([src_cols, src_rows])
-
-    # update config for metadata file
-    config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = mps.match_p_src.tolist()
-    config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = mps.match_p_dst.tolist()
-    config["camera_config"]["core_attr"]["roi"] = cam.roi
-
     # video writer settings and metadata handler
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
 
     data_shape = (acquisition_config["num_of_frames"], cam.shape[1], cam.shape[0])
-    a = np.ndarray(data_shape[-2:], dtype=frame.dtype)
-    data_shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+    temp_arr = np.ndarray(data_shape[-2:], dtype=frame.dtype)
+    data_shm = shared_memory.SharedMemory(create=True, size=temp_arr.nbytes)
     shm_name = data_shm.name
     frame_shm = np.ndarray(data_shape[-2:], dtype=frame.dtype, buffer=data_shm.buf)
     memq = Queue(1)
@@ -144,8 +126,8 @@ def run_session(config, cam):
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
     for key, vis_config in visualization_config.items():
         if vis_config["status"]:
-            a = np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]))
-            shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+            temp_arr = np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]))
+            shm = shared_memory.SharedMemory(create=True, size=temp_arr.nbytes)
             shm_name = shm.name
             vis_shm.append(np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]), buffer=shm.buf))
 
@@ -156,10 +138,10 @@ def run_session(config, cam):
             vis_processes[-1].start()
 
             vis_buffers.append(vis_config["buffer"])
+    del temp_arr
 
     # set pipeline
-    # pipeline = PipeLine(cam, coordinates, **analysis_pipeline_config["args"])
-    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, coordinates, **analysis_pipeline_config['args'])")
+    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
     pipeline.fill_buffers()
 
     # start session
@@ -185,11 +167,10 @@ def run_session(config, cam):
                   '_________________________________________________________')
 
         # save data
-
         frame_shm[:] = pipeline.frame
         memq.put("flush")
-        serial_readout = ser.getReadout()
 
+        serial_readout = ser.getReadout()
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
 
         # update visualization
@@ -211,6 +192,7 @@ def run_session(config, cam):
     pipeline.camera.stop_live()
     pipeline.camera.close()
     pipeline.clear_buffers()
+    config = pipeline.update_config(config)
 
     ser.close()
 
@@ -223,12 +205,13 @@ def run_session(config, cam):
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         memq.put("terminate")  # closes the dat file
+        # del vid_mem  # closes the dat file
         convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
                            (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
         os.remove(acquisition_config["vid_save_path"])
 
-    except:
+    except RuntimeError:
         print("something went wrong while converting to tiff. dat file still exist in folder")
         print("Unexpected error:", sys.exc_info()[0])
         raise
@@ -255,7 +238,7 @@ if __name__ == "__main__":
 
     imaging_config_path = str(
         pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
+            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3422_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()

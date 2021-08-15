@@ -4,23 +4,24 @@ from wideflow.core.metrics import ROIMean
 import cupy as cp
 import numpy as np
 
-from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
 import h5py
+from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
+from wideflow.Imaging.utils.create_matching_points import *
 
 from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
-    def __init__(self, camera, mapping_coordinates, new_shape, capacity, rois_dict_path, mask_path, rois_names, regression_n_samples):
+    def __init__(self, camera, new_shape, capacity, rois_dict_path, mask_path, rois_names, regression_n_samples, match_p_src=None, match_p_dst=None):
         self.camera = camera
         self.new_shape = new_shape
         self.capacity = capacity + capacity % 2  # make sure capacity is an odd number
-        self.mapping_coordinates = mapping_coordinates
         self.rois_dict_path = rois_dict_path
         self.mask_path = mask_path
-        self.mask, self.rois_dict = self.load_datasets()
+        self.mask, self.map, self.rois_dict = self.load_datasets()
         self.rois_names = rois_names
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
+        self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
 
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
 
@@ -62,7 +63,6 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.ptr_2c = self.capacity - 1
 
     def fill_buffers(self):
-
         # initialize buffers
         self.camera.start_live()
         for i in range(self.capacity*2):
@@ -101,6 +101,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
                     process.initialize_buffers()
                 self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
                 ch2i += 1
+        self.camera.stop_live()
         print("Done collecting the data\n")
         self.camera.stop_live()
 
@@ -150,11 +151,29 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.metric.evaluate()
         return self.metric.result
 
+    def update_config(self, config):
+        config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = self.match_p_src.tolist()
+        config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = self.match_p_dst.tolist()
+        config["camera_config"]["core_attr"]["roi"] = self.camera.roi
+        return config
+
     def load_datasets(self):
         with h5py.File(self.mask_path, 'r') as f:
             mask = np.transpose(f["mask"][()])
+            map = np.transpose(f["map"][()])
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
         rois_dict = load_extended_rois_list(self.rois_dict_path)
 
-        return mask, rois_dict
+        return mask, map, rois_dict
+
+    def find_mapping_coordinates(self, match_p_src, match_p_dst):
+        frame = self.camera.get_frame()
+        mps = MatchingPointSelector(frame, self.map * np.random.random(self.map.shape),
+                                    match_p_src,
+                                    match_p_dst,
+                                    25)
+        src_cols = mps.src_cols
+        src_rows = mps.src_rows
+        mapping_coordinates = cp.asanyarray([src_cols, src_rows])
+        return mps.match_p_src, mps.match_p_dst, mapping_coordinates

@@ -5,5 +5,7 @@ from wideflow.core.processes.reshape import Reshape
 from wideflow.core.processes.std_threshold import StdThrehold
 from wideflow.core.processes.hemo_correction import HemoCorrect
 from wideflow.core.processes.hemo_subtraction import HemoSubtraction
+from wideflow.core.processes.resize import Resize
 
-__all__ = ['DFF', 'MapCoordinates', 'Mask', 'Reshape', 'StdThrehold', 'HemoCorrect', 'HemoSubtraction']
+
+__all__ = ['DFF', 'MapCoordinates', 'Mask', 'Reshape', 'StdThrehold', 'HemoCorrect', 'HemoSubtraction', 'Resize']
