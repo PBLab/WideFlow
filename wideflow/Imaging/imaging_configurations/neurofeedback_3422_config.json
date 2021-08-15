@@ -55,7 +55,7 @@
         "vid_writer": {"frame_var": "frame"},
         "vid_save_path": "/home/pb/WideFlow_prj/3422/04082021/neurofeedback_vid.dat",
         "meta_save_path": "/home/pb/WideFlow_prj/3422/04082021/neurofeedback_meta.txt",
-        "num_of_frames": 1500,
+        "num_of_frames": 2000,
         "capacity": 32
     },
 
