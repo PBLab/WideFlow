@@ -55,7 +55,7 @@
         "vid_writer": {"frame_var": "frame"},
         "vid_save_path": "/home/pb/WideFlow_prj/3422/04082021/neurofeedback_vid.dat",
         "meta_save_path": "/home/pb/WideFlow_prj/3422/04082021/neurofeedback_meta.txt",
-        "num_of_frames": 2000,
+        "num_of_frames": 100000,
         "capacity": 32
     },
 
@@ -64,16 +64,7 @@
         "inter_feedback_delay": 5e3
     },
 
-    "rois_data_config": {
-        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
-        "cortex_file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
-        "cortex_matching_point": {
-              "match_p_src": null,
-              "match_p_dst": null,
-              "minimal_n_points": 25
-          },
-        "reference_image_path": "/home/pb/WideFlow_prj/3422/"
-    },
+    "reference_image_path": "/home/pb/WideFlow_prj/3422/",
 
     "analysis_pipeline_config": {
         "pipeline": "HemoDynamicsDFF",
@@ -83,7 +74,9 @@
             "rois_dict_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
             "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
             "rois_names": ["roi_23", "roi_26"],
-            "regression_n_samples": 500
+            "regression_n_samples": 500,
+            "match_p_src": null,
+            "match_p_dst": null
         }
     },
 
