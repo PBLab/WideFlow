@@ -48,6 +48,7 @@ class SerialControler(serial.Serial):
         # save data until the end marker is found
         while ord(x) != endMarker:
             if ord(x) != startMarker:
+                print("serial loop")
                 ck = ck + x.decode("utf-8", errors='replace')  # change for Python3
                 byteCount += 1
             if self.in_waiting:
