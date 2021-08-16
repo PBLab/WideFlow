@@ -94,8 +94,10 @@ class TrainingPipe(AbstractPipeLine):
         return map, mask
 
     def find_mapping_coordinates(self, match_p_src, match_p_dst):
-        match_p_src = np.array(match_p_src)
-        match_p_dst = np.array(match_p_dst)
+        if match_p_src is not None:
+            match_p_src = np.array(match_p_src)
+        if match_p_dst is not None:
+            match_p_dst = np.array(match_p_dst)
         frame = self.camera.get_frame()
         mps = MatchingPointSelector(frame, self.map * np.random.random(self.map.shape),
                                     match_p_src,
