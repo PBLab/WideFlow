@@ -15,7 +15,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
     def __init__(self, camera, new_shape, capacity, rois_dict_path, mask_path, rois_names, regression_n_samples, match_p_src=None, match_p_dst=None):
         self.camera = camera
         self.new_shape = new_shape
-        self.capacity = capacity + capacity % 2  # make sure capacity is an odd number
+        self.capacity = capacity# + capacity % 2  # make sure capacity is an odd number
         self.rois_dict_path = rois_dict_path
         self.mask_path = mask_path
         self.mask, self.map, self.rois_dict = self.load_datasets()
@@ -152,8 +152,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         return self.metric.result
 
     def update_config(self, config):
-        config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = self.match_p_src.tolist()
-        config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = self.match_p_dst.tolist()
+        config["analysis_pipeline_config"]["match_p_src"] = self.match_p_src.tolist()
+        config["analysis_pipeline_config"]["match_p_dst"] = self.match_p_dst.tolist()
         config["camera_config"]["core_attr"]["roi"] = self.camera.roi
         return config
 
@@ -168,8 +168,10 @@ class HemoDynamicsDFF(AbstractPipeLine):
         return mask, map, rois_dict
 
     def find_mapping_coordinates(self, match_p_src, match_p_dst):
-        match_p_src = np.array(match_p_src)
-        match_p_dst = np.array(match_p_dst)
+        if match_p_src is not None:
+            match_p_src = np.array(match_p_src)
+        if match_p_dst is not None:
+            match_p_dst = np.array(match_p_dst)
         frame = self.camera.get_frame()
         mps = MatchingPointSelector(frame, self.map * np.random.random(self.map.shape),
                                     match_p_src,
