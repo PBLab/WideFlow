@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from wideflow.core.pipelines import *
 from wideflow.devices.serial_port import SerialControler
 
@@ -24,7 +26,6 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
 
-import h5py
 import json
 
 import multiprocessing as mp
