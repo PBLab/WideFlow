@@ -64,7 +64,6 @@
         "inter_feedback_delay": 1e3
     },
 
-
     "reference_image_path": "/home/pb/WideFlow_prj/3424/",
 
     "analysis_pipeline_config": {
