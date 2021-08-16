@@ -1,28 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="1c2cebfa-8f8f-4278-bcd0-835c79eee65f" name="Default Changelist" comment="old imaging">
-      <change beforePath="$PROJECT_DIR$/wideflow/Imaging/imaging_configurations/neurofeedback_3422_config.json" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/Imaging/imaging_configurations/neurofeedback_3422_config.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/Imaging/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/Imaging/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/Imaging/visualization/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/Imaging/visualization/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/Imaging/visualization/live_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/Imaging/visualization/live_video.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/Imaging/visualization/multiple_trace_plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/Imaging/visualization/multiple_trace_plot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/metrics/ROI_mean.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/metrics/ROI_mean.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/metrics/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/metrics/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/metrics/correlation.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/metrics/correlation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/pipelines/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/pipelines/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/pipelines/dff_1ch.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/pipelines/dff_1ch.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/pipelines/hemodynamics_correction.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/pipelines/hemodynamics_correction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/pipelines/patterns_detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/pipelines/patterns_detection.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/pipelines/training_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/pipelines/training_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/processes/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/processes/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/processes/dff.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/processes/dff.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/processes/hemo_correction.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/processes/hemo_correction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/processes/hemo_subtraction.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/processes/hemo_subtraction.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/processes/map_coordinates.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/processes/map_coordinates.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/processes/mask.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/processes/mask.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/processes/reshape.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/processes/reshape.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/wideflow/core/processes/std_threshold.py" beforeDir="false" afterPath="$PROJECT_DIR$/wideflow/core/processes/std_threshold.py" afterDir="false" />
+    <list default="true" id="df471207-440e-41ff-8b3d-6fcb613b19d4" name="Default Changelist" comment="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,28 +37,31 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitSEFilterConfiguration">
-    <file-type-list>
-      <filtered-out-file-type name="LOCAL_BRANCH" />
-      <filtered-out-file-type name="REMOTE_BRANCH" />
-      <filtered-out-file-type name="TAG" />
-      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
-    </file-type-list>
-  </component>
-  <component name="ProjectId" id="1oswvx8sTHZue7hDoJIDTHaje8E" />
+  <component name="ProjectId" id="1jvMMOeBGWFNun7My8EzCphSzT3" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="last_opened_file_path" value="Z:/Rotem/WideFlow prj/3422/01082021/3422_08_01_2021__19_10_37.json" />
+    <property name="settings.editor.selected.configurable" value="terminal" />
   </component>
-  <component name="RunManager" selected="Python.main (1)">
-    <configuration name="ComArduino" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\motar\PycharmProjects\WideFlow\analysis\utils" />
+      <recent name="C:\Users\motar\PycharmProjects\WideFlow\Imaging\visualization" />
+      <recent name="C:\Users\motar\PycharmProjects\WideFlow\seq2seq\vid_embedding" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\motar\PycharmProjects\WideFlow\Imaging\imaging_configurations" />
+      <recent name="C:\Users\motar\PycharmProjects\WideFlow\Imaging" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.training_eval">
+    <configuration name="cupy_resize_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="WideFlow" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -68,53 +69,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Downloads" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$USER_HOME$/Downloads/ComArduino.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="ComArduino2PY3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="WideFlow" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Downloads" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$USER_HOME$/Downloads/ComArduino2PY3.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="FLIRCam" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="WideFlow" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/devices" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/untracked_files" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/devices/FLIRCam.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/untracked_files/cupy_resize_test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -123,7 +82,49 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="hemodynamics_correction" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="wf_opticflow" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/wideflow/core/pipelines" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/wideflow/core/pipelines/hemodynamics_correction.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="wf_opticflow" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main_win(1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="WideFlow" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -131,11 +132,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/wideflow/Imaging" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/untracked_files" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/wideflow/Imaging/main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/untracked_files/main_win.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -144,7 +145,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="map_coordinates" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="wf_opticflow" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/wideflow/core/processes" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/wideflow/core/processes/map_coordinates.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="training_eval" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="WideFlow" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -152,11 +174,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Imaging" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/untracked_files" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Imaging/main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/untracked_files/training_eval.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -165,33 +187,76 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <list>
+      <item itemvalue="Python.main" />
+      <item itemvalue="Python.map_coordinates" />
+      <item itemvalue="Python.hemodynamics_correction" />
+      <item itemvalue="Python.main_win(1)" />
+      <item itemvalue="Python.cupy_resize_test" />
+      <item itemvalue="Python.training_eval" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.main (1)" />
-        <item itemvalue="Python.main" />
-        <item itemvalue="Python.FLIRCam" />
-        <item itemvalue="Python.ComArduino2PY3" />
-        <item itemvalue="Python.ComArduino" />
+        <item itemvalue="Python.training_eval" />
+        <item itemvalue="Python.main_win(1)" />
+        <item itemvalue="Python.cupy_resize_test" />
+        <item itemvalue="Python.hemodynamics_correction" />
+        <item itemvalue="Python.map_coordinates" />
       </list>
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="1c2cebfa-8f8f-4278-bcd0-835c79eee65f" name="Default Changelist" comment="" />
-      <created>1614088839953</created>
+      <changelist id="df471207-440e-41ff-8b3d-6fcb613b19d4" name="Default Changelist" comment="" />
+      <created>1604680064344</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1614088839953</updated>
+      <updated>1604680064344</updated>
     </task>
-    <task id="LOCAL-00001" summary="old imaging">
-      <created>1623334033362</created>
+    <task id="LOCAL-00001" summary="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video">
+      <created>1612775383753</created>
       <option name="number" value="00001" />
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
-      <updated>1623334033362</updated>
+      <updated>1612775383753</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video">
+      <created>1614617747431</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1614617747431</updated>
+    </task>
+    <task id="LOCAL-00003" summary="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video">
+      <created>1616677427262</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1616677427262</updated>
+    </task>
+    <task id="LOCAL-00004" summary="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video">
+      <created>1623333811998</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1623333811998</updated>
+    </task>
+    <task id="LOCAL-00005" summary="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video">
+      <created>1623333855237</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1623333855237</updated>
+    </task>
+    <task id="LOCAL-00006" summary="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video">
+      <created>1627307864551</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1627307864551</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -207,50 +272,255 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="old imaging" />
-    <option name="LAST_COMMIT_MESSAGE" value="old imaging" />
+    <MESSAGE value="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video" />
+    <option name="LAST_COMMIT_MESSAGE" value="main_gui gui for imaging session&#10;processing to process session image before evaluation&#10;cuda kernel utility for gpu processing&#10;video capture window to captured video" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="-1506" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1628081052552">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1506" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1628081052552" />
+    <state x="-1222" y="322" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1621512437711">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1222" y="322" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1621512437711" />
+    <state x="-1230" y="267" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1623072630621">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1230" y="267" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1623072630621" />
+    <state x="362" y="136" width="841" height="574" key="#xdebugger.evaluate" timestamp="1629022766036">
+      <screen x="0" y="0" width="1536" height="824" />
+    </state>
+    <state x="362" y="136" width="841" height="574" key="#xdebugger.evaluate/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022766036" />
+    <state x="-1513" y="287" width="1230" height="627" key="#xdebugger.evaluate/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628416902284" />
+    <state x="265" y="0" key="#xdebugger.evaluate/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629010561820" />
+    <state x="314" y="0" width="690" height="824" key="#xdebugger.evaluate/0.0.1536.824@0.0.1536.824" timestamp="1626003882677" />
+    <state width="1918" height="556" key="DebuggerActiveHint" timestamp="1622984594854">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1918" height="556" key="DebuggerActiveHint/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1622984594854" />
+    <state x="-1235" y="211" key="FileChooserDialogImpl" timestamp="1627892525610">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1235" y="211" key="FileChooserDialogImpl/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1627892525610" />
+    <state width="1899" height="281" key="GridCell.Tab.0.bottom" timestamp="1629022760101">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="281" key="GridCell.Tab.0.bottom/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022760101" />
+    <state width="1515" height="423" key="GridCell.Tab.0.bottom/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628417240373" />
+    <state width="1899" height="376" key="GridCell.Tab.0.bottom/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629017713350" />
+    <state width="1515" height="197" key="GridCell.Tab.0.bottom/0.0.1536.824@0.0.1536.824" timestamp="1628334874042" />
+    <state width="1899" height="281" key="GridCell.Tab.0.center" timestamp="1629022760101">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="281" key="GridCell.Tab.0.center/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022760101" />
+    <state width="1515" height="423" key="GridCell.Tab.0.center/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628417240372" />
+    <state width="1899" height="376" key="GridCell.Tab.0.center/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629017713349" />
+    <state width="1515" height="197" key="GridCell.Tab.0.center/0.0.1536.824@0.0.1536.824" timestamp="1628334874042" />
+    <state width="1899" height="281" key="GridCell.Tab.0.left" timestamp="1629022760101">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="281" key="GridCell.Tab.0.left/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022760101" />
+    <state width="1515" height="423" key="GridCell.Tab.0.left/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628417240372" />
+    <state width="1899" height="376" key="GridCell.Tab.0.left/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629017713349" />
+    <state width="1515" height="197" key="GridCell.Tab.0.left/0.0.1536.824@0.0.1536.824" timestamp="1628334874042" />
+    <state width="1899" height="281" key="GridCell.Tab.0.right" timestamp="1629022760101">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="281" key="GridCell.Tab.0.right/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022760101" />
+    <state width="1515" height="423" key="GridCell.Tab.0.right/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628417240373" />
+    <state width="1899" height="376" key="GridCell.Tab.0.right/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629017713350" />
+    <state width="1515" height="197" key="GridCell.Tab.0.right/0.0.1536.824@0.0.1536.824" timestamp="1628334874042" />
+    <state width="1899" height="281" key="GridCell.Tab.1.bottom" timestamp="1629022760101">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="281" key="GridCell.Tab.1.bottom/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022760101" />
+    <state width="1515" height="423" key="GridCell.Tab.1.bottom/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628417240373" />
+    <state width="1899" height="57" key="GridCell.Tab.1.bottom/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629013958180" />
+    <state width="1515" height="197" key="GridCell.Tab.1.bottom/0.0.1536.824@0.0.1536.824" timestamp="1628334990792" />
+    <state width="1899" height="281" key="GridCell.Tab.1.center" timestamp="1629022760101">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="281" key="GridCell.Tab.1.center/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022760101" />
+    <state width="1515" height="423" key="GridCell.Tab.1.center/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628417240373" />
+    <state width="1899" height="57" key="GridCell.Tab.1.center/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629013958180" />
+    <state width="1515" height="197" key="GridCell.Tab.1.center/0.0.1536.824@0.0.1536.824" timestamp="1628334990791" />
+    <state width="1899" height="281" key="GridCell.Tab.1.left" timestamp="1629022760101">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="281" key="GridCell.Tab.1.left/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022760101" />
+    <state width="1515" height="423" key="GridCell.Tab.1.left/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628417240373" />
+    <state width="1899" height="57" key="GridCell.Tab.1.left/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629013958180" />
+    <state width="1515" height="197" key="GridCell.Tab.1.left/0.0.1536.824@0.0.1536.824" timestamp="1628334990790" />
+    <state width="1899" height="281" key="GridCell.Tab.1.right" timestamp="1629022760101">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1899" height="281" key="GridCell.Tab.1.right/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1629022760101" />
+    <state width="1515" height="423" key="GridCell.Tab.1.right/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1628417240373" />
+    <state width="1899" height="57" key="GridCell.Tab.1.right/0.0.1536.824/-1920.0.1920.1080@-1920.0.1920.1080" timestamp="1629013958180" />
+    <state width="1515" height="197" key="GridCell.Tab.1.right/0.0.1536.824@0.0.1536.824" timestamp="1628334990792" />
+    <state x="-1706" y="66" width="1370" height="956" key="MergeDialog" timestamp="1626161441560">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1706" y="66" width="1370" height="956" key="MergeDialog/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1626161441560" />
+    <state x="-1322" y="281" key="MultipleFileMergeDialog" timestamp="1626161441566">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1322" y="281" key="MultipleFileMergeDialog/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1626161441566" />
+    <state x="-1574" y="72" key="SettingsEditor" timestamp="1621500950434">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1574" y="72" key="SettingsEditor/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1621500950434" />
+    <state width="969" height="529" key="XDebugger.FullValuePopup" timestamp="1628581710008">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state width="969" height="529" key="XDebugger.FullValuePopup/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1628581710008" />
+    <state width="775" height="419" key="XDebugger.FullValuePopup/0.0.1536.824/-1920.0.1920.1040@0.0.1536.824" timestamp="1621928653696" />
+    <state width="775" height="419" key="XDebugger.FullValuePopup/0.0.1536.824@0.0.1536.824" timestamp="1623601869658" />
+    <state x="-1143" y="434" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1627985125065">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1143" y="434" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1627985125065" />
+    <state x="622" y="344" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1536.824@0.0.1536.824" timestamp="1620481747243" />
+    <state x="-1598" y="0" width="1543" height="788" key="dock-window-1" timestamp="1625408331289">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1598" y="0" width="1543" height="788" key="dock-window-1/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1625408331289" />
+    <state x="185" y="132" width="1244" height="726" key="dock-window-1/0.0.1536.824@0.0.1536.824" timestamp="1622915658610" />
+    <state x="-1253" y="119" width="585" height="801" key="find.popup" timestamp="1628075290361">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1253" y="119" width="585" height="801" key="find.popup/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1628075290361" />
+    <state x="534" y="94" width="549" height="635" key="find.popup/0.0.1536.824@0.0.1536.824" timestamp="1621885395434" />
+    <state x="-1381" y="183" width="840" height="856" key="search.everywhere.popup" timestamp="1622103906103">
+      <screen x="-1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="-1381" y="183" width="840" height="856" key="search.everywhere.popup/0.0.1536.824/-1920.0.1920.1040@-1920.0.1920.1040" timestamp="1622103906103" />
+    <state x="431" y="145" width="672" height="678" key="search.everywhere.popup/0.0.1536.824@0.0.1536.824" timestamp="1620994962394" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$USER_HOME$/Downloads/ComArduino.py</url>
-          <line>211</line>
+          <url>file://$USER_HOME$/anaconda3/envs/py38/Lib/site-packages/yt/convenience.py</url>
+          <line>41</line>
           <option name="timeStamp" value="49" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$USER_HOME$/Downloads/ComArduino.py</url>
-          <line>228</line>
-          <option name="timeStamp" value="50" />
+          <url>file://$PROJECT_DIR$/utils/calc_OF_error.py</url>
+          <line>8</line>
+          <option name="timeStamp" value="60" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$USER_HOME$/Downloads/ComArduino2PY3.py</url>
-          <line>83</line>
-          <option name="timeStamp" value="58" />
+          <url>file://$PROJECT_DIR$/utils/analyze_OF.py</url>
+          <line>55</line>
+          <option name="timeStamp" value="67" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$USER_HOME$/anaconda3/envs/py38/lib/python3.8/site-packages/pyvcam-1.1-py3.8-linux-x86_64.egg/pyvcam/camera.py</url>
-          <line>53</line>
-          <option name="timeStamp" value="73" />
+          <url>file://$PROJECT_DIR$/utils/OFssss.py</url>
+          <line>124</line>
+          <option name="timeStamp" value="236" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/wideflow/Imaging/main.py</url>
-          <line>157</line>
-          <option name="timeStamp" value="79" />
+          <url>file://$PROJECT_DIR$/utils/analyze_OF.py</url>
+          <line>82</line>
+          <option name="timeStamp" value="276" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/wideflow/core/pipelines/hemodynamics_correction.py</url>
-          <line>103</line>
-          <option name="timeStamp" value="80" />
+          <url>file://$PROJECT_DIR$/utils/plot_optical_flow.py</url>
+          <line>57</line>
+          <option name="timeStamp" value="299" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/seq2seq/ConvEncoder.py</url>
+          <line>38</line>
+          <option name="timeStamp" value="331" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/seq2seq/test/ConvEncoder.py</url>
+          <line>67</line>
+          <option name="timeStamp" value="332" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda3/envs/py38/Lib/site-packages/psychopy/parallel/__init__.py</url>
+          <line>57</line>
+          <option name="timeStamp" value="336" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda3/envs/py38/Lib/site-packages/psychopy/parallel/__init__.py</url>
+          <line>42</line>
+          <option name="timeStamp" value="337" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Imaging/main_tests.py</url>
+          <line>276</line>
+          <option name="timeStamp" value="679" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/core/abstract_pipeline.py</url>
+          <line>27</line>
+          <option name="timeStamp" value="692" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Imaging/visualization/ROIs_trace_plot.py</url>
+          <line>38</line>
+          <option name="timeStamp" value="819" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Imaging/Main_GUI.py</url>
+          <line>115</line>
+          <option name="timeStamp" value="823" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/utils/load_matching_points.py</url>
+          <line>17</line>
+          <option name="timeStamp" value="848" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/wideflow/analysis/core/analysis_image_registration.py</url>
+          <line>45</line>
+          <option name="timeStamp" value="880" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/wideflow/analysis/core/analysis_image_registration.py</url>
+          <line>9</line>
+          <option name="timeStamp" value="881" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/anaconda3/envs/py38/Lib/site-packages/cupyx/scipy/ndimage/interpolation.py</url>
+          <line>152</line>
+          <option name="timeStamp" value="944" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/untracked_files/main_win.py</url>
+          <line>113</line>
+          <option name="timeStamp" value="949" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/untracked_files/training_eval.py</url>
+          <line>17</line>
+          <option name="timeStamp" value="951" />
         </line-breakpoint>
       </breakpoints>
-      <default-breakpoints>
-        <breakpoint type="python-exception">
-          <properties notifyOnTerminate="true" exception="BaseException">
-            <option name="notifyOnTerminate" value="true" />
-          </properties>
-        </breakpoint>
-      </default-breakpoints>
     </breakpoint-manager>
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="vid" />
+        <watch expression="vid" />
+        <watch expression="pos" />
+        <watch expression="posi" />
+        <watch expression="tg.time_graph[0]" />
+        <watch expression="tg.time_graph" />
+        <watch expression="__py_debug_temp_var_455988094" />
+        <watch expression="__py_debug_temp_var_455988094" />
+        <watch expression="roi_list['roi_1']" />
+        <watch expression="__py_debug_temp_var_758550537" />
+        <watch expression="roi_list" />
+        <watch expression="roi_list" />
+        <watch expression="spiral" />
+        <watch expression="poincare_idx" language="Python" />
+        <watch expression="sss" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>
