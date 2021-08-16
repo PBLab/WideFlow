@@ -119,6 +119,9 @@ def run_session(config, cam):
     mem_process = mp.Process(target=memory_handler, args=(shm_name,))
     mem_process.start()
 
+    # set pipeline
+    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
+
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
     for key, vis_config in visualization_config.items():
@@ -137,16 +140,13 @@ def run_session(config, cam):
             vis_buffers.append(vis_config["buffer"])
     del temp_arr
 
-    # set pipeline
-    pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
-    pipeline.fill_buffers()
-
     # start session
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
     frame_counter = 0
     feedback_time = 0
+    pipeline.fill_buffers()
     pipeline.camera.start_live()
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
@@ -200,7 +200,7 @@ def run_session(config, cam):
     print("converting imaging dat file into tiff, this might take few minutes")
     try:
         frame_offset = pipeline.frame.nbytes
-        frame_shape = data_shape
+        frame_shape = data_shape[-2:]
         memq.put("terminate")  # closes the dat file
         # del vid_mem  # closes the dat file
         convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
