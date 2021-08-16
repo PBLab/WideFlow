@@ -48,11 +48,11 @@ class SerialControler(serial.Serial):
         # save data until the end marker is found
         while ord(x) != endMarker:
             if ord(x) != startMarker:
-                ck = ck + x.decode("utf-8")  # change for Python3
+                ck = ck + x.decode("utf-8", errors='replace')  # change for Python3
                 byteCount += 1
             if self.in_waiting:
                 x = self.read(1)
-                if len(x) == 0:  # avoid calling ord(x) on an empty string
+                if len(x) == 0:  # avoid calling or:qd(x) on an empty string
                     x = "z"
 
         return ck

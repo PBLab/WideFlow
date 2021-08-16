@@ -103,6 +103,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 ch2i += 1
         self.camera.stop_live()
         print("Done collecting the data\n")
+        self.camera.stop_live()
 
         self.processes_list_ch2[3].initialize_buffers(
             self.regression_buffer[:, :, :, 0],
@@ -167,6 +168,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         return mask, map, rois_dict
 
     def find_mapping_coordinates(self, match_p_src, match_p_dst):
+        match_p_src = np.array(match_p_src)
+        match_p_dst = np.array(match_p_dst)
         frame = self.camera.get_frame()
         mps = MatchingPointSelector(frame, self.map * np.random.random(self.map.shape),
                                     match_p_src,

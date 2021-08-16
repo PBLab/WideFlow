@@ -28,22 +28,21 @@ import h5py
 import json
 
 import multiprocessing as mp
-from multiprocessing import shared_memory, Queue
+if int(sys.version[2]) >= 8:
+    from multiprocessing import shared_memory, Queue
+else:
+    from multiprocess import shared_memory
+    from multiprocess.queues import Queue
 
 
 def run_session(config, cam):
     # session config
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
-    cortex_config = config["rois_data_config"]
     acquisition_config = config["acquisition_config"]
     feedback_config = config["feedback_config"]
     analysis_pipeline_config = config["analysis_pipeline_config"]
     visualization_config = config["visualization_config"]
-
-    # load roi data file
-    with h5py.File(config["rois_data_config"]["cortex_file_path"], 'r') as f:
-        cortex_map = np.transpose(f["map"][()])
 
     # set feedback metric
     feedback_threshold = feedback_config["metric_threshold"]
@@ -74,7 +73,7 @@ def run_session(config, cam):
     # select roi
     cam.binning = (1, 1)  # set no binning for ROI selection
     frame = cam.get_frame()
-    if not os.path.exists(config["rois_data_config"]["reference_image_path"]):
+    if not os.path.exists(config["reference_image_path"]):
         fig, ax = plt.subplots()
         ax.imshow(cp.asnumpy(frame))
         toggle_selector = RectangleSelector(ax, onselect, drawtype='box')
@@ -89,11 +88,12 @@ def run_session(config, cam):
             #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
 
     else:  # if a reference image exist, use it to select roi and matching points
-        ref_image = load_tiff(config["rois_data_config"]["reference_image_path"] + "reference_image.tif")
-        ref_bbox = load_bbox(config["rois_data_config"]["reference_image_path"] + "bbox.txt")
-        match_p_src, match_p_dst = load_matching_points(config["rois_data_config"]["reference_image_path"] + "matching_points.txt")
-        cortex_config["cortex_matching_point"]["match_p_src"] = match_p_src
-        cortex_config["cortex_matching_point"]["match_p_dst"] = match_p_dst
+        ref_image = load_tiff(config["reference_image_path"] + "reference_image.tif")
+        ref_bbox = load_bbox(config["reference_image_path"] + "bbox.txt")
+        match_p_src, match_p_dst = load_matching_points(config["reference_image_path"] + "matching_points.txt")
+        if 'match_p_src' and 'match_p_dst' in analysis_pipeline_config['args'].keys():
+            analysis_pipeline_config['args']["match_p_src"] = match_p_src
+            analysis_pipeline_config['args']["match_p_dst"] = match_p_dst
 
         ref_image_roi = ref_image[ref_bbox[2]: ref_bbox[3], ref_bbox[0]: ref_bbox[1]]
 
@@ -201,8 +201,9 @@ def run_session(config, cam):
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         memq.put("terminate")  # closes the dat file
+        # del vid_mem  # closes the dat file
         convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
-                           (2000, frame_shape[0], frame_shape[1]),  # 2000 frames are readable using Fiji imagej
+                           (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
         os.remove(acquisition_config["vid_save_path"])
 

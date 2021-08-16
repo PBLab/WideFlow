@@ -1,7 +1,7 @@
 {
-    "name": "3697",
+    "name": "3424",
 
-    "path": "/home/pb/WideFlow_prj/3697/26072021/",
+    "path": "/home/pb/WideFlow_prj/3424/10082021/",
 
     "camera_config": {
         "core_attr": {
@@ -53,9 +53,9 @@
     "acquisition_config": {
         "enable_gpu" : 1,
         "vid_writer": {"nrows": 1024, "ncols": 1024, "frame_var": "frame"},
-        "vid_save_path": "/home/pb/WideFlow_prj/3697/26072021/t1_vid.dat",
-        "meta_save_path": "/home/pb/WideFlow_prj/3697/26072021/t1_meta.txt",
-        "num_of_frames": 20000,
+        "vid_save_path": "/home/pb/WideFlow_prj/3424/10082021/t1_vid.dat",
+        "meta_save_path": "/home/pb/WideFlow_prj/3424/10082021/t1_meta.txt",
+        "num_of_frames": 30000,
         "capacity": 32
     },
 
@@ -64,25 +64,16 @@
         "inter_feedback_delay": 1e3
     },
 
-    "rois_data_config": {
-        "file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
-        "cortex_file_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
-        "cortex_matching_point": {
-              "match_p_src": null,
-              "match_p_dst": null,
-              "minimal_n_points": 17
-          },
-        "reference_image_path": ""
-    },
+    "reference_image_path": "/home/pb/WideFlow_prj/3424/",
 
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
         "args": {
-            "min_frame_count": 2000,
-            "max_frame_count": 3000,
+            "min_frame_count": 1000,
+            "max_frame_count": 4000,
             "new_shape": [297, 337],
-            "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5"
-        }
+            "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
+            }
     },
 
     "visualization_config": {
