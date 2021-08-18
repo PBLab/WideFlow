@@ -24,9 +24,10 @@ class TrainingPipe(AbstractPipeLine):
         self.map, self.mask = self.load_datasets()
         self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
 
-        self.capacity = 1
+        self.capacity = 32
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
-        self.frame = np.ndarray(self.new_shape)
+
+        self.frame = np.ndarray(self.input_shape)
         self.input = cp.ndarray(self.input_shape)
         self.warped_input = cp.ndarray((self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.warped_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
