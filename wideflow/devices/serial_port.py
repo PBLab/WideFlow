@@ -8,7 +8,7 @@ endMarker = 62
 
 
 class SerialControler(serial.Serial):
-    def __init__(self, port="/dev/ttyACM0", baudrate=9600, timeout=None, write_timeout=None):
+    def __init__(self, port="/dev/ttyACM0", baudrate=9600, timeout=0, write_timeout=None):
         super().__init__(port, baudrate, timeout=timeout, write_timeout=write_timeout)
         # self.waitForArduino()
         time.sleep(1)
@@ -35,7 +35,7 @@ class SerialControler(serial.Serial):
 
     def recvFromArduino(self):
         ck = ""
-        x = "z"  # any value that is not an endMarker or startMarker
+        x = "_"  # any value that is not an endMarker or startMarker
         byteCount = -1  # to allow for the fact that the last increment will be one too many
 
         # wait for the start character
@@ -43,18 +43,17 @@ class SerialControler(serial.Serial):
             if self.in_waiting:
                 x = self.read(1)
                 if len(x) == 0:  # avoid calling ord(x) on an empty string
-                    x = "z"
+                    x = "_"
 
         # save data until the end marker is found
         while ord(x) != endMarker:
             if ord(x) != startMarker:
-                print("serial loop")
                 ck = ck + x.decode("utf-8", errors='replace')  # change for Python3
                 byteCount += 1
             if self.in_waiting:
                 x = self.read(1)
                 if len(x) == 0:  # avoid calling or:qd(x) on an empty string
-                    x = "z"
+                    x = "_"
 
         return ck
 
