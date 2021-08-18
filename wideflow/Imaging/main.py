@@ -149,6 +149,7 @@ def run_session(config, cam):
     pipeline.fill_buffers()
     pipeline.camera.start_live()
     while frame_counter < acquisition_config["num_of_frames"]:
+        print('.')
         frame_clock_start = perf_counter()
         pipeline.process()
 
@@ -169,6 +170,7 @@ def run_session(config, cam):
 
         serial_readout = ser.getReadout()
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
+        print('.')
 
         # update visualization
         for i in range(len(vis_processes)):
@@ -178,7 +180,8 @@ def run_session(config, cam):
 
         frame_counter += 1
         frame_clock_stop = perf_counter()
-        print(f'frame: {frame_counter}      metric results: {result}')
+        print(f'frame: {frame_counter}')
+        print(f'metric results: {result}')
         print("Elapsed time:", frame_clock_stop - frame_clock_start)
         print(f'serial_readout: {serial_readout}')
 
@@ -202,7 +205,6 @@ def run_session(config, cam):
         frame_offset = pipeline.frame.nbytes
         frame_shape = data_shape[-2:]
         memq.put("terminate")  # closes the dat file
-        # del vid_mem  # closes the dat file
         convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
                            (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
@@ -235,7 +237,7 @@ if __name__ == "__main__":
 
     imaging_config_path = str(
         pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3422_config.json')
+            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()
