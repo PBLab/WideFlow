@@ -72,7 +72,7 @@
             "min_frame_count": 1000,
             "max_frame_count": 4000,
             "new_shape": [297, 337],
-            "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
+            "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5"
             }
     },
 
