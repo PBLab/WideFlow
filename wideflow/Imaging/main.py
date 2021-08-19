@@ -29,11 +29,7 @@ from matplotlib.widgets import RectangleSelector
 import json
 
 import multiprocessing as mp
-if int(sys.version[2]) >= 8:
-    from multiprocessing import shared_memory, Queue
-else:
-    from multiprocess import shared_memory
-    from multiprocess.queues import Queue
+from multiprocessing import shared_memory, Queue
 
 
 def run_session(config, cam):
@@ -149,7 +145,6 @@ def run_session(config, cam):
     pipeline.fill_buffers()
     pipeline.camera.start_live()
     while frame_counter < acquisition_config["num_of_frames"]:
-        print('.')
         frame_clock_start = perf_counter()
         pipeline.process()
 
@@ -170,7 +165,6 @@ def run_session(config, cam):
 
         serial_readout = ser.getReadout()
         metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
-        print('.')
 
         # update visualization
         for i in range(len(vis_processes)):
@@ -180,10 +174,10 @@ def run_session(config, cam):
 
         frame_counter += 1
         frame_clock_stop = perf_counter()
-        print(f'frame: {frame_counter}')
-        print(f'metric results: {result}')
-        print("Elapsed time:", frame_clock_stop - frame_clock_start)
-        print(f'serial_readout: {serial_readout}')
+        print(f'frame: {frame_counter:06d} '
+              f'metric results: {result:.3f} '
+              f'Elapsed time:{frame_clock_stop - frame_clock_start:.3f} '
+              f'serial_readout: {serial_readout}', end='\r')
 
     ###########################################################################################################
     ###########################################################################################################
