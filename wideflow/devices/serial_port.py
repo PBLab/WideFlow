@@ -8,7 +8,7 @@ endMarker = 62
 
 
 class SerialControler(serial.Serial):
-    def __init__(self, port="/dev/ttyACM0", baudrate=9600, timeout=0, write_timeout=None):
+    def __init__(self, port="/dev/ttyACM0", baudrate=9600, timeout=0, write_timeout=0):
         super().__init__(port, baudrate, timeout=timeout, write_timeout=write_timeout)
         # self.waitForArduino()
         time.sleep(1)
@@ -31,6 +31,7 @@ class SerialControler(serial.Serial):
 
     def sendToArduino(self, strings):
         strings = "<" + ''.join(strings) + ">"
+        # print('sendToArduino')
         self.write(strings.encode('utf-8'))
 
     def recvFromArduino(self):
@@ -39,22 +40,31 @@ class SerialControler(serial.Serial):
         byteCount = -1  # to allow for the fact that the last increment will be one too many
 
         # wait for the start character
+        i = 0
         while ord(x) != startMarker:
+            i += 1
             if self.in_waiting:
                 x = self.read(1)
                 if len(x) == 0:  # avoid calling ord(x) on an empty string
                     x = "_"
 
+        # print(f'first loop iter: {i}')
+        i = 0
         # save data until the end marker is found
         while ord(x) != endMarker:
+            i += 1
             if ord(x) != startMarker:
+                # print("decoding")
                 ck = ck + x.decode("utf-8", errors='replace')  # change for Python3
                 byteCount += 1
             if self.in_waiting:
+                # print("reading")
                 x = self.read(1)
                 if len(x) == 0:  # avoid calling or:qd(x) on an empty string
                     x = "_"
-
+            else:
+                self.sendToArduino("R")
+        # print(f'second loop iter: {i}')
         return ck
 
     def waitForArduino(self):
