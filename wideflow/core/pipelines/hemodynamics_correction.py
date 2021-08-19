@@ -15,7 +15,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
     def __init__(self, camera, new_shape, capacity, rois_dict_path, mask_path, rois_names, regression_n_samples, match_p_src=None, match_p_dst=None):
         self.camera = camera
         self.new_shape = new_shape
-        self.capacity = capacity# + capacity % 2  # make sure capacity is an odd number
+        self.capacity = capacity + capacity % 2  # make sure capacity is an even number
         self.rois_dict_path = rois_dict_path
         self.mask_path = mask_path
         self.mask, self.map, self.rois_dict = self.load_datasets()
