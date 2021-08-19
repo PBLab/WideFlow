@@ -55,6 +55,7 @@ class TrainingPipe(AbstractPipeLine):
 
     def get_input(self):
         self.frame = self.camera.get_live_frame()
+        print('gf')
         self.input[:] = cp.asanyarray(self.frame)
 
     def process(self):
@@ -81,8 +82,8 @@ class TrainingPipe(AbstractPipeLine):
         return self.cue
 
     def update_config(self, config):
-        config["rois_data_config"]["cortex_matching_point"]["match_p_src"] = self.match_p_src.tolist()
-        config["rois_data_config"]["cortex_matching_point"]["match_p_dst"] = self.match_p_dst.tolist()
+        config["analysis_pipeline_config"]["match_p_src"] = self.match_p_src.tolist()
+        config["analysis_pipeline_config"]["match_p_dst"] = self.match_p_dst.tolist()
         config["camera_config"]["core_attr"]["roi"] = self.camera.roi
         return config
 

@@ -1,7 +1,7 @@
 {
     "name": "3424",
 
-    "path": "/home/pb/WideFlow_prj/3424/10082021/",
+    "path": "/home/pb/WideFlow_prj/3424/17082021/",
 
     "camera_config": {
         "core_attr": {
@@ -53,9 +53,9 @@
     "acquisition_config": {
         "enable_gpu" : 1,
         "vid_writer": {"nrows": 1024, "ncols": 1024, "frame_var": "frame"},
-        "vid_save_path": "/home/pb/WideFlow_prj/3424/10082021/t1_vid.dat",
-        "meta_save_path": "/home/pb/WideFlow_prj/3424/10082021/t1_meta.txt",
-        "num_of_frames": 30000,
+        "vid_save_path": "/home/pb/WideFlow_prj/3424/17082021/t1_vid.dat",
+        "meta_save_path": "/home/pb/WideFlow_prj/3424/17082021/t1_meta.txt",
+        "num_of_frames": 50000,
         "capacity": 32
     },
 
@@ -72,7 +72,9 @@
             "min_frame_count": 1000,
             "max_frame_count": 4000,
             "new_shape": [297, 337],
-            "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5"
+            "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
+            "match_p_src": null,
+            "match_p_dst": null
             }
     },
 

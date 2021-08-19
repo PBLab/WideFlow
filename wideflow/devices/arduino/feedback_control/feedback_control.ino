@@ -45,7 +45,7 @@ byte lickPortStat;
 unsigned long globalClock;
 unsigned long valveClock = 0;
 unsigned long ledClock = 0;
-int valveActivationTime = 15;
+int valveActivationTime = 14;
 int ledActivationTime = 1500;
 
 
