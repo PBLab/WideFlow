@@ -10,13 +10,19 @@ class TriggerType:
 
 
 class FLIRCam:
-    def __init__(self, exp_time, avi_type, chosen_trigger='HARDWARE'):
+    def __init__(self, exp_time, avi_type, acquisition_mode=None, chosen_trigger='HARDWARE'):
         self.exp_time = exp_time
         self.avi_type = avi_type
+        self.acquisition_mode = acquisition_mode
         self.chosen_trigger = chosen_trigger
-        self.CHOSEN_TRIGGER = getattr(TriggerType, CHOSEN_TRIGGER)
+        self.CHOSEN_TRIGGER = getattr(TriggerType, self.chosen_trigger)
 
-        self.cam, self.nodemap, self.cam_list, self.system = self.find_cam()
+        self.cam, self.nodemap, self.nodemap_tldevice, self.cam_list, self.system = self.find_cam()
+
+        if self.acquisition_mode == 'TRIGGER':
+            if self.configure_trigger() is False:
+                print("couldn't initialize trigger mode")
+
         self.avi_recorder, self.avi_recorder_options = self.create_avi_recorder()
 
     def find_cam(self):
@@ -31,28 +37,11 @@ class FLIRCam:
 
         else:
             cam = cam_list[0]
+            nodemap_tldevice = cam.GetTLDeviceNodeMap()
             cam.Init()
             nodemap = cam.GetNodeMap()
 
-            if self.configure_trigger() is False:
-                return False
-
-            node_acquisition_mode = PySpin.CEnumerationPtr(nodemap.GetNode('AcquisitionMode'))
-            if not PySpin.IsAvailable(node_acquisition_mode) or not PySpin.IsWritable(node_acquisition_mode):
-                print('Unable to set acquisition mode to continuous (enum retrieval). Aborting...')
-                return False
-
-                # Retrieve entry node from enumeration node
-            node_acquisition_mode_continuous = node_acquisition_mode.GetEntryByName('Continuous')
-            if not PySpin.IsAvailable(node_acquisition_mode_continuous) or not PySpin.IsReadable(
-                    node_acquisition_mode_continuous):
-                print('Unable to set acquisition mode to continuous (entry retrieval). Aborting...')
-                return False
-
-            acquisition_mode_continuous = node_acquisition_mode_continuous.GetValue()
-            node_acquisition_mode.SetIntValue(acquisition_mode_continuous)
-
-            return cam, nodemap, cam_list, system
+            return cam, nodemap, nodemap_tldevice, cam_list, system
 
     def configure_trigger(self):
         """
@@ -66,7 +55,6 @@ class FLIRCam:
          :return: True if successful, False otherwise.
          :rtype: bool
         """
-        result = True
 
         print('*** CONFIGURING TRIGGER ***\n')
 
@@ -157,9 +145,9 @@ class FLIRCam:
             print('Error: %s' % ex)
             return False
 
-        return result
+        return True
 
-    def reset_trigger(nodemap):
+    def reset_trigger(self):
         """
         This function returns the camera to a normal state by turning off trigger mode.
 
@@ -169,8 +157,7 @@ class FLIRCam:
         :rtype: bool
         """
         try:
-            result = True
-            node_trigger_mode = PySpin.CEnumerationPtr(nodemap.GetNode('TriggerMode'))
+            node_trigger_mode = PySpin.CEnumerationPtr(self.nodemap.GetNode('TriggerMode'))
             if not PySpin.IsAvailable(node_trigger_mode) or not PySpin.IsReadable(node_trigger_mode):
                 print('Unable to disable trigger mode (node retrieval). Aborting...')
                 return False
@@ -186,9 +173,9 @@ class FLIRCam:
 
         except PySpin.SpinnakerException as ex:
             print('Error: %s' % ex)
-            result = False
+            return False
 
-        return result
+        return True
 
     def create_avi_recorder(self):
 
@@ -218,18 +205,44 @@ class FLIRCam:
         return avi_recorder, option
 
     def start_acquisition(self):
+        node_acquisition_mode = PySpin.CEnumerationPtr(self.nodemap.GetNode('AcquisitionMode'))
+        if not PySpin.IsAvailable(node_acquisition_mode) or not PySpin.IsWritable(node_acquisition_mode):
+            print('Unable to set acquisition mode to continuous (enum retrieval). Aborting...')
+            return False
+
+        # Retrieve entry node from enumeration node
+        node_acquisition_mode_continuous = node_acquisition_mode.GetEntryByName('Continuous')
+        if not PySpin.IsAvailable(node_acquisition_mode_continuous) or not PySpin.IsReadable(
+                node_acquisition_mode_continuous):
+            print('Unable to set acquisition mode to continuous (entry retrieval). Aborting...')
+            return False
+
+        acquisition_mode_continuous = node_acquisition_mode_continuous.GetValue()
+        node_acquisition_mode.SetIntValue(acquisition_mode_continuous)
+
+        device_serial_number = ''
+        node_device_serial_number = PySpin.CStringPtr(self.nodemap_tldevice.GetNode('DeviceSerialNumber'))
+        if PySpin.IsAvailable(node_device_serial_number) and PySpin.IsReadable(node_device_serial_number):
+            device_serial_number = node_device_serial_number.GetValue()
+            print('Device serial number retrieved as %s...' % device_serial_number)
+
         self.cam.BeginAcquisition()
 
     def stop_acquisition(self):
         self.cam.EndAcquisition()
 
     def grab_frame(self):
-        frame = self.cam.GetNextImage(self.exp_time)
-        while True:
-            if not frame.IsIncomplete():
-                break
-
-        return frame.Convert(PySpin.PixelFormat_Mono8, PySpin.HQ_LINEAR)
+        try:
+            image_result = self.cam.GetNextImage(self.exp_time)
+            if image_result.IsIncomplete():
+                print('Image incomplete with image status %d ...' % image_result.GetImageStatus())
+            else:
+                frame = image_result.Convert(PySpin.PixelFormat_Mono8, PySpin.HQ_LINEAR)
+                image_result.Release()
+                return True, frame
+        except PySpin.SpinnakerException as ex:
+            print('Error: %s' % ex)
+            return False, None
 
     def save_to_avi(self, frame):
         self.avi_recorder.Append(frame)
@@ -237,8 +250,26 @@ class FLIRCam:
     def close(self):
         self.avi_recorder.Close()
 
+        if self.acquisition_mode=='TRIGGER':
+            self.reset_trigger()
+
         self.cam.DeInit()
-        self.cam = None
+        del self.cam
         self.cam_list.Clear()
         self.system.ReleaseInstance()
 
+# if __name__ == '__main__':
+#     svaing_path = '/home/pb/PycharmProjects/WideFlow/data/flir_cam_test.avi'
+#     svaing_path2 = '/home/pb/PycharmProjects/WideFlow/data/flir_cam_test2.avi'
+#     fcam = FLIRCam(100, "MJPG", "TRIGGER")
+#
+#     fcam.avi_recorder.Open(svaing_path, fcam.avi_recorder_options)
+#     fcam.start_acquisition()
+#     for i in range(300):
+#         frame = fcam.grab_frame()
+#         fcam.save_to_avi(frame)
+#
+#     fcam.stop_acquisition()
+#     fcam.avi_recorder.Close()
+#
+#     fcam.close()
