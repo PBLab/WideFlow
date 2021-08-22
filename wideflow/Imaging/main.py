@@ -10,6 +10,7 @@ from wideflow.Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from wideflow.Imaging.utils.roi_select import *
 from wideflow.Imaging.visualization import *
 from wideflow.Imaging.utils.create_matching_points import *
+from wideflow.Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
 from wideflow.utils.load_tiff import load_tiff
 from wideflow.utils.load_bbox import load_bbox
 from wideflow.utils.load_matching_points import load_matching_points
@@ -36,6 +37,7 @@ def run_session(config, cam):
     # session config
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
+    behavioral_camera_config = config["behavioral_camera_config"]
     acquisition_config = config["acquisition_config"]
     feedback_config = config["feedback_config"]
     analysis_pipeline_config = config["analysis_pipeline_config"]
@@ -115,6 +117,12 @@ def run_session(config, cam):
     mem_process = mp.Process(target=memory_handler, args=(shm_name,))
     mem_process.start()
 
+    # start behavioral camera process
+    bcam_q = Queue(10)
+    bcam_process = mp.Process(target=run_triggered_behavioral_camera,
+               args=(bcam_q, behavioral_camera_config["vid_save_path"]), kwargs=behavioral_camera_config["attr"])
+    bcam_process.start()
+
     # set pipeline
     pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
 
@@ -147,6 +155,7 @@ def run_session(config, cam):
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
         pipeline.process()
+        bcam_q.put('grab')
 
         # evaluate metric and send TTL if metric above threshold
         cue = 0
@@ -189,6 +198,7 @@ def run_session(config, cam):
     config = pipeline.update_config(config)
 
     ser.close()
+    bcam_q.put("finish")
 
     now = datetime.now()
     with open(config["path"] + config["name"] + "_" + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
