@@ -17,7 +17,7 @@ class FLIRCam:
         self.chosen_trigger = chosen_trigger
         self.CHOSEN_TRIGGER = getattr(TriggerType, self.chosen_trigger)
 
-        self.cam, self.nodemap, self.nodemap_tldevice, self.cam_list, self.system = self.find_cam()
+        self.find_cam()
 
         if self.acquisition_mode == 'TRIGGER':
             if self.configure_trigger() is False:
@@ -26,22 +26,20 @@ class FLIRCam:
         self.avi_recorder, self.avi_recorder_options = self.create_avi_recorder()
 
     def find_cam(self):
-        system = PySpin.System.GetInstance()
-        cam_list = system.GetCameras()
-        num_cameras = cam_list.GetSize()
+        self.system = PySpin.System.GetInstance()
+        self.cam_list = self.system.GetCameras()
+        num_cameras = self.cam_list.GetSize()
         if num_cameras == 0:
-            cam_list.Clear()
+            self.cam_list.Clear()
             # Release system instance
-            system.ReleaseInstance()
+            self.system.ReleaseInstance()
             print("Couldn't detect any FLIR cameras")
 
         else:
-            cam = cam_list[0]
-            nodemap_tldevice = cam.GetTLDeviceNodeMap()
-            cam.Init()
-            nodemap = cam.GetNodeMap()
-
-            return cam, nodemap, nodemap_tldevice, cam_list, system
+            self.cam = self.cam_list[0]
+            self.nodemap_tldevice = self.cam.GetTLDeviceNodeMap()
+            self.cam.Init()
+            self.nodemap = self.cam.GetNodeMap()
 
     def configure_trigger(self):
         """
@@ -197,8 +195,6 @@ class FLIRCam:
             option = PySpin.H264Option()
             option.frameRate = framerate_to_set
             option.bitrate = 1000000
-            # option.height = images[0].GetHeight()
-            # option.width = images[0].GetWidth()
 
         avi_recorder = PySpin.SpinVideo()
 
@@ -250,7 +246,7 @@ class FLIRCam:
     def close(self):
         self.avi_recorder.Close()
 
-        if self.acquisition_mode=='TRIGGER':
+        if self.acquisition_mode == 'TRIGGER':
             self.reset_trigger()
 
         self.cam.DeInit()
@@ -258,18 +254,4 @@ class FLIRCam:
         self.cam_list.Clear()
         self.system.ReleaseInstance()
 
-# if __name__ == '__main__':
-#     svaing_path = '/home/pb/PycharmProjects/WideFlow/data/flir_cam_test.avi'
-#     svaing_path2 = '/home/pb/PycharmProjects/WideFlow/data/flir_cam_test2.avi'
-#     fcam = FLIRCam(100, "MJPG", "TRIGGER")
-#
-#     fcam.avi_recorder.Open(svaing_path, fcam.avi_recorder_options)
-#     fcam.start_acquisition()
-#     for i in range(300):
-#         frame = fcam.grab_frame()
-#         fcam.save_to_avi(frame)
-#
-#     fcam.stop_acquisition()
-#     fcam.avi_recorder.Close()
-#
-#     fcam.close()
+
