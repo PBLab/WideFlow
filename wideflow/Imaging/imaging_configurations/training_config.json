@@ -51,7 +51,7 @@
     },
 
     "behavioral_camera_config": {
-        "vid_save_path": "/home/pb/WideFlow_prj/3422/18082021/behavioral_vid.avi",
+        "vid_save_path": "behavioral_vid.avi",
         "attr": {
             "exp_time": 5,
             "avi_type": "MJPG",
@@ -63,8 +63,8 @@
     "acquisition_config": {
         "enable_gpu" : 1,
         "vid_writer": {"nrows": 1024, "ncols": 1024, "frame_var": "frame"},
-        "vid_save_path": "/home/pb/WideFlow_prj/3422/18082021/t1_vid.dat",
-        "meta_save_path": "/home/pb/WideFlow_prj/3422/18082021/t1_meta.txt",
+        "vid_save_path": "t1_vid.dat",
+        "meta_save_path": "t1_meta.txt",
         "num_of_frames": 5000,
         "capacity": 32
     },
