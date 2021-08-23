@@ -48,23 +48,19 @@ class SerialControler(serial.Serial):
                 if len(x) == 0:  # avoid calling ord(x) on an empty string
                     x = "_"
 
-        # print(f'first loop iter: {i}')
         i = 0
-        # save data until the end marker is found
+        # read data until the end marker is found
         while ord(x) != endMarker:
             i += 1
             if ord(x) != startMarker:
-                # print("decoding")
                 ck = ck + x.decode("utf-8", errors='replace')  # change for Python3
                 byteCount += 1
             if self.in_waiting:
-                # print("reading")
                 x = self.read(1)
                 if len(x) == 0:  # avoid calling or:qd(x) on an empty string
                     x = "_"
             else:
                 self.sendToArduino("R")
-        # print(f'second loop iter: {i}')
         return ck
 
     def waitForArduino(self):
