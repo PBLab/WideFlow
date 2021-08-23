@@ -55,7 +55,6 @@ class TrainingPipe(AbstractPipeLine):
 
     def get_input(self):
         self.frame = self.camera.get_live_frame()
-        print('gf')
         self.input[:] = cp.asanyarray(self.frame)
 
     def process(self):
