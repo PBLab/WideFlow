@@ -1,7 +1,7 @@
 {
-    "name": "Imaging/imaging_config_template.json",
+    "name": "mouseID",
 
-    "path": "",
+    "path": "path_to_session_results_directory",
 
     "camera_config": {
         "core_attr": {
@@ -50,13 +50,20 @@
         "timeout": 0.0
     },
 
+        "behavioral_camera_config": {
+        "file_name": "behavioral_vid.avi",
+        "attr": {
+            "exp_time": 5,
+            "avi_type": "MJPG",
+            "acquisition_mode": "TRIGGER",
+            "chosen_trigger": "HARDWARE"
+        }
+    },
+
     "acquisition_config": {
-        "enable_gpu" : 1,
-        "vid_writer": {"nrows": 297, "ncols": 337, "frame_var": "d_frame_warp"},
-        "vid_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/vid.dat",
-        "meta_save_path": "/home/pb/PycharmProjects/WideFlow/session_results/meta.txt",
+        "vid_file_name": "vid.dat",
+        "meta_file_name": "meta.txt",
         "num_of_frames": 10000,
-        "capacity": 32
     },
 
     "feedback_config": {
