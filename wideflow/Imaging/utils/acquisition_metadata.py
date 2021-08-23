@@ -39,6 +39,6 @@ class AcquisitionMetaData:
         return "{" + "\n".join("{!r}: {!r},".format(k, v) for k, v in dictionary.items()) + "}"
 
     def save_file(self):
-        path = self.config["acquisition_config"]["meta_save_path"]
+        path = self.config["path"] + self.config["acquisition_config"]["meta_save_path"]
         with open(path, 'w') as f:
             f.write(self.metatext)
