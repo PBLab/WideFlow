@@ -10,14 +10,19 @@ class TriggerType:
 
 
 class FLIRCam:
-    def __init__(self, exp_time, avi_type, acquisition_mode=None, chosen_trigger='HARDWARE'):
+    def __init__(self, exp_time, roi_bbox=None, avi_type="MJPG", acquisition_mode=None, chosen_trigger='HARDWARE'):
         self.exp_time = exp_time
+        self.roi_bbox = roi_bbox
         self.avi_type = avi_type
         self.acquisition_mode = acquisition_mode
         self.chosen_trigger = chosen_trigger
         self.CHOSEN_TRIGGER = getattr(TriggerType, self.chosen_trigger)
 
-        self.cam, self.nodemap, self.nodemap_tldevice, self.cam_list, self.system = self.find_cam()
+        self.find_cam()
+
+        if self.roi_bbox != None:
+            if self.configure_image_roi() is False:
+                print("couldn't set image roi")
 
         if self.acquisition_mode == 'TRIGGER':
             if self.configure_trigger() is False:
@@ -26,22 +31,58 @@ class FLIRCam:
         self.avi_recorder, self.avi_recorder_options = self.create_avi_recorder()
 
     def find_cam(self):
-        system = PySpin.System.GetInstance()
-        cam_list = system.GetCameras()
-        num_cameras = cam_list.GetSize()
+        self.system = PySpin.System.GetInstance()
+        self.cam_list = self.system.GetCameras()
+        num_cameras = self.cam_list.GetSize()
         if num_cameras == 0:
-            cam_list.Clear()
+            self.cam_list.Clear()
             # Release system instance
-            system.ReleaseInstance()
+            self.system.ReleaseInstance()
             print("Couldn't detect any FLIR cameras")
 
         else:
-            cam = cam_list[0]
-            nodemap_tldevice = cam.GetTLDeviceNodeMap()
-            cam.Init()
-            nodemap = cam.GetNodeMap()
+            self.cam = self.cam_list[0]
+            self.nodemap_tldevice = self.cam.GetTLDeviceNodeMap()
+            self.cam.Init()
+            self.nodemap = self.cam.GetNodeMap()
 
-            return cam, nodemap, nodemap_tldevice, cam_list, system
+    def configure_image_roi(self):
+        try:
+            node_offset_x = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetX'))
+            if PySpin.IsAvailable(node_offset_x) and PySpin.IsWritable(node_offset_x):
+                node_offset_x.SetValue(self.roi_bbox[1])
+                print('Offset X set to %i...' % node_offset_x.GetMin())
+            else:
+                print('Offset X not available...')
+
+            node_offset_y = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetY'))
+            if PySpin.IsAvailable(node_offset_y) and PySpin.IsWritable(node_offset_y):
+                node_offset_y.SetValue(self.roi_bbox[0])
+                print('Offset Y set to %i...' % node_offset_y.GetMin())
+            else:
+                print('Offset Y not available...')
+
+            node_width = PySpin.CIntegerPtr(self.nodemap.GetNode('Width'))
+            if PySpin.IsAvailable(node_width) and PySpin.IsWritable(node_width):
+                width_to_set = self.roi_bbox[2]
+                node_width.SetValue(width_to_set)
+                print('Width set to %i...' % node_width.GetValue())
+            else:
+                print('Width not available...')
+
+            node_height = PySpin.CIntegerPtr(self.nodemap.GetNode('Height'))
+            if PySpin.IsAvailable(node_height) and PySpin.IsWritable(node_height):
+                height_to_set = self.roi_bbox[3]
+                node_height.SetValue(height_to_set)
+                print('Height set to %i...' % node_height.GetValue())
+            else:
+                print('Height not available...')
+
+        except PySpin.SpinnakerException as ex:
+            print('Error: %s' % ex)
+            return False
+
+        return True
 
     def configure_trigger(self):
         """
@@ -197,8 +238,6 @@ class FLIRCam:
             option = PySpin.H264Option()
             option.frameRate = framerate_to_set
             option.bitrate = 1000000
-            # option.height = images[0].GetHeight()
-            # option.width = images[0].GetWidth()
 
         avi_recorder = PySpin.SpinVideo()
 
@@ -250,7 +289,7 @@ class FLIRCam:
     def close(self):
         self.avi_recorder.Close()
 
-        if self.acquisition_mode=='TRIGGER':
+        if self.acquisition_mode == 'TRIGGER':
             self.reset_trigger()
 
         self.cam.DeInit()
@@ -258,18 +297,4 @@ class FLIRCam:
         self.cam_list.Clear()
         self.system.ReleaseInstance()
 
-# if __name__ == '__main__':
-#     svaing_path = '/home/pb/PycharmProjects/WideFlow/data/flir_cam_test.avi'
-#     svaing_path2 = '/home/pb/PycharmProjects/WideFlow/data/flir_cam_test2.avi'
-#     fcam = FLIRCam(100, "MJPG", "TRIGGER")
-#
-#     fcam.avi_recorder.Open(svaing_path, fcam.avi_recorder_options)
-#     fcam.start_acquisition()
-#     for i in range(300):
-#         frame = fcam.grab_frame()
-#         fcam.save_to_avi(frame)
-#
-#     fcam.stop_acquisition()
-#     fcam.avi_recorder.Close()
-#
-#     fcam.close()
+

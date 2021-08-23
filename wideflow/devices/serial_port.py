@@ -48,7 +48,7 @@ class SerialControler(serial.Serial):
                 if len(x) == 0:  # avoid calling ord(x) on an empty string
                     x = "_"
 
-        # save data until the end marker is found
+        # read data until the end marker is found
         while ord(x) != endMarker:
             if ord(x) != startMarker:
                 ck = ck + x.decode("utf-8", errors='replace')  # change for Python3

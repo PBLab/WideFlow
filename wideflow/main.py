@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-# sys.path.insert(0, '/home/pb/PycharmProjects/WideFlow/wideflow/')
 from core.pipelines import *
 from devices.serial_port import SerialControler
 
@@ -36,6 +35,7 @@ from multiprocessing import shared_memory, Queue
 
 def run_session(config, cam):
     # session config
+    base_path = config["path"]
     camera_config = config["camera_config"]
     serial_config = config["serial_port_config"]
     behavioral_camera_config = config["behavioral_camera_config"]
@@ -114,14 +114,14 @@ def run_session(config, cam):
     shm_name = data_shm.name
     frame_shm = np.ndarray(data_shape[-2:], dtype=frame.dtype, buffer=data_shm.buf)
     memq = Queue(1)
-    memory_handler = MemoryHandler(memq, acquisition_config["vid_save_path"], data_shape, frame.dtype)
+    memory_handler = MemoryHandler(memq, base_path + acquisition_config["vid_file_name"], data_shape, frame.dtype)
     mem_process = mp.Process(target=memory_handler, args=(shm_name,))
     mem_process.start()
 
     # start behavioral camera process
     bcam_q = Queue(10)
     bcam_process = mp.Process(target=run_triggered_behavioral_camera,
-               args=(bcam_q, behavioral_camera_config["vid_save_path"]), kwargs=behavioral_camera_config["attr"])
+               args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
     bcam_process.start()
 
     # set pipeline
@@ -210,10 +210,10 @@ def run_session(config, cam):
         frame_offset = pipeline.frame.nbytes
         frame_shape = data_shape[-2:]
         memq.put("terminate")  # closes the dat file
-        convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
+        convert_dat_to_tif(base_path + acquisition_config["vid_file_name"], frame_offset,
                            (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
-        os.remove(acquisition_config["vid_save_path"])
+        os.remove(base_path + acquisition_config["vid_file_name"])
 
     except RuntimeError:
         print("something went wrong while converting to tiff. dat file still exist in folder")
