@@ -13,6 +13,9 @@ def run_triggered_behavioral_camera(query, saving_path, **camera_config):
                 cap, frame = cam.grab_frame()
                 if cap:
                     cam.save_to_avi(frame)
+                    prev_frame = frame
+                else:
+                    cam.save_to_avi(prev_frame)
 
             elif q == 'finish':
                 break
