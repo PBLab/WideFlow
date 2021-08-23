@@ -1,4 +1,4 @@
-from wideflow.devices.FLIRCam import FLIRCam
+from devices.FLIRCam import FLIRCam
 
 
 def run_triggered_behavioral_camera(query, saving_path, **camera_config):
