@@ -9,6 +9,7 @@ class TriggerType:
     HARDWARE = 2
 
 
+
 class FLIRCam:
     def __init__(self, exp_time, roi_bbox=None, avi_type="MJPG", acquisition_mode=None, chosen_trigger='HARDWARE'):
         self.exp_time = exp_time
