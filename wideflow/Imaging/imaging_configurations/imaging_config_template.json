@@ -63,7 +63,7 @@
     "acquisition_config": {
         "vid_file_name": "vid.dat",
         "meta_file_name": "meta.txt",
-        "num_of_frames": 10000,
+        "num_of_frames": 10000
     },
 
     "feedback_config": {
