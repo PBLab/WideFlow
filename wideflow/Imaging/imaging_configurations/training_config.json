@@ -1,7 +1,7 @@
 {
-    "name": "3422",
+    "name": "3697",
 
-    "path": "/home/pb/WideFlow_prj/3422/18082021/",
+    "path": "/home/pb/WideFlow_prj/3697/hemo_test/",
 
     "camera_config": {
         "core_attr": {
@@ -47,11 +47,11 @@
     "serial_port_config": {
         "port_id": "/dev/ttyACM0",
         "baudrate": 9600,
-        "timeout": 0.0
+        "timeout": 0
     },
 
     "behavioral_camera_config": {
-        "vid_save_path": "behavioral_vid.avi",
+        "vid_file_name": "behavioral_vid.avi",
         "attr": {
             "exp_time": 5,
             "avi_type": "MJPG",
@@ -62,25 +62,24 @@
 
     "acquisition_config": {
         "enable_gpu" : 1,
-        "vid_writer": {"nrows": 1024, "ncols": 1024, "frame_var": "frame"},
-        "vid_save_path": "t1_vid.dat",
-        "meta_save_path": "t1_meta.txt",
-        "num_of_frames": 5000,
+        "vid_file_name": "t1_vid.dat",
+        "meta_file_name": "t1_meta.txt",
+        "num_of_frames": 2000,
         "capacity": 32
     },
 
     "feedback_config": {
         "metric_threshold": 0.5,
-        "inter_feedback_delay": 1e3
+        "inter_feedback_delay": 1e2
     },
 
-    "reference_image_path": "/home/pb/WideFlow_prj/3422/",
+    "reference_image_path": "/home/pb/WideFlow_prj/3697/",
 
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
         "args": {
-            "min_frame_count": 1000,
-            "max_frame_count": 4000,
+            "min_frame_count": 200,
+            "max_frame_count": 300,
             "new_shape": [297, 337],
             "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
             "match_p_src": null,
