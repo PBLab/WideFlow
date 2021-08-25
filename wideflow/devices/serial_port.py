@@ -48,10 +48,8 @@ class SerialControler(serial.Serial):
                 if len(x) == 0:  # avoid calling ord(x) on an empty string
                     x = "_"
 
-        i = 0
         # read data until the end marker is found
         while ord(x) != endMarker:
-            i += 1
             if ord(x) != startMarker:
                 ck = ck + x.decode("utf-8", errors='replace')  # change for Python3
                 byteCount += 1
