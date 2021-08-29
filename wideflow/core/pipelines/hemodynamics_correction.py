@@ -74,11 +74,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 self.processes_list_ch2[0].process()
                 self.processes_list_ch2[1].process()
 
-        for process in self.processes_list[:3]:
-            process.initialize_buffers()
-
-        for process in self.processes_list_ch2[:3]:
-            process.initialize_buffers()
+        self.processes_list[2].initialize_buffers()
+        self.processes_list_ch2[2].initialize_buffers()
 
         # collect data to calculate regression coefficient for the hemodynamic correction
         print("\nCollecting data to calculate regression coefficient for hemodynamics effects attenuation...")
@@ -101,14 +98,15 @@ class HemoDynamicsDFF(AbstractPipeLine):
                     process.initialize_buffers()
                 self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
                 ch2i += 1
+
         self.camera.stop_live()
         print("Done collecting the data\n")
-        self.camera.stop_live()
-
+        print("Calculating the regression coefficients...", end="\t")
         self.processes_list_ch2[3].initialize_buffers(
             self.regression_buffer[:, :, :, 0],
             self.regression_buffer[:, :, :, 1]
         )
+        print("Done")
         self.processes_list[3].initialize_buffers()
 
         self.metric.initialize_buffers()
