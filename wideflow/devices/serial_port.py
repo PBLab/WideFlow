@@ -12,8 +12,6 @@ class SerialControler(serial.Serial):
         super().__init__(port, baudrate, timeout=timeout, write_timeout=write_timeout)
         # self.waitForArduino()
         time.sleep(1)
-        self.flushInput()
-        self.flushOutput()
 
     def sendFeedback(self):
         self.sendToArduino("H")
@@ -31,8 +29,8 @@ class SerialControler(serial.Serial):
 
     def sendToArduino(self, strings):
         strings = "<" + ''.join(strings) + ">"
-        # print('sendToArduino')
         self.write(strings.encode('utf-8'))
+        self.flush()
 
     def recvFromArduino(self):
         ck = ""
@@ -56,9 +54,11 @@ class SerialControler(serial.Serial):
             if self.in_waiting:
                 x = self.read(1)
                 if len(x) == 0:  # avoid calling or:qd(x) on an empty string
-                    x = "_"
+                    x = "<"
             else:
                 self.sendToArduino("R")
+
+        self.flushInput()
         return ck
 
     def waitForArduino(self):
