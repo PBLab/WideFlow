@@ -60,7 +60,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
         self.camera.set_param(PARAM_LAST_MUXED_SIGNAL, 2)  # setting camera active output wires to 2 - strobbing of two LEDs
         self.ptr = self.capacity - 1
-        self.ptr_2c = self.capacity - 1
+        self.ptr_2c = 2*self.capacity - 1
 
     def fill_buffers(self):
         # initialize buffers
