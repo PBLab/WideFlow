@@ -55,8 +55,8 @@ class SerialControler(serial.Serial):
                 byteCount += 1
             if self.in_waiting:
                 x = self.read(1)
-                if len(x) == 0:  # avoid calling or:qd(x) on an empty string
-                    x = "_"
+                if len(x) == 0:  # avoid calling ord(x) on an empty string
+                    x = "<"
             else:
                 self.sendToArduino("R")
         return ck
