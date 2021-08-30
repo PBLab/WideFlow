@@ -12,7 +12,8 @@ from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
-    def __init__(self, camera, save_path, new_shape, capacity, rois_dict_path, mask_path, rois_names, regression_n_samples, match_p_src=None, match_p_dst=None):
+    def __init__(self, camera, save_path, new_shape, capacity, rois_dict_path, mask_path, rois_names,
+                 regression_n_samples, match_p_src=None, match_p_dst=None):
         self.camera = camera
         self.save_path = save_path
         self.new_shape = new_shape
@@ -22,7 +23,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.mask, self.map, self.rois_dict = self.load_datasets()
         self.rois_names = rois_names
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
-        self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
+        self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src,
+                                                                                                     match_p_dst)
 
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
 
@@ -35,7 +37,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.dff_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.dff_buffer_ch2 = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
 
-        self.regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2), dtype=np.float32)
+        self.regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2),
+                                            dtype=np.float32)
 
         map_coord = MapCoordinates(self.input, self.warped_input, self.mapping_coordinates, self.new_shape)
         # set processes for channel 1
@@ -59,14 +62,15 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
         self.metric = ROIMean(self.dff_buffer, rois_pixels_list, ptr=0)
 
-        self.camera.set_param(PARAM_LAST_MUXED_SIGNAL, 2)  # setting camera active output wires to 2 - strobbing of two LEDs
+        self.camera.set_param(PARAM_LAST_MUXED_SIGNAL,
+                              2)  # setting camera active output wires to 2 - strobbing of two LEDs
         self.ptr = self.capacity - 1
-        self.ptr_2c = 2*self.capacity - 1
+        self.ptr_2c = 2 * self.capacity - 1
 
     def fill_buffers(self):
         # initialize buffers
         self.camera.start_live()
-        for i in range(self.capacity*2):
+        for i in range(self.capacity * 2):
             self.get_input()
             if not i % 2:
                 self.processes_list[0].process()
@@ -81,7 +85,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         # collect data to calculate regression coefficient for the hemodynamic correction
         print("\nCollecting data to calculate regression coefficient for hemodynamics effects attenuation...")
         ch1i, ch2i = 0, 0
-        for i in range(self.regression_n_samples*2):
+        for i in range(self.regression_n_samples * 2):
             if self.ptr == self.capacity - 1:
                 self.ptr = 0
             else:
@@ -107,11 +111,11 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.regression_buffer[:, :, :, 0],
             self.regression_buffer[:, :, :, 1]
         )
-        self.save_regressiom_buffers()
+        self.save_regression_buffers()
         print("Done")
 
         self.camera.start_live()
-        for i in range(self.capacity*2):
+        for i in range(self.capacity * 2):
             self.get_input()
             if not i % 2:
                 self.processes_list[0].process()
@@ -148,7 +152,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.input[:] = cp.asanyarray(self.frame)
 
     def process(self):
-        if self.ptr_2c == 2*self.capacity - 1:
+        if self.ptr_2c == 2 * self.capacity - 1:
             self.ptr_2c = 0
         else:
             self.ptr_2c += 1
@@ -198,6 +202,10 @@ class HemoDynamicsDFF(AbstractPipeLine):
         mapping_coordinates = cp.asanyarray([src_cols, src_rows])
         return mps.match_p_src, mps.match_p_dst, mapping_coordinates
 
-    def save_regressiom_buffers(self):
+    def save_regression_buffers(self):
         with open(self.save_path + "regression_coeff_calc_data.npy", "wb") as f:
-            np.save(f, self.regression_buffer)
+            np.save(f, np.stack((
+                self.processes_list_ch2[3].regression_coeff[0].get(),
+                self.processes_list_ch2[3].regression_coeff[1].get()
+                                ))
+                    )
