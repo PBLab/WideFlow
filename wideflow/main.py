@@ -119,10 +119,10 @@ def run_session(config, cam):
     mem_process.start()
 
     # start behavioral camera process
-    bcam_q = Queue(1)
-    bcam_process = mp.Process(target=run_triggered_behavioral_camera,
-               args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
-    bcam_process.start()
+    # bcam_q = Queue(1)
+    # bcam_process = mp.Process(target=run_triggered_behavioral_camera,
+    #            args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
+    # bcam_process.start()
 
     # set pipeline
     pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
@@ -155,8 +155,9 @@ def run_session(config, cam):
     pipeline.camera.start_live()
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
+
         pipeline.process()
-        bcam_q.put('grab')
+        # bcam_q.put('grab')
 
         # evaluate metric and send TTL if metric above threshold
         cue = 0
@@ -185,14 +186,15 @@ def run_session(config, cam):
         frame_counter += 1
         frame_clock_stop = perf_counter()
         print(f'frame: {frame_counter:06d} '
-              f'metric results: {result:.3f} '
               f'Elapsed time:{frame_clock_stop - frame_clock_start:.3f} '
+              f'metric results: {result:.3f} '
               f'serial_readout: {serial_readout}', end='\r')
+
 
     ###########################################################################################################
     ###########################################################################################################
     metadata.save_file()
-    bcam_q.put("finish")
+    # bcam_q.put("finish")
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
