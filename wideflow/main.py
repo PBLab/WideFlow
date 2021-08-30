@@ -119,7 +119,7 @@ def run_session(config, cam):
     mem_process.start()
 
     # start behavioral camera process
-    bcam_q = Queue(10)
+    bcam_q = Queue(1)
     bcam_process = mp.Process(target=run_triggered_behavioral_camera,
                args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
     bcam_process.start()
@@ -148,7 +148,7 @@ def run_session(config, cam):
     # start session
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print(f'starting session at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}')
+    print(f'starting session at {time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}')
     frame_counter = 0
     feedback_time = 0
     pipeline.fill_buffers()
@@ -166,8 +166,8 @@ def run_session(config, cam):
             feedback_time = perf_counter()
             cue = 1
             ser.sendFeedback()
-            print('________________FEEDBACK HAS BEEN SENT___________________\n'
-                  '_________________________________________________________')
+            print('_________________________FEEDBACK HAS BEEN SENT____________________________\n'
+                  '___________________________________________________________________________')
 
         # save data
         frame_shm[:] = pipeline.frame
@@ -191,8 +191,8 @@ def run_session(config, cam):
 
     ###########################################################################################################
     ###########################################################################################################
-    bcam_q.put("finish")
     metadata.save_file()
+    bcam_q.put("finish")
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
@@ -240,9 +240,12 @@ if __name__ == "__main__":
     from devices.PVCam import PVCamera
     import pathlib
 
+    # imaging_config_path = str(
+    #     pathlib.Path(
+    #         '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
     imaging_config_path = str(
-        pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
+    pathlib.Path(
+            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3424_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()
