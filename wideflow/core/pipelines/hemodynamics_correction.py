@@ -12,8 +12,9 @@ from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
-    def __init__(self, camera, new_shape, capacity, rois_dict_path, mask_path, rois_names, regression_n_samples, match_p_src=None, match_p_dst=None):
+    def __init__(self, camera, save_path, new_shape, capacity, rois_dict_path, mask_path, rois_names, regression_n_samples, match_p_src=None, match_p_dst=None):
         self.camera = camera
+        self.save_path = save_path
         self.new_shape = new_shape
         self.capacity = capacity + capacity % 2  # make sure capacity is an even number
         self.rois_dict_path = rois_dict_path
@@ -106,11 +107,28 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.regression_buffer[:, :, :, 0],
             self.regression_buffer[:, :, :, 1]
         )
+        self.save_regressiom_buffers()
         print("Done")
+
+        self.camera.start_live()
+        for i in range(self.capacity*2):
+            self.get_input()
+            if not i % 2:
+                self.processes_list[0].process()
+                self.processes_list[1].process()
+            else:
+                self.processes_list_ch2[0].process()
+                self.processes_list_ch2[1].process()
+
+        self.camera.stop_live()
+
+        self.processes_list[2].initialize_buffers()
+        self.processes_list_ch2[2].initialize_buffers()
         self.processes_list[3].initialize_buffers()
 
         self.metric.initialize_buffers()
         self.ptr = self.capacity - 1
+        self.ptr_2c = 2 * self.capacity - 1
 
     def clear_buffers(self):
         self.input = None
@@ -179,3 +197,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         src_rows = mps.src_rows
         mapping_coordinates = cp.asanyarray([src_cols, src_rows])
         return mps.match_p_src, mps.match_p_dst, mapping_coordinates
+
+    def save_regressiom_buffers(self):
+        with open(self.save_path + "regression_coeff_calc_data.npy", "wb") as f:
+            np.save(f, self.regression_buffer)
