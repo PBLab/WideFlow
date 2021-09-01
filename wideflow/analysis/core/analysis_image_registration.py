@@ -3,7 +3,7 @@ from scipy.signal import fftconvolve
 import numpy as np
 import cv2
 
-from wideflow.Imaging.utils.create_matching_points import MatchingPointSelector, select_matching_points
+from Imaging.utils.create_matching_points import MatchingPointSelector, select_matching_points
 
 
 def registration(video, reference_image, ref_bbox, match_p_src, match_p_dst, cortex_map):

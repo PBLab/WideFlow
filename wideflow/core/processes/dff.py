@@ -34,5 +34,5 @@ class DFF(AbstractProcess):
                                              self.baseline + self.eps)
 
     def calc_baseline(self):
-        self.baseline[:] = cp.min(csn.convolve(cp.roll(self.signal, -self.ptr, 0), self.weights), 0)
-        # self.baseline[:] = cp.min(self.signal, 0)
+        # self.baseline[:] = cp.min(csn.convolve(cp.roll(self.signal, -self.ptr, 0), self.weights), 0)
+        self.baseline[:] = cp.min(self.signal, 0)

@@ -1,11 +1,11 @@
 import wx
-from wideflow.Imaging.GUI.video_capture import VideoCapture
-from wideflow.Imaging.GUI.configurations_wizard import ConfigurationWizard
+from Imaging.GUI.video_capture import VideoCapture
+from Imaging.GUI.configurations_wizard import ConfigurationWizard
 
-from wideflow.Imaging.main import run_session
+from Imaging.main import run_session
 
 from pyvcam import pvc
-from wideflow.devices.PVCam import PVCamera
+from devices.PVCam import PVCamera
 
 
 class Main_GUI(wx.Frame):

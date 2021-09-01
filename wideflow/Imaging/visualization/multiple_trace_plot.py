@@ -1,4 +1,4 @@
-from wideflow.Imaging.visualization.abstract_visualization import AbstractVis
+from Imaging.visualization.abstract_visualization import AbstractVis
 import matplotlib.pyplot as plt
 from multiprocessing import shared_memory
 import numpy as np

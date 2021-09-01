@@ -1,5 +1,5 @@
 import numpy as np
-from wideflow.utils.analyze_OF import get_roi_stream_connectivity, find_streamline_travel_list, get_temporal_streamline
+from utils.analyze_OF import get_roi_stream_connectivity, find_streamline_travel_list, get_temporal_streamline
 import matplotlib.pyplot as plt
 import random
 

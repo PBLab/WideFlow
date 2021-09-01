@@ -1,7 +1,7 @@
 {
-    "name": "3697",
+    "name": "3424",
 
-    "path": "/home/pb/WideFlow_prj/3697/hemo_test/",
+    "path": "/home/pb/WideFlow_prj/3424/26082021/",
 
     "camera_config": {
         "core_attr": {
@@ -64,7 +64,7 @@
         "enable_gpu" : 1,
         "vid_file_name": "t1_vid.dat",
         "meta_file_name": "t1_meta.txt",
-        "num_of_frames": 2000,
+        "num_of_frames": 30000,
         "capacity": 32
     },
 
@@ -73,13 +73,13 @@
         "inter_feedback_delay": 1e2
     },
 
-    "reference_image_path": "/home/pb/WideFlow_prj/3697/",
+    "reference_image_path": "/home/pb/WideFlow_prj/3424/",
 
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
         "args": {
-            "min_frame_count": 200,
-            "max_frame_count": 300,
+            "min_frame_count": 1000,
+            "max_frame_count": 4000,
             "new_shape": [297, 337],
             "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
             "match_p_src": null,

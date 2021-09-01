@@ -5,9 +5,12 @@ from core.pipelines import *
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
-from utils.convert_dat_to_tif import convert_h5_to_tif
-from Imaging.utils.h5writer_process import MemoryHandler
-# from Imaging.utils.memmap_process import MemoryHandler
+
+# from utils.convert_dat_to_tif import convert_h5_to_tif
+# from Imaging.utils.h5writer_process import MemoryHandler
+from utils.convert_dat_to_tif import convert_dat_to_tif
+from Imaging.utils.memmap_process import MemoryHandler
+
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
 from Imaging.visualization import *
@@ -115,7 +118,7 @@ def run_session(config, cam):
     shm_name = data_shm.name
     frame_shm = np.ndarray(data_shape[-2:], dtype=frame.dtype, buffer=data_shm.buf)
     memq = Queue(1)
-    memory_handler = MemoryHandler(memq, base_path + acquisition_config["vid_file_name"], data_shape, frame.dtype)
+    memory_handler = MemoryHandler(memq, base_path + acquisition_config["vid_file_name"], data_shape, frame.dtype.name)
     mem_process = mp.Process(target=memory_handler, args=(shm_name,))
     mem_process.start()
 
@@ -218,12 +221,11 @@ def run_session(config, cam):
         memq.put("terminate")
         mem_process.join()
         mem_process.terminate()
-        # convert_dat_to_tif(base_path + acquisition_config["vid_file_name"], frame_offset,
-        #                    (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
-        #                    str(frame.dtype), acquisition_config["num_of_frames"])
-        convert_h5_to_tif(base_path + acquisition_config["vid_file_name"],
-                          (2000, frame_shape[0],
-                           frame_shape[1]))  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
+        convert_dat_to_tif(base_path + acquisition_config["vid_file_name"], frame_offset,
+                           (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
+                           str(frame.dtype), acquisition_config["num_of_frames"])
+        # convert_h5_to_tif(base_path + acquisition_config["vid_file_name"],
+        #                   (2000, frame_shape[0], frame_shape[1]))  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
         os.remove(base_path + acquisition_config["vid_file_name"])
 
     except RuntimeError:

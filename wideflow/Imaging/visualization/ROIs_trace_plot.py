@@ -1,8 +1,8 @@
-from wideflow.Imaging.visualization.multiple_trace_plot import TracePlot
+from Imaging.visualization.multiple_trace_plot import TracePlot
 import matplotlib.pyplot as plt
 from multiprocessing import shared_memory
 import numpy as np
-from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_matlab_vector_field import load_extended_rois_list
 import time
 
 

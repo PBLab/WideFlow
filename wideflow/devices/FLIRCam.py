@@ -49,20 +49,6 @@ class FLIRCam:
 
     def configure_image_roi(self):
         try:
-            node_offset_x = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetX'))
-            if PySpin.IsAvailable(node_offset_x) and PySpin.IsWritable(node_offset_x):
-                node_offset_x.SetValue(self.roi_bbox[1])
-                print('Offset X set to %i...' % node_offset_x.GetMin())
-            else:
-                print('Offset X not available...')
-
-            node_offset_y = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetY'))
-            if PySpin.IsAvailable(node_offset_y) and PySpin.IsWritable(node_offset_y):
-                node_offset_y.SetValue(self.roi_bbox[0])
-                print('Offset Y set to %i...' % node_offset_y.GetMin())
-            else:
-                print('Offset Y not available...')
-
             node_width = PySpin.CIntegerPtr(self.nodemap.GetNode('Width'))
             if PySpin.IsAvailable(node_width) and PySpin.IsWritable(node_width):
                 width_to_set = self.roi_bbox[2]
@@ -78,6 +64,20 @@ class FLIRCam:
                 print('Height set to %i...' % node_height.GetValue())
             else:
                 print('Height not available...')
+
+            node_offset_x = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetX'))
+            if PySpin.IsAvailable(node_offset_x) and PySpin.IsWritable(node_offset_x):
+                node_offset_x.SetValue(self.roi_bbox[1])
+                print('Offset X set to %i...' % node_offset_x.GetMin())
+            else:
+                print('Offset X not available...')
+
+            node_offset_y = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetY'))
+            if PySpin.IsAvailable(node_offset_y) and PySpin.IsWritable(node_offset_y):
+                node_offset_y.SetValue(self.roi_bbox[0])
+                print('Offset Y set to %i...' % node_offset_y.GetMin())
+            else:
+                print('Offset Y not available...')
 
         except PySpin.SpinnakerException as ex:
             print('Error: %s' % ex)

@@ -12,7 +12,7 @@
 
 //==========================================================
 // set communication variables =============================
-const byte buffSize = 100;
+const byte buffSize = 3;
 char inputBuffer[buffSize];
 const char startMarker = '<';
 const char endMarker = '>';

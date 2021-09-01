@@ -1,4 +1,4 @@
-from wideflow.core.abstract_metric import AbstractMetric
+from core.abstract_metric import AbstractMetric
 import cupy as cp
 import numpy as np
 

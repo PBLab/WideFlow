@@ -1,10 +1,10 @@
-from wideflow.core.abstract_pipeline import AbstractPipeLine
-from wideflow.core.processes import *
-from wideflow.core.metrics import *
+from core.abstract_pipeline import AbstractPipeLine
+from core.processes import *
+from core.metrics import *
 import cupy as cp
 import numpy as np
 
-from wideflow.utils.load_tiff import load_tiff
+from utils.load_tiff import load_tiff
 import h5py
 
 
