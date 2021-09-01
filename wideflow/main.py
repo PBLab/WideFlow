@@ -119,10 +119,10 @@ def run_session(config, cam):
     mem_process.start()
 
     # start behavioral camera process
-    # bcam_q = Queue(1)
-    # bcam_process = mp.Process(target=run_triggered_behavioral_camera,
-    #            args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
-    # bcam_process.start()
+    bcam_q = Queue(1)
+    bcam_process = mp.Process(target=run_triggered_behavioral_camera,
+               args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
+    bcam_process.start()
 
     # set pipeline
     pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
@@ -155,9 +155,9 @@ def run_session(config, cam):
     pipeline.camera.start_live()
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
-
         pipeline.process()
-        # bcam_q.put('grab')
+
+        bcam_q.put('grab')
 
         # evaluate metric and send TTL if metric above threshold
         cue = 0
@@ -194,7 +194,10 @@ def run_session(config, cam):
     ###########################################################################################################
     ###########################################################################################################
     metadata.save_file()
-    # bcam_q.put("finish")
+
+    bcam_q.put("finish")
+    bcam_process.join()
+    bcam_process.terminate()
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
@@ -212,6 +215,8 @@ def run_session(config, cam):
         frame_offset = pipeline.frame.nbytes
         frame_shape = data_shape[-2:]
         memq.put("terminate")  # closes the dat file
+        mem_process.join()
+        mem_process.terminate()
         convert_dat_to_tif(base_path + acquisition_config["vid_file_name"], frame_offset,
                            (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
@@ -241,7 +246,7 @@ if __name__ == "__main__":
     from pyvcam import pvc
     from devices.PVCam import PVCamera
     import pathlib
-
+    mp.set_start_method('spawn')
     # imaging_config_path = str(
     #     pathlib.Path(
     #         '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')

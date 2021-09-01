@@ -281,7 +281,7 @@ class FLIRCam:
                 image_result.Release()
                 return True, frame
         except PySpin.SpinnakerException as ex:
-            print('Error: %s' % ex)
+            # print('Error: %s' % ex)
             return False, None
 
     def save_to_avi(self, frame):

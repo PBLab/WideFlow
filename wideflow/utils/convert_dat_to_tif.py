@@ -5,7 +5,6 @@ import numpy as np
 def convert_dat_to_tif(path, nbytes, shape, type, nframes):
     frames_offset = nbytes * shape[0]
     last_tif_shape = (nframes % shape[0], shape[1], shape[2])
-    i = 0
     for i in range(int(np.floor(nframes / shape[0]))):
          with TiffWriter(path[:-4] + '_' + str(i) + '.tif') as tif:
             fr_data = np.reshape(np.fromfile(path,
@@ -16,7 +15,7 @@ def convert_dat_to_tif(path, nbytes, shape, type, nframes):
             tif.write(fr_data, contiguous=True)
 
     if last_tif_shape[0]:
-        if i == 0:
+        if np.floor(nframes / shape[0]) == 0:
             i = -1
         with TiffWriter(path[:-4] + '_' + str(i+1) + '.tif') as tif:
             fr_data = np.reshape(np.fromfile(path,
