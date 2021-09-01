@@ -1,6 +1,5 @@
 from multiprocessing import shared_memory
 import numpy as np
-from time import perf_counter
 
 
 class MemoryHandler:
@@ -25,6 +24,7 @@ class MemoryHandler:
                 vid_mem[frame_counter] = frame
                 vid_mem.flush()
                 frame_counter += 1
+
             elif q == "terminate":
                 del vid_mem
                 break
