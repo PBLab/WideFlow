@@ -5,12 +5,12 @@ from core.pipelines import *
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
-from utils.convert_dat_to_tif import convert_dat_to_tif
-from Imaging.utils.memmap_process import MemoryHandler
+from utils.convert_dat_to_tif import convert_h5_to_tif
+from Imaging.utils.h5writer_process import MemoryHandler
+# from Imaging.utils.memmap_process import MemoryHandler
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.roi_select import *
 from Imaging.visualization import *
-from Imaging.utils.create_matching_points import *
 from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
@@ -119,10 +119,10 @@ def run_session(config, cam):
     mem_process.start()
 
     # start behavioral camera process
-    # bcam_q = Queue(1)
-    # bcam_process = mp.Process(target=run_triggered_behavioral_camera,
-    #            args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
-    # bcam_process.start()
+    bcam_q = Queue(1)
+    bcam_process = mp.Process(target=run_triggered_behavioral_camera,
+               args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
+    bcam_process.start()
 
     # set pipeline
     pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
@@ -157,7 +157,7 @@ def run_session(config, cam):
         frame_clock_start = perf_counter()
 
         pipeline.process()
-        # bcam_q.put('grab')
+        bcam_q.put('grab')
 
         # evaluate metric and send TTL if metric above threshold
         cue = 0
@@ -194,7 +194,7 @@ def run_session(config, cam):
     ###########################################################################################################
     ###########################################################################################################
     metadata.save_file()
-    # bcam_q.put("finish")
+    bcam_q.put("finish")
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
@@ -212,9 +212,11 @@ def run_session(config, cam):
         frame_offset = pipeline.frame.nbytes
         frame_shape = data_shape[-2:]
         memq.put("terminate")  # closes the dat file
-        convert_dat_to_tif(base_path + acquisition_config["vid_file_name"], frame_offset,
-                           (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
-                           str(frame.dtype), acquisition_config["num_of_frames"])
+        # convert_dat_to_tif(base_path + acquisition_config["vid_file_name"], frame_offset,
+        #                    (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
+        #                    str(frame.dtype), acquisition_config["num_of_frames"])
+        convert_h5_to_tif(base_path + acquisition_config["vid_file_name"],
+                           (2000, frame_shape[0], frame_shape[1]))  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
         os.remove(base_path + acquisition_config["vid_file_name"])
 
     except RuntimeError:
