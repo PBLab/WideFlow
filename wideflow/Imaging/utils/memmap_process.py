@@ -1,6 +1,5 @@
 from multiprocessing import shared_memory
 import numpy as np
-from time import perf_counter
 
 
 class MemoryHandler:
