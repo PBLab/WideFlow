@@ -1,5 +1,5 @@
 import numpy as np
-from wideflow.utils.gen_utils import overlapped_blockshaped
+from utils.gen_utils import overlapped_blockshaped
 
 
 def source_sink_saddle(uv):

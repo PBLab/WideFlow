@@ -1,4 +1,4 @@
-from wideflow.core.abstract_process import AbstractProcess
+from core.abstract_process import AbstractProcess
 import cupy as cp
 
 

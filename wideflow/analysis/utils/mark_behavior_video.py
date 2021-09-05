@@ -15,14 +15,13 @@ def mark_video(vid_path, meta_path):
     cap = cv2.VideoCapture(vid_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    num_of_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))
     fps = cap.get(cv2.CAP_PROP_FPS)
     marked_vid_path = vid_path[:-4] + '_cueGreen&lickRed_mark.avi'
     wrt = cv2.VideoWriter(marked_vid_path, fourcc=fourcc, fps=fps, frameSize=(width, height))
-    # wrt.open()
 
-    i = 0
-    while (cap.isOpened()):
+    for i in range(num_of_frames):
         ret, frame = cap.read()
         if ret:
             if cue[i]:
@@ -34,7 +33,6 @@ def mark_video(vid_path, meta_path):
             print(f'appending frame: {i}', end='\r')
         else:
             print(f"couldn't retrieve frame {i}")
-        i += 1
 
     cap.release()
     wrt.release()

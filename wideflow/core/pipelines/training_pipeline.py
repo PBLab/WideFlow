@@ -1,12 +1,12 @@
-from wideflow.core.abstract_pipeline import AbstractPipeLine
-from wideflow.core.processes import *
+from core.abstract_pipeline import AbstractPipeLine
+from core.processes import *
 
 import numpy as np
 import cupy as cp
 import random
 
 import h5py
-from wideflow.Imaging.utils.create_matching_points import *
+from Imaging.utils.create_matching_points import *
 
 
 class TrainingPipe(AbstractPipeLine):
@@ -90,6 +90,7 @@ class TrainingPipe(AbstractPipeLine):
         with h5py.File(self.mask_path, 'r') as f:
             mask = np.transpose(f["mask"][()])
             map = np.transpose(f["map"][()])
+
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
         return map, mask

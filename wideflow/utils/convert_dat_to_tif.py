@@ -16,7 +16,7 @@ def convert_dat_to_tif(path, nbytes, tiff_shape, type, nframes):
             tif.write(fr_data, contiguous=True)
 
     if last_tif_shape[0]:
-        if not np.floor(nframes / tiff_shape[0]):
+        if np.floor(nframes / tiff_shape[0]) == 0:
             i = -1
         with TiffWriter(path[:-4] + '_' + str(i+1) + '.tif') as tif:
             fr_data = np.reshape(np.fromfile(path,
@@ -45,7 +45,7 @@ def convert_h5_to_tif(path, tiff_shape):
         if last_tif_shape[0]:
             if not np.floor(nframes / tiff_shape[0]):
                 i = -1
-            start_ind = i * tiff_shape[0]
+            start_ind = (i + 1) * tiff_shape[0]
             with TiffWriter(path[:-4] + '_' + str(i + 1) + '.tif') as tif:
                 fr_data = f['wf_raw_data'][start_ind:]
                 tif.write(fr_data, contiguous=True)

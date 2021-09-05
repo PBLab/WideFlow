@@ -24,6 +24,7 @@ class MemoryHandler:
                 vid_mem[frame_counter] = frame
                 vid_mem.flush()
                 frame_counter += 1
+
             elif q == "terminate":
                 del vid_mem
                 break

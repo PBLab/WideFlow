@@ -20,6 +20,4 @@ def extract_from_metadata_file(path):
             else:
                 serial_readout.append(sr_prv)
 
-
-
     return timestamp, cue, metric_result, serial_readout

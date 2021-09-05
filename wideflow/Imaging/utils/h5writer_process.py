@@ -19,7 +19,7 @@ class MemoryHandler:
             f.create_dataset('wf_metadata/shape', data=self.data_shape)
             f.create_dataset('wf_metadata/type', data=self.data_type)
 
-            vid_dset = f.create_dataset('wf_raw_data', size=self.data_shape, dtype='int16')
+            vid_dset = f.create_dataset('wf_raw_data', self.data_shape, dtype=self.data_type)
             frame_counter = 0
             while True:
                 if self.query.empty():
@@ -27,7 +27,7 @@ class MemoryHandler:
 
                 q = self.query.get()
                 if q == "flush":
-                    vid_dset[frame_counter, :, :] = frame
+                    vid_dset[frame_counter] = frame
                     frame_counter += 1
                 elif q == "terminate":
                     break
