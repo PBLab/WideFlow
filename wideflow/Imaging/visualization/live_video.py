@@ -6,7 +6,7 @@ import numpy as np
 
 
 class LiveVideo(AbstractVis):
-    def __init__(self, query, image_shape, frame_rate=50, vmin=-0.05, vmax=0.05):
+    def __init__(self, query, image_shape, frame_rate=50, vmin=-0.05, vmax=0.1):
         self.query = query
         self.image_shape = image_shape
         self.frame_rate = frame_rate
@@ -19,7 +19,7 @@ class LiveVideo(AbstractVis):
     def __call__(self, shared_mem_name):
         existing_shm = shared_memory.SharedMemory(name=shared_mem_name)
         image = np.ndarray(shape=self.image_shape, dtype=np.float32, buffer=existing_shm.buf)
-        plt.imshow(image)
+        plt.imshow(image, vmin=self.vmin, vmax=self.vmax)
         plt.colorbar()
         while True:
             if self.query.empty():
