@@ -192,7 +192,7 @@ def run_session(config, cam):
         print(f'frame: {frame_counter:06d} '
               f'Elapsed time:{frame_clock_stop - frame_clock_start:.3f} '
               f'metric results: {result:.3f} '
-              f'serial_readout: {serial_readout}', end='\r')
+              f'serial_readout: {serial_readout}')#, end='\r')
 
 
     ###########################################################################################################
@@ -245,7 +245,7 @@ def run_session(config, cam):
         vis_processes[i].terminate()
 
     print(f"session finished successfully at: "
-          f"{time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
+          f"{time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}")
 
 
 if __name__ == "__main__":
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     #         '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
     imaging_config_path = str(
     pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3424_config.json')
+            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3697_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()
