@@ -3,7 +3,7 @@ import numpy as np
 import h5py
 
 
-class MemoryHandler:
+class H5MemoryHandler:
     def __init__(self, query, path, data_shape, data_type='uint16'):
         self.query = query
         self.path = path

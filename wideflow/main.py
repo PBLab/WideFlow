@@ -2,20 +2,12 @@
 
 import sys
 from core.pipelines import *
+from Imaging.utils import *
+from Imaging.visualization import *
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
-
-# from utils.convert_dat_to_tif import convert_h5_to_tif
-# from Imaging.utils.h5writer_process import MemoryHandler
 from utils.convert_dat_to_tif import convert_dat_to_tif
-from Imaging.utils.memmap_process import MemoryHandler
-
-from Imaging.utils.acquisition_metadata import AcquisitionMetaData
-from Imaging.utils.roi_select import *
-from Imaging.visualization import *
-from Imaging.utils.create_matching_points import *
-from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
 from utils.load_matching_points import load_matching_points
@@ -51,6 +43,9 @@ def run_session(config, cam):
     # set feedback metric
     feedback_threshold = feedback_config["metric_threshold"]
     inter_feedback_delay = feedback_config["inter_feedback_delay"]
+    typical_n = feedback_config["typical_n"]
+    typical_count = feedback_config["typical_count"]
+    step = feedback_config["step"]
 
     # serial port
     ser = SerialControler(port=serial_config["port_id"],
@@ -153,6 +148,7 @@ def run_session(config, cam):
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print(f'starting session at {time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}')
+    cues_seq, results_seq = [], []
     frame_counter = 0
     feedback_time = 0
     pipeline.fill_buffers()
@@ -163,23 +159,29 @@ def run_session(config, cam):
 
         bcam_q.put('grab')
 
-        # evaluate metric and send TTL if metric above threshold
+        # evaluate metric and send reward if metric above threshold
         cue = 0
         result = pipeline.evaluate()
         if cp.asnumpy(result) > feedback_threshold and (
                 frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
+            ser.sendFeedback()
             feedback_time = perf_counter()
             cue = 1
-            ser.sendFeedback()
             print('_________________________FEEDBACK HAS BEEN SENT____________________________\n'
                   '___________________________________________________________________________')
+
+        # update threshold using adaptive staircase procedure
+        cues_seq.append(cue)
+        results_seq.append(result)
+        feedback_threshold = fixed_step_staircase_procedure(feedback_threshold,
+                                                            cues_seq, cue, typical_n, typical_count, step)
 
         # save data
         frame_shm[:] = pipeline.frame
         memq.put("flush")
 
         serial_readout = ser.getReadout()
-        metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
+        metadata.write_frame_metadata(frame_clock_start, cue, result, feedback_threshold, serial_readout)
 
         # update visualization
         for i in range(len(vis_processes)):
@@ -194,9 +196,8 @@ def run_session(config, cam):
               f'metric results: {result:.3f} '
               f'serial_readout: {serial_readout}')#, end='\r')
 
-
-    ###########################################################################################################
-    ###########################################################################################################
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     metadata.save_file()
 
     bcam_q.put("finish")
@@ -224,8 +225,6 @@ def run_session(config, cam):
         convert_dat_to_tif(base_path + acquisition_config["vid_file_name"], frame_offset,
                            (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
-        # convert_h5_to_tif(base_path + acquisition_config["vid_file_name"],
-        #                   (2000, frame_shape[0], frame_shape[1]))  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
         os.remove(base_path + acquisition_config["vid_file_name"])
 
     except RuntimeError:

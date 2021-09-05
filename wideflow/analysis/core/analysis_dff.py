@@ -17,7 +17,8 @@ def calc_dff(wf_data, bs_calc_method, dff_bs_n_frames=None):
 
 def calc_baseline_moving_avg(video, dff_bs_n_frames):
     bs = np.ndarray(video.shape, dtype=video.dtype)
-    for i in range(dff_bs_n_frames):
+    bs[0] = video[0]
+    for i in range(1, dff_bs_n_frames):
         bs[i] = np.mean(video[0: i, :, :], axis=0)
 
     for i in range(dff_bs_n_frames, video.shape[0]):

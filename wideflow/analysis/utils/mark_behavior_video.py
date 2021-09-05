@@ -9,7 +9,7 @@ def mark_video(vid_path, meta_path):
     readout_rect = ((200, 50), (300, 150))
     readout_color = (0, 0, 255)
 
-    [_, cue, _, serial_readout] = extract_from_metadata_file(meta_path)
+    [_, cue, _, _, serial_readout] = extract_from_metadata_file(meta_path)
     readout = 1 - np.array(serial_readout)
 
     cap = cv2.VideoCapture(vid_path)

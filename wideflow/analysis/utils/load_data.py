@@ -19,8 +19,8 @@ def load_data(dir_path):
             config = load_config(file)
 
     print("Extracting metadata")
-    timestamp, cue, metric_result, serial_readout = extract_from_metadata_file(metadata_path)
-    metadata = {"timestamp": timestamp, "cue": cue, "metric_result": metric_result, "serial_readout": serial_readout}
+    timestamp, cue, metric_result, threhold, serial_readout = extract_from_metadata_file(metadata_path)
+    metadata = {"timestamp": timestamp, "cue": cue, "metric_result": metric_result, "threhold": threhold, "serial_readout": serial_readout}
 
     print("Loading behavioral camera video")
     cap = cv2.VideoCapture(behavioral_video_path)

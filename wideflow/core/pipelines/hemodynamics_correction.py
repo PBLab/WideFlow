@@ -203,9 +203,11 @@ class HemoDynamicsDFF(AbstractPipeLine):
         return mps.match_p_src, mps.match_p_dst, mapping_coordinates
 
     def save_regression_buffers(self):
-        with open(self.save_path + "regression_coeff_calc_data.npy", "wb") as f:
+        with open(self.save_path + "regression_coeff_map.npy", "wb") as f:
             np.save(f, np.stack((
                 self.processes_list_ch2[3].regression_coeff[0].get(),
                 self.processes_list_ch2[3].regression_coeff[1].get()
                                 ))
                     )
+
+
