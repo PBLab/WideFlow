@@ -70,7 +70,10 @@
 
     "feedback_config": {
         "metric_threshold": 0.5,
-        "inter_feedback_delay": 1e2
+        "inter_feedback_delay": 1e2,
+        "typical_n": 1000,
+        "typical_count": 2,
+        "step": 0.01
     },
 
     "reference_image_path": "/home/pb/WideFlow_prj/3424/",
