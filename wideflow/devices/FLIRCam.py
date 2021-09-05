@@ -9,7 +9,6 @@ class TriggerType:
     HARDWARE = 2
 
 
-
 class FLIRCam:
     def __init__(self, exp_time, roi_bbox=None, avi_type="MJPG", acquisition_mode=None, chosen_trigger='HARDWARE'):
         self.exp_time = exp_time
@@ -89,7 +88,7 @@ class FLIRCam:
         """
         This function configures the camera to use a trigger. First, trigger mode is
         set to off in order to select the trigger source. Once the trigger source
-        has been selected, trigger mode is then enabled, which has the camera
+        has been selected, trigger mode is the:n enabled, which has the camera
         capture only a single image upon the execution of the chosen trigger.
 
          :param cam: Camera to configure trigger for.
