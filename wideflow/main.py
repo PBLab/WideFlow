@@ -148,8 +148,7 @@ def run_session(config, cam):
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print(f'starting session at {time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}')
-    cues_seq = []
-    results_seq = []#np.ndarray((acquisition_config["num_of_frames"], ), dtype=pipeline.metric.result.dtype)
+    cues_seq, results_seq = [], []
     frame_counter = 0
     feedback_time = 0
     pipeline.fill_buffers()
@@ -160,7 +159,7 @@ def run_session(config, cam):
 
         bcam_q.put('grab')
 
-        # evaluate metric and send TTL if metric above threshold
+        # evaluate metric and send reward if metric above threshold
         cue = 0
         result = pipeline.evaluate()
         if cp.asnumpy(result) > feedback_threshold and (
@@ -197,9 +196,8 @@ def run_session(config, cam):
               f'metric results: {result:.3f} '
               f'serial_readout: {serial_readout}', end='\r')
 
-
-    ###########################################################################################################
-    ###########################################################################################################
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     metadata.save_file()
 
     bcam_q.put("finish")
