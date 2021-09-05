@@ -194,7 +194,7 @@ def run_session(config, cam):
         print(f'frame: {frame_counter:06d} '
               f'Elapsed time:{frame_clock_stop - frame_clock_start:.3f} '
               f'metric results: {result:.3f} '
-              f'serial_readout: {serial_readout}')#, end='\r')
+              f'serial_readout: {serial_readout}', end='\r')
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -251,10 +251,7 @@ if __name__ == "__main__":
     from pyvcam import pvc
     from devices.PVCam import PVCamera
     import pathlib
-    mp.set_start_method('spawn')
-    # imaging_config_path = str(
-    #     pathlib.Path(
-    #         '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
+    # mp.set_start_method('spawn')
     imaging_config_path = str(
     pathlib.Path(
             '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3697_config.json')
