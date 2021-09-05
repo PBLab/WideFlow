@@ -304,12 +304,13 @@ class FLIRCam:
             image_result = self.cam.GetNextImage(self.exp_time)
             if image_result.IsIncomplete():
                 print('Image incomplete with image status %d ...' % image_result.GetImageStatus())
+                return False, None
             else:
                 frame = image_result.Convert(PySpin.PixelFormat_Mono8, PySpin.HQ_LINEAR)
                 image_result.Release()
                 return True, frame
         except PySpin.SpinnakerException as ex:
-            # print('Error: %s' % ex)
+            print('Error: %s' % ex)
             return False, None
 
     def save_to_avi(self, frame):
