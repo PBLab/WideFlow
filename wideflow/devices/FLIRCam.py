@@ -84,6 +84,35 @@ class FLIRCam:
 
         return True
 
+    def reset_image_roi(self):
+        node_offset_x = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetX'))
+        if PySpin.IsAvailable(node_offset_x) and PySpin.IsWritable(node_offset_x):
+            node_offset_x.SetValue(node_offset_x.GetMin())
+            print('Offset X set to %i...' % node_offset_x.GetMin())
+        else:
+            print('Offset X not available...')
+
+        node_offset_y = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetY'))
+        if PySpin.IsAvailable(node_offset_y) and PySpin.IsWritable(node_offset_y):
+            node_offset_y.SetValue(node_offset_y.GetMin())
+            print('Offset Y set to %i...' % node_offset_y.GetMin())
+        else:
+            print('Offset Y not available...')
+
+        node_width = PySpin.CIntegerPtr(self.nodemap.GetNode('Width'))
+        if PySpin.IsAvailable(node_width) and PySpin.IsWritable(node_width):
+            node_width.SetValue(node_width.GetMax())
+            print('Width set to %i...' % node_width.GetValue())
+        else:
+            print('Width not available...')
+
+        node_height = PySpin.CIntegerPtr(self.nodemap.GetNode('Height'))
+        if PySpin.IsAvailable(node_height) and PySpin.IsWritable(node_height):
+            node_height.SetValue(node_height.GetMax())
+            print('Height set to %i...' % node_height.GetValue())
+        else:
+            print('Height not available...')
+
     def configure_trigger(self):
         """
         This function configures the camera to use a trigger. First, trigger mode is
@@ -291,6 +320,9 @@ class FLIRCam:
 
         if self.acquisition_mode == 'TRIGGER':
             self.reset_trigger()
+
+        if self.roi_bbox != None:
+            self.reset_image_roi()
 
         self.cam.DeInit()
         del self.cam
