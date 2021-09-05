@@ -171,15 +171,18 @@ def run_session(config, cam):
             print('_________________________FEEDBACK HAS BEEN SENT____________________________\n'
                   '___________________________________________________________________________')
 
+        # update threshold using adaptive staircase procedure
         cues_seq.append(cue)
         results_seq.append(result)
-        fixed_step_staircase_procedure(feedback_threshold, cues_seq, cue, typical_n, typical_count, step)
+        feedback_threshold = fixed_step_staircase_procedure(feedback_threshold,
+                                                            cues_seq, cue, typical_n, typical_count, step)
+
         # save data
         frame_shm[:] = pipeline.frame
         memq.put("flush")
 
         serial_readout = ser.getReadout()
-        metadata.write_frame_metadata(frame_clock_start, cue, result, serial_readout)
+        metadata.write_frame_metadata(frame_clock_start, cue, result, feedback_threshold, serial_readout)
 
         # update visualization
         for i in range(len(vis_processes)):
@@ -224,8 +227,6 @@ def run_session(config, cam):
         convert_dat_to_tif(base_path + acquisition_config["vid_file_name"], frame_offset,
                            (2000, frame_shape[0], frame_shape[1]),  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
                            str(frame.dtype), acquisition_config["num_of_frames"])
-        # convert_h5_to_tif(base_path + acquisition_config["vid_file_name"],
-        #                   (2000, frame_shape[0], frame_shape[1]))  # ~2000 frames is the maximum amount of frames readable using Fiji imagej
         os.remove(base_path + acquisition_config["vid_file_name"])
 
     except RuntimeError:

@@ -10,11 +10,12 @@ class AcquisitionMetaData:
         self.config = config or load_config(session_config_path)
         self.write_metafile_header()
 
-    def write_frame_metadata(self, timestemp, cue, result, readout):
-        self.metatext += "timestemp:{:0.5f}" \
-                         "    cue:{}    " \
+    def write_frame_metadata(self, timestemp, cue, result, threshold, readout):
+        self.metatext += "timestemp:{:0.5f}    " \
+                         "cue:{}    " \
                          "metric result:{:0.5f}    " \
-                         "serial readout:{}\n".format(timestemp, cue, result, readout)
+                         "threshold:{:0.5f}    "\
+                         "serial readout:{}\n".format(timestemp, cue, result, threshold, readout)
 
     def write_metafile_header(self):
         self.metatext = str(self.datetime.tm_year) + '/'\
