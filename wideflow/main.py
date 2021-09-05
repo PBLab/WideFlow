@@ -2,20 +2,12 @@
 
 import sys
 from core.pipelines import *
+from Imaging.utils import *
+from Imaging.visualization import *
 from devices.serial_port import SerialControler
 
 from utils.imaging_utils import load_config
-
-# from utils.convert_dat_to_tif import convert_h5_to_tif
-# from Imaging.utils.h5writer_process import MemoryHandler
 from utils.convert_dat_to_tif import convert_dat_to_tif
-from Imaging.utils.memmap_process import MemoryHandler
-
-from Imaging.utils.acquisition_metadata import AcquisitionMetaData
-from Imaging.utils.roi_select import *
-from Imaging.visualization import *
-from Imaging.utils.create_matching_points import *
-from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
 from utils.load_matching_points import load_matching_points
@@ -51,6 +43,9 @@ def run_session(config, cam):
     # set feedback metric
     feedback_threshold = feedback_config["metric_threshold"]
     inter_feedback_delay = feedback_config["inter_feedback_delay"]
+    typical_n = feedback_config["typical_n"]
+    typical_count = feedback_config["typical_count"]
+    step = feedback_config["step"]
 
     # serial port
     ser = SerialControler(port=serial_config["port_id"],
@@ -153,6 +148,8 @@ def run_session(config, cam):
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     print(f'starting session at {time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}')
+    cues_seq = []
+    results_seq = []#np.ndarray((acquisition_config["num_of_frames"], ), dtype=pipeline.metric.result.dtype)
     frame_counter = 0
     feedback_time = 0
     pipeline.fill_buffers()
@@ -168,12 +165,15 @@ def run_session(config, cam):
         result = pipeline.evaluate()
         if cp.asnumpy(result) > feedback_threshold and (
                 frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
+            ser.sendFeedback()
             feedback_time = perf_counter()
             cue = 1
-            ser.sendFeedback()
             print('_________________________FEEDBACK HAS BEEN SENT____________________________\n'
                   '___________________________________________________________________________')
 
+        cues_seq.append(cue)
+        results_seq.append(result)
+        fixed_step_staircase_procedure(feedback_threshold, cues_seq, cue, typical_n, typical_count, step)
         # save data
         frame_shm[:] = pipeline.frame
         memq.put("flush")

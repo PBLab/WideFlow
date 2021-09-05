@@ -14,7 +14,7 @@ class ROIMean(AbstractMetric):
 
         self.pixels_inds = np.unravel_index(self.roi_pixels_list, (self.shape[2], self.shape[1]))
 
-        self.result = 0
+        self.result = np.float32()
 
     def initialize_buffers(self):
         self.ptr = self.capacity - 1
