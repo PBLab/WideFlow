@@ -15,6 +15,7 @@ from utils.load_matching_points import load_matching_points
 import cupy as cp
 import numpy as np
 from scipy.signal import fftconvolve
+
 import os
 
 import time
@@ -27,6 +28,7 @@ import json
 
 import multiprocessing as mp
 from multiprocessing import shared_memory, Queue
+import subprocess
 
 
 def run_session(config, cam):
@@ -162,8 +164,8 @@ def run_session(config, cam):
         # evaluate metric and send reward if metric above threshold
         cue = 0
         result = pipeline.evaluate()
-        if cp.asnumpy(result) > feedback_threshold and (
-                frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
+        ct = int(cp.asnumpy(result) > feedback_threshold)
+        if ct and (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
             ser.sendFeedback()
             feedback_time = perf_counter()
             cue = 1
@@ -171,10 +173,10 @@ def run_session(config, cam):
                   '___________________________________________________________________________')
 
         # update threshold using adaptive staircase procedure
-        cues_seq.append(cue)
+        cues_seq.append(ct)
         results_seq.append(result)
         feedback_threshold = fixed_step_staircase_procedure(feedback_threshold,
-                                                            cues_seq, cue, typical_n, typical_count, step)
+                                                            cues_seq, 1, typical_n, typical_count, step)
 
         # save data
         frame_shm[:] = pipeline.frame

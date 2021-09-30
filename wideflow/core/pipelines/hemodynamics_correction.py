@@ -4,6 +4,7 @@ from core.metrics import ROIMean
 import cupy as cp
 import numpy as np
 
+import os
 import h5py
 from utils.load_matlab_vector_field import load_extended_rois_list
 from Imaging.utils.create_matching_points import *
@@ -13,7 +14,7 @@ from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 
 class HemoDynamicsDFF(AbstractPipeLine):
     def __init__(self, camera, save_path, new_shape, capacity, rois_dict_path, mask_path, rois_names,
-                 regression_n_samples, match_p_src=None, match_p_dst=None):
+                 regression_n_samples, match_p_src=None, match_p_dst=None, regression_map_path=""):
         self.camera = camera
         self.save_path = save_path
         self.new_shape = new_shape
@@ -25,6 +26,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
         self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src,
                                                                                                      match_p_dst)
+        self.regression_map_path = regression_map_path
 
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
 
@@ -82,38 +84,48 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.processes_list[2].initialize_buffers()
         self.processes_list_ch2[2].initialize_buffers()
 
-        # collect data to calculate regression coefficient for the hemodynamic correction
-        print("\nCollecting data to calculate regression coefficient for hemodynamics effects attenuation...")
-        ch1i, ch2i = 0, 0
-        for i in range(self.regression_n_samples * 2):
-            if self.ptr == self.capacity - 1:
-                self.ptr = 0
-            else:
-                self.ptr += 1
+        if os.path.exists(self.regression_map_path):
+            # collect data to calculate regression coefficient for the hemodynamic correction
+            print("\nCollecting data to calculate regression coefficient for hemodynamics effects attenuation...")
+            ch1i, ch2i = 0, 0
+            for i in range(self.regression_n_samples * 2):
+                if self.ptr == self.capacity - 1:
+                    self.ptr = 0
+                else:
+                    self.ptr += 1
 
-            self.get_input()
-            if not i % 2:
-                for process in self.processes_list[:3]:
-                    process.initialize_buffers()
-                self.regression_buffer[ch1i, :, :, 0] = cp.asnumpy(self.dff_buffer[self.ptr, :, :])
-                ch1i += 1
 
-            else:
-                for process in self.processes_list_ch2[:3]:
-                    process.initialize_buffers()
-                self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
-                ch2i += 1
+                self.get_input()
+                if not i % 2:
+                    for process in self.processes_list[:3]:
+                        process.initialize_buffers()
+                    self.regression_buffer[ch1i, :, :, 0] = cp.asnumpy(self.dff_buffer[self.ptr, :, :])
+                    ch1i += 1
 
-        self.camera.stop_live()
-        print("Done collecting the data\n")
-        print("Calculating the regression coefficients...", end="\t")
-        self.processes_list_ch2[3].initialize_buffers(
-            self.regression_buffer[:, :, :, 0],
-            self.regression_buffer[:, :, :, 1]
-        )
-        self.save_regression_buffers()
+                else:
+                    for process in self.processes_list_ch2[:3]:
+                        process.initialize_buffers()
+                    self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
+                    ch2i += 1
+
+            self.camera.stop_live()
+            print("Done collecting the data\n")
+            print("Calculating the regression coefficients...", end="\t")
+            self.processes_list_ch2[3].initialize_buffers(
+                self.regression_buffer[:, :, :, 0],
+                self.regression_buffer[:, :, :, 1]
+            )
+            self.save_regression_buffers()
+            del self.regression_buffer
+
+        else:
+            print("\nLoading regression coefficient maps for hemodynamics effects attenuation...")
+            reg_map = self.load_regression_map()
+            self.processes_list_ch2.regression_coeff[0] = reg_map[0]
+            self.processes_list_ch2.regression_coeff[0] = reg_map[1]
+            del reg_map
+
         print("Done")
-
         self.camera.start_live()
         for i in range(self.capacity * 2):
             self.get_input()
@@ -210,4 +222,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
                                 ))
                     )
 
+    def load_regression_map(self):
+        reg_map = np.load(self.regression_map_path)
+        return reg_map
 

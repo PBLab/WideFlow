@@ -1,5 +1,5 @@
 import time
-from utils.imaging_utils import load_config
+from wideflow.utils.imaging_utils import load_config
 import numpy as np
 
 

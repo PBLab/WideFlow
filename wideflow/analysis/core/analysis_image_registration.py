@@ -1,6 +1,6 @@
 from scipy.ndimage import map_coordinates
 import numpy as np
-from wideflow.Imaging.utils.create_matching_points import MatchingPointSelector
+from wideflow.utils.create_matching_points import MatchingPointSelector
 from skimage.transform import PiecewiseAffineTransform, warp_coords
 
 

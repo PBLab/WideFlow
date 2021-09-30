@@ -1,5 +1,9 @@
 def fixed_step_staircase_procedure(threshold, cues_seq, cue, typical_n, typical_count, step):
-    n = cues_seq[::-1].index(cue)
+    try:
+        n = cues_seq[::-1].index(cue)
+    except:
+        n = len(cues_seq)
+
     if n > typical_n:
         return threshold - step
     elif cues_seq[-typical_n:].count(cue) > typical_count:
