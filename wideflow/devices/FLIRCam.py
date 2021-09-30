@@ -78,6 +78,11 @@ class FLIRCam:
             else:
                 print('Offset Y not available...')
 
+            self.node_width = node_width
+            self.node_height = node_height
+            self.node_offset_x = node_offset_x
+            self.node_offset_y = node_offset_y
+
         except PySpin.SpinnakerException as ex:
             print('Error: %s' % ex)
             return False
@@ -242,7 +247,7 @@ class FLIRCam:
             print('Trigger mode disabled...')
 
         except PySpin.SpinnakerException as ex:
-            print('Error: %s' % ex)
+            # print('Error: %s' % ex)
             return False
 
         return True
@@ -310,7 +315,7 @@ class FLIRCam:
                 image_result.Release()
                 return True, frame
         except PySpin.SpinnakerException as ex:
-            print('Error: %s' % ex)
+            # print('Error: %s' % ex)
             return False, None
 
     def save_to_avi(self, frame):
