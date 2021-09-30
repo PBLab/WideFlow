@@ -9,7 +9,6 @@ class TriggerType:
     HARDWARE = 2
 
 
-
 class FLIRCam:
     def __init__(self, exp_time, roi_bbox=None, avi_type="MJPG", acquisition_mode=None, chosen_trigger='HARDWARE'):
         self.exp_time = exp_time
@@ -85,11 +84,40 @@ class FLIRCam:
 
         return True
 
+    def reset_image_roi(self):
+        node_offset_x = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetX'))
+        if PySpin.IsAvailable(node_offset_x) and PySpin.IsWritable(node_offset_x):
+            node_offset_x.SetValue(node_offset_x.GetMin())
+            print('Offset X set to %i...' % node_offset_x.GetMin())
+        else:
+            print('Offset X not available...')
+
+        node_offset_y = PySpin.CIntegerPtr(self.nodemap.GetNode('OffsetY'))
+        if PySpin.IsAvailable(node_offset_y) and PySpin.IsWritable(node_offset_y):
+            node_offset_y.SetValue(node_offset_y.GetMin())
+            print('Offset Y set to %i...' % node_offset_y.GetMin())
+        else:
+            print('Offset Y not available...')
+
+        node_width = PySpin.CIntegerPtr(self.nodemap.GetNode('Width'))
+        if PySpin.IsAvailable(node_width) and PySpin.IsWritable(node_width):
+            node_width.SetValue(node_width.GetMax())
+            print('Width set to %i...' % node_width.GetValue())
+        else:
+            print('Width not available...')
+
+        node_height = PySpin.CIntegerPtr(self.nodemap.GetNode('Height'))
+        if PySpin.IsAvailable(node_height) and PySpin.IsWritable(node_height):
+            node_height.SetValue(node_height.GetMax())
+            print('Height set to %i...' % node_height.GetValue())
+        else:
+            print('Height not available...')
+
     def configure_trigger(self):
         """
         This function configures the camera to use a trigger. First, trigger mode is
         set to off in order to select the trigger source. Once the trigger source
-        has been selected, trigger mode is then enabled, which has the camera
+        has been selected, trigger mode is the:n enabled, which has the camera
         capture only a single image upon the execution of the chosen trigger.
 
          :param cam: Camera to configure trigger for.
@@ -276,12 +304,13 @@ class FLIRCam:
             image_result = self.cam.GetNextImage(self.exp_time)
             if image_result.IsIncomplete():
                 print('Image incomplete with image status %d ...' % image_result.GetImageStatus())
+                return False, None
             else:
                 frame = image_result.Convert(PySpin.PixelFormat_Mono8, PySpin.HQ_LINEAR)
                 image_result.Release()
                 return True, frame
         except PySpin.SpinnakerException as ex:
-            # print('Error: %s' % ex)
+            print('Error: %s' % ex)
             return False, None
 
     def save_to_avi(self, frame):
@@ -292,6 +321,9 @@ class FLIRCam:
 
         if self.acquisition_mode == 'TRIGGER':
             self.reset_trigger()
+
+        if self.roi_bbox != None:
+            self.reset_image_roi()
 
         self.cam.DeInit()
         del self.cam

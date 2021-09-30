@@ -246,20 +246,17 @@ def run_session(config, cam):
         vis_processes[i].terminate()
 
     print(f"session finished successfully at: "
-          f"{time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
+          f"{time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}")
 
 
 if __name__ == "__main__":
     from pyvcam import pvc
     from devices.PVCam import PVCamera
     import pathlib
-    mp.set_start_method('spawn')
-    # imaging_config_path = str(
-    #     pathlib.Path(
-    #         '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
+    # mp.set_start_method('spawn')
     imaging_config_path = str(
     pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3424_config.json')
+            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3697_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()
