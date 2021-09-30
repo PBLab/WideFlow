@@ -1,6 +1,6 @@
 import h5py
 import numpy as np
-from utils.gen_utils import add_properties_to_roi_list, add_morphological_adjacent_rois_to_roi_list
+from wideflow.utils.gen_utils import add_properties_to_roi_list, add_morphological_adjacent_rois_to_roi_list
 
 
 def load_matlab_OF(mat_path):

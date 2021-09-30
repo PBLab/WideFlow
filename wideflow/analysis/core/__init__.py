@@ -6,6 +6,7 @@ from wideflow.analysis.core.analysis_image_registration import registration
 from wideflow.analysis.core.analysis_rois_traces_extraction import extract_roi_traces
 from wideflow.analysis.core.analysis_masking import mask
 from wideflow.analysis.core.analysis_figures import plot_figures
+from wideflow.analysis.core.analysis_statistics import analysis_statistics
 
 
-__all__ = ["calc_dff", "deinterleave", "hemodynamics_attenuation", "registration", "crop", "extract_roi_traces", "mask", "plot_figures"]
+__all__ = ["calc_dff", "deinterleave", "hemodynamics_attenuation", "registration", "crop", "extract_roi_traces", "mask", "plot_figures", "analysis_statistics"]

@@ -4,12 +4,33 @@ from wideflow.utils.load_tiff import load_tiff
 from wideflow.utils.load_bbox import load_bbox
 from wideflow.utils.load_matching_points import load_matching_points
 from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
+from wideflow.utils.decompose_dict_and_h5_groups import decompose_dict_to_h5_groups
 
 import os
 import h5py
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
+
+# project path
+project_path = 'Z:/Rotem/WideFlow prj/'
+mouse_id = '3697'
+session_name = '20210923'
+
+
+# analysis global parameters
+
+crop = False
+register = True
+dff_bs_method = "moving_avg"
+accept_transform_matching_points = False
+hemo_correct_ch = ["channel_0", "channel_1"]
+global_params = {
+    "crop": crop,
+    "register": register,
+    "dff_bs_method": dff_bs_method,
+    "accept_transform_matching_points": accept_transform_matching_points,
+    "hemo_correct_ch": hemo_correct_ch
+}
 
 # load cortex data
 cortex_file_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\cortex_map\\allen_2d_cortex.h5"
@@ -20,25 +41,19 @@ with h5py.File(cortex_file_path, 'r') as f:
 rois_dict_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\cortex_map\\allen_2d_cortex_rois_extended.h5"
 rois_dict = load_extended_rois_list(rois_dict_path)
 
-# analysis global parameters
-crop = False
-register = True
-dff_bs_method = "moving_avg"
-accept_transform_matching_points = False
-hemo_correct_ch = ["channel_0", "channel_1"]
-
-# load session data
-dir_path = 'Z:/Rotem/WideFlow prj/3697/20210901/'
-metadata, config = load_session_metadata(dir_path)
-if os.path.exists(dir_path + 'regression_coeff_map.npy'):
-    regression_coeff_map = np.load(dir_path + "regression_coeff_map.npy")
-
+# load session metadata and configurations
+session_path = project_path + mouse_id + '/' + session_name + '/'
+metadata, config = load_session_metadata(session_path)
+if os.path.exists(session_path + 'regression_coeff_map.npy'):
+    regression_coeff_map = np.load(session_path + "regression_coeff_map.npy")
+else:
+    regression_coeff_map = None
 
 n_channels = config["camera_config"]["attr"]["channels"]
 dff_bs_n_frames = config["acquisition_config"]["capacity"]
 
 # load reference image, bbox, and matching points
-reference_dir_path = 'Z:/Rotem/WideFlow prj/3422/'
+reference_dir_path = project_path + mouse_id + '/'
 reference_image = load_tiff(reference_dir_path + 'reference_image.tif')
 ref_bbox = load_bbox(reference_dir_path + 'bbox.txt')
 match_p_src, match_p_dst = load_matching_points(reference_dir_path + 'matching_points.txt')
@@ -53,9 +68,9 @@ for i in range(n_channels):
         concat_rois_traces[f'channel_{i}'][key] = np.empty((0, ), dtype=np.float16)
 
 wf_video_paths = []
-for file in os.listdir(dir_path):
+for file in os.listdir(session_path):
     if file.endswith(".tif"):
-        wf_video_paths.append(os.path.join(dir_path, file))
+        wf_video_paths.append(os.path.join(session_path, file))
 
 for p, tif_path in enumerate(wf_video_paths):
     print(f"starting analysis for tiff part: {p}")
@@ -104,15 +119,29 @@ for p, tif_path in enumerate(wf_video_paths):
         for roi, trace in ch_rois_traces.items():
             concat_rois_traces[ch][roi] = np.concatenate((concat_rois_traces[ch][roi], trace))
 
-# save rois traces
-if not os.path.isdir(dir_path + 'analysis_results'):
-    os.mkdir(dir_path + 'analysis_results')
-results_path = dir_path + 'analysis_results/'
-print("saving results")
-with h5py.File(results_path + 'session_ROIs_traces.h5', 'w') as f:
-    for ch, ch_traces_dict in concat_rois_traces.items():
-        f.create_group(ch)
-        for roi, trace in ch_traces_dict.items():
-            f.create_dataset(f'{ch}/{roi}', data=trace)
+# results statistics
+neuronal_response_stats, behavioral_response_prob = \
+    analysis_statistics(concat_rois_traces, metadata, config)
 
-plot_figures(results_path, metadata["cue"], metadata["serial_readout"])
+# save rois traces
+with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
+    main_group = f[mouse_id]
+    session_group = main_group.create_group(session_name)  # create group named by session name
+
+    data_group = session_group.create_group('rois_traces')
+    for ch, ch_traces_dict in concat_rois_traces.items():
+        ch_group = data_group.create_group(ch)
+        for roi, trace in ch_traces_dict.items():
+            ch_group.create_dataset(roi, data=trace)
+
+    stats_group = session_group.create_group('statistics')
+    decompose_dict_to_h5_groups(f, behavioral_response_prob, stats_group.name + '/')
+    decompose_dict_to_h5_groups(f, neuronal_response_stats, stats_group.name + '/')
+
+if not os.path.isdir(session_path + 'analysis_results'):
+    os.mkdir(session_path + 'analysis_results')
+session_path = session_path + 'analysis_results/'
+plot_figures(session_path, metadata, concat_rois_traces,
+             neuronal_response_stats, behavioral_response_prob)
+
+
