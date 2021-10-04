@@ -49,6 +49,7 @@ def run_session(config, cam):
     inter_feedback_delay = feedback_config["inter_feedback_delay"]
     typical_n = feedback_config["typical_n"]
     typical_count = feedback_config["typical_count"]
+    count_band = feedback_config["count_band"]
     step = feedback_config["step"]
 
     # serial port
@@ -151,7 +152,7 @@ def run_session(config, cam):
     # start session
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    cues_seq, results_seq = [1], []  # initialize cues_seq with 1 to avoid ".index" failure
+    results_seq = []  # initialize cues_seq with 1 to avoid ".index" failure
     frame_counter = 0
     feedback_time = 0
 
@@ -177,8 +178,8 @@ def run_session(config, cam):
         # evaluate metric and send reward if metric above threshold
         cue = 0
         result = pipeline.evaluate()
-        ct = int(cp.asnumpy(result) > feedback_threshold)
-        if ct and (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
+        if int(cp.asnumpy(result) > feedback_threshold) and\
+                (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
             ser.sendFeedback()
             feedback_time = perf_counter()
             cue = 1
@@ -186,10 +187,10 @@ def run_session(config, cam):
                   '___________________________________________________________________________')
 
         # update threshold using adaptive staircase procedure
-        cues_seq.append(ct)
         results_seq.append(result)
-        feedback_threshold = fixed_step_staircase_procedure(feedback_threshold,
-                                                            cues_seq, 1, typical_n, typical_count, step)
+        if frame_counter < 6000:
+            feedback_threshold = fixed_step_staircase_procedure(
+                feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
 
         # save data
         frame_shm[:] = pipeline.frame

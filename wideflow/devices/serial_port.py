@@ -63,8 +63,8 @@ class SerialControler(serial.Serial):
 
     def waitForArduino(self):
         '''
-        wait until the Arduino sends 'Arduino Ready' - allows time for Arduino reset
-        it also ensures that any bytes left over from a previous message are discarded
+        Wait until the Arduino sends 'Arduino Ready' - allows time for Arduino reset.
+        It also ensures that any bytes left over from a previous message are discarded.
         '''
 
         msg = ""
