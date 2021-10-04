@@ -1,7 +1,7 @@
 {
-    "name": "3697",
+    "name": "3422",
 
-    "path": "/home/pb/WideFlow_prj/3697/20210923/",
+    "path": "/home/pb/WideFlow_prj/3422/20210922/",
 
     "camera_config": {
         "core_attr": {
@@ -67,7 +67,7 @@
         "enable_gpu" : 1,
         "vid_file_name": "t1_vid.dat",
         "meta_file_name": "t1_meta.txt",
-        "num_of_frames": 50000,
+        "num_of_frames": 5000,
         "capacity": 32
     },
 
@@ -79,13 +79,13 @@
         "step": 0.01
     },
 
-    "reference_image_path": "/home/pb/WideFlow_prj/3697/",
+    "reference_image_path": "/home/pb/WideFlow_prj/3422/",
 
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
         "args": {
-            "min_frame_count": 1000,
-            "max_frame_count": 4000,
+            "min_frame_count": 500,
+            "max_frame_count": 501,
             "new_shape": [297, 337],
             "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
             "match_p_src": null,
