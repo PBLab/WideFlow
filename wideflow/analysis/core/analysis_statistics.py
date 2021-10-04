@@ -15,11 +15,15 @@ def analysis_statistics(rois_traces, metadata, config):
         for roi_key, roi_val in ch_val.items():
             neuronal_resp = calc_pstr(metadata["cue"], roi_val, delta_t)
             rois_pstr_stats, rois_str_pre_stats, rois_str_post_stats = analyze_pstr(neuronal_resp)
+            std = np.std(roi_val)
+            mean = np.mean(roi_val)
             neuronal_response_stats[ch_key][roi_key] = {
                 "pstr": np.mean(neuronal_resp, axis=0),
                 "pstr_stats": rois_pstr_stats,
                 "str_pre_stats": rois_str_pre_stats,
-                "str_post_stats": rois_str_post_stats
+                "str_post_stats": rois_str_post_stats,
+                "std": std,
+                "mean": mean
             }
 
     # evaluate behavioral response
