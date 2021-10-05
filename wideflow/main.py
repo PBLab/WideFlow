@@ -49,6 +49,7 @@ def run_session(config, cam):
     typical_count = feedback_config["typical_count"]
     count_band = feedback_config["count_band"]
     step = feedback_config["step"]
+    update_frames = feedback_config["update_frames"]
 
     # serial port
     ser = SerialControler(port=serial_config["port_id"],
@@ -175,7 +176,7 @@ def run_session(config, cam):
 
         # update threshold using adaptive staircase procedure
         results_seq.append(result)
-        if frame_counter < 6000:
+        if frame_counter < update_frames:
             feedback_threshold = fixed_step_staircase_procedure(
                 feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
 
