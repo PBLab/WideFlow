@@ -28,7 +28,9 @@ import json
 
 import multiprocessing as mp
 from multiprocessing import shared_memory, Queue
+import asyncio
 import subprocess
+from wideflow.Imaging.utils.async_subprocess import run_async_subprocess
 
 
 def run_session(config, cam):
@@ -122,10 +124,10 @@ def run_session(config, cam):
     mem_process.start()
 
     # start behavioral camera process
-    bcam_q = Queue(1)
-    bcam_process = mp.Process(target=run_triggered_behavioral_camera,
-               args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
-    bcam_process.start()
+    if behavioral_camera_config["process"] == "python":
+        bcam_q = Queue(1)
+        bcam_process = mp.Process(target=run_triggered_behavioral_camera,
+                   args=(bcam_q, base_path + behavioral_camera_config["vid_file_name"]), kwargs=behavioral_camera_config["attr"])
 
     # set pipeline
     pipeline = eval(analysis_pipeline_config["pipeline"] + "(cam, **analysis_pipeline_config['args'])")
@@ -151,17 +153,28 @@ def run_session(config, cam):
     # start session
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    print(f'starting session at {time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}')
     results_seq = []  # initialize cues_seq with 1 to avoid ".index" failure
     frame_counter = 0
     feedback_time = 0
+
+    if behavioral_camera_config["process"] == "python":
+        bcam_process.start()
+    elif behavioral_camera_config["process"] == "cpp":
+        subprocess.Popen([behavioral_camera_config["script"]])
+        pass
+
     pipeline.fill_buffers()
+    if behavioral_camera_config["process"] == "python":
+        bcam_q.put("start")
+
+    print(
+        f'starting session at {time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}')
     pipeline.camera.start_live()
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
         pipeline.process()
-
-        bcam_q.put('grab')
+        if behavioral_camera_config["process"] == "python":
+            bcam_q.put('grab')
 
         # evaluate metric and send reward if metric above threshold
         cue = 0
@@ -196,17 +209,18 @@ def run_session(config, cam):
         frame_counter += 1
         frame_clock_stop = perf_counter()
         print(f'frame: {frame_counter:06d} '
-              f'Elapsed time:{frame_clock_stop - frame_clock_start:.3f} '
-              f'metric results: {result:.3f} '
+              f'elapsed time:{frame_clock_stop - frame_clock_start:.3f} '
+              f'threshold: {feedback_threshold:.3f} '
+              f'metric_results: {result:.3f} '
               f'serial_readout: {serial_readout}', end='\r')
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     metadata.save_file()
-
-    bcam_q.put("finish")
-    bcam_process.join()
-    bcam_process.terminate()
+    if behavioral_camera_config["process"] == "python":
+        bcam_q.put("finish")
+        bcam_process.join()
+        bcam_process.terminate()
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
@@ -218,6 +232,9 @@ def run_session(config, cam):
     now = datetime.now()
     with open(config["path"] + config["name"] + "_" + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
         json.dump(config, fp)
+
+    # if behavioral_camera_config["process"] == "cpp":
+    #     await async_ret
 
     print("converting imaging dat file into tiff, this might take few minutes")
     try:
@@ -255,10 +272,10 @@ if __name__ == "__main__":
     from pyvcam import pvc
     from devices.PVCam import PVCamera
     import pathlib
-    # mp.set_start_method('spawn')
+    mp.set_start_method('fork')
     imaging_config_path = str(
     pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3697_config.json')
+            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()

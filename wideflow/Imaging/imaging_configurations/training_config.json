@@ -1,7 +1,7 @@
 {
-    "name": "3424",
+    "name": "3422",
 
-    "path": "/home/pb/WideFlow_prj/3424/26082021/",
+    "path": "/home/pb/WideFlow_prj/3422/20210922/",
 
     "camera_config": {
         "core_attr": {
@@ -51,9 +51,12 @@
     },
 
     "behavioral_camera_config": {
+        "process": "python",
+        "script":"/home/pb/PycharmProjects/WideFlow/wideflow/devices/spinnaker_flir_cam/bin/FLIRcam_main",
         "vid_file_name": "behavioral_vid.avi",
         "attr": {
-            "exp_time": 5,
+            "exp_time": 10,
+            "roi_bbox": [500, 348, 512, 512],
             "avi_type": "MJPG",
             "acquisition_mode": "TRIGGER",
             "chosen_trigger": "HARDWARE"
@@ -64,7 +67,7 @@
         "enable_gpu" : 1,
         "vid_file_name": "t1_vid.dat",
         "meta_file_name": "t1_meta.txt",
-        "num_of_frames": 30000,
+        "num_of_frames": 5000,
         "capacity": 32
     },
 
@@ -78,13 +81,13 @@
         "update_frames": 0
     },
 
-    "reference_image_path": "/home/pb/WideFlow_prj/3424/",
+    "reference_image_path": "/home/pb/WideFlow_prj/3422/",
 
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
         "args": {
-            "min_frame_count": 1000,
-            "max_frame_count": 4000,
+            "min_frame_count": 500,
+            "max_frame_count": 501,
             "new_shape": [297, 337],
             "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
             "match_p_src": null,
