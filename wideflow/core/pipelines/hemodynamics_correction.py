@@ -94,7 +94,6 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 else:
                     self.ptr += 1
 
-
                 self.get_input()
                 if not i % 2:
                     for process in self.processes_list[:3]:
