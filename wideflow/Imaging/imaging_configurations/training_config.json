@@ -77,7 +77,8 @@
         "typical_n": 5000,
         "typical_count": 3,
         "count_band": 2,
-        "step": 0.002
+        "step": 0.002,
+        "update_frames": 0
     },
 
     "reference_image_path": "/home/pb/WideFlow_prj/3422/",
