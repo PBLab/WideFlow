@@ -1,6 +1,6 @@
 import os
 from wideflow.utils.imaging_utils import load_config
-from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
+from wideflow.analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 
 
 def load_session_metadata(dir_path):
