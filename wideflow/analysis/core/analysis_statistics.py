@@ -8,12 +8,19 @@ sdf_sigma = 5
 
 def analysis_statistics(rois_traces, metadata, config):
     # evaluate neuronal response
+    n_channels = len(list(rois_traces.keys()))
     neuronal_response_stats = {}
     neuronal_response_stats["delta_t"] = delta_t
+    cue = np.array(metadata["cue"])
+    if n_channels > 1:
+        cue = cue[::n_channels]
+        for i in range(1, n_channels):
+            cue = np.maximum(cue, np.array(metadata["cue"])[i::n_channels])
+
     for ch_key, ch_val in rois_traces.items():
         neuronal_response_stats[ch_key] = {}
         for roi_key, roi_val in ch_val.items():
-            neuronal_resp = calc_pstr(metadata["cue"], roi_val, delta_t)
+            neuronal_resp = calc_pstr(cue, roi_val, delta_t)
             rois_pstr_stats, rois_str_pre_stats, rois_str_post_stats = analyze_pstr(neuronal_resp)
             std = np.std(roi_val)
             mean = np.mean(roi_val)

@@ -13,14 +13,15 @@ import cv2
 
 # project path
 project_path = 'Z:/Rotem/WideFlow prj/'
-mouse_id = '3697'
-session_name = '20210923'
+mouse_id = '3422'
+session_name = '20211005_nf'
 
 
 # analysis global parameters
 
 crop = False
 register = True
+
 dff_bs_method = "moving_avg"
 accept_transform_matching_points = False
 hemo_correct_ch = ["channel_0", "channel_1"]
