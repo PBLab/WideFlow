@@ -12,7 +12,7 @@ import numpy as np
 import cv2
 
 # project path
-project_path = 'Z:/Rotem/WideFlow prj/'
+project_path = '/data/Rotem/WideFlow prj/'
 mouse_id = '3422'
 session_name = '20211005_nf'
 
@@ -34,12 +34,12 @@ global_params = {
 }
 
 # load cortex data
-cortex_file_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\cortex_map\\allen_2d_cortex.h5"
+cortex_file_path = "/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5"
 with h5py.File(cortex_file_path, 'r') as f:
     cortex_mask = np.transpose(f["mask"][()])
     cortex_map = np.transpose(f["map"][()])
 
-rois_dict_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\cortex_map\\allen_2d_cortex_rois_extended.h5"
+rois_dict_path = "/data/Rotem/Wide Field/WideFlow//data/cortex_map/allen_2d_cortex_rois_extended.h5"
 rois_dict = load_extended_rois_list(rois_dict_path)
 
 # load session metadata and configurations
@@ -136,8 +136,10 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
             ch_group.create_dataset(roi, data=trace)
 
     stats_group = session_group.create_group('statistics')
-    decompose_dict_to_h5_groups(f, behavioral_response_prob, stats_group.name + '/')
-    decompose_dict_to_h5_groups(f, neuronal_response_stats, stats_group.name + '/')
+    behavioral_stats_group = stats_group.create_group('behavioral_response')
+    decompose_dict_to_h5_groups(f, behavioral_response_prob, behavioral_stats_group.name + '/')
+    neurpnal_stats_group = stats_group.create_group('neuronal_response')
+    decompose_dict_to_h5_groups(f, neuronal_response_stats, neurpnal_stats_group.name + '/')
 
 if not os.path.isdir(session_path + 'analysis_results'):
     os.mkdir(session_path + 'analysis_results')
