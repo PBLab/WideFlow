@@ -38,7 +38,7 @@ def analysis_statistics(rois_traces, metadata, config):
     p_lick_trials, p_lick_pre, p_lick_post = analyze_sdf(behavioral_resp)
     mean_spike_rate = len(np.where(1-np.array(metadata["serial_readout"] == 1))[0]) / len(np.array(metadata["serial_readout"]))
     behavioral_response_prob = {
-        delta_t: delta_t,
+        "delta_t": delta_t,
         "sdf": np.mean(behavioral_resp, axis=0),
         "mean_spike_rate": mean_spike_rate,
         "p_lick_trials": p_lick_trials,
