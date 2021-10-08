@@ -10,7 +10,6 @@ def analysis_statistics(rois_traces, metadata, config):
     # evaluate neuronal response
     n_channels = len(list(rois_traces.keys()))
     neuronal_response_stats = {}
-    neuronal_response_stats["delta_t"] = delta_t
     cue = np.array(metadata["cue"])
     if n_channels > 1:
         cue = cue[::n_channels]
@@ -30,7 +29,8 @@ def analysis_statistics(rois_traces, metadata, config):
                 "str_pre_stats": rois_str_pre_stats,
                 "str_post_stats": rois_str_post_stats,
                 "std": std,
-                "mean": mean
+                "mean": mean,
+                "delta_t": delta_t
             }
 
     # evaluate behavioral response

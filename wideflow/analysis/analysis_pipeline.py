@@ -13,8 +13,8 @@ import cv2
 
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
-mouse_id = '3422'
-session_name = '20211005_nf'
+mouse_id = '3423'
+session_name = '20211007_nf'
 
 
 # analysis global parameters

@@ -22,7 +22,7 @@ def save_figure(path):
 
 def plot_pstr(results_path, neuronal_response_stats, dt):
     channels_keys = list(neuronal_response_stats.keys())
-    delta_t = neuronal_response_stats["delta_t"]
+    delta_t = neuronal_response_stats["channel_0"]["roi_1"]["delta_t"]
 
     frames_time = np.arange(-delta_t[0]*dt, delta_t[1]*dt, dt)
     legend_list = []
