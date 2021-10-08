@@ -32,7 +32,7 @@ def plot_pstr(results_path, neuronal_response_stats, dt, delta_t):
             plt.plot(frames_time, roi_pstr_stats["pstr"])
             legend_list.append(roi)
 
-        plt.legend(legend_list)
+        plt.legend(legend_list, ncol=3)
         plt.ylabel("pstr")
         plt.xlabel("Time [ms]")
         plt.title(f'ROIs Peristimulus Time Response - channel {ch}')
@@ -80,7 +80,7 @@ def plot_rois_traces(results_path, traces):
             legend.append(roi)
             plt.plot(trace)
 
-        plt.legend(legend, ncol=2)
+        plt.legend(legend, ncol=3)
         plt.title(f"ROIs traces - channel {ch}")
         plt.xlabel("frames")
         plt.ylabel("dFF")

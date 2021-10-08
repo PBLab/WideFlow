@@ -13,7 +13,7 @@ import cv2
 
 # project path
 project_path = 'Z:/Rotem/WideFlow prj/'
-mouse_id = '3422'
+mouse_id = '3423'
 session_name = '20211007_nf'
 
 
