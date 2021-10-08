@@ -34,12 +34,12 @@ global_params = {
 }
 
 # load cortex data
-cortex_file_path = "/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5"
+cortex_file_path = os.path.abspath(os.path.join(os.path.pardir, '../', 'data', 'cortex_map', 'allen_2d_cortex.h5'))
 with h5py.File(cortex_file_path, 'r') as f:
     cortex_mask = np.transpose(f["mask"][()])
     cortex_map = np.transpose(f["map"][()])
 
-rois_dict_path = "/data/Rotem/Wide Field/WideFlow//data/cortex_map/allen_2d_cortex_rois_extended.h5"
+rois_dict_path = os.path.abspath(os.path.join(os.path.pardir, '../', 'data', 'cortex_map', 'allen_2d_cortex_rois_extended.h5'))
 rois_dict = load_extended_rois_list(rois_dict_path)
 
 # load session metadata and configurations
@@ -121,7 +121,7 @@ for p, tif_path in enumerate(wf_video_paths):
             concat_rois_traces[ch][roi] = np.concatenate((concat_rois_traces[ch][roi], trace))
 
 # results statistics
-neuronal_response_stats, behavioral_response_prob = \
+neuronal_response_stats, behavioral_response_stats, statistics_global_params = \
     analysis_statistics(concat_rois_traces, metadata, config)
 
 # save rois traces
@@ -137,14 +137,16 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
 
     stats_group = session_group.create_group('statistics')
     behavioral_stats_group = stats_group.create_group('behavioral_response')
-    decompose_dict_to_h5_groups(f, behavioral_response_prob, behavioral_stats_group.name + '/')
-    neurpnal_stats_group = stats_group.create_group('neuronal_response')
-    decompose_dict_to_h5_groups(f, neuronal_response_stats, neurpnal_stats_group.name + '/')
+    decompose_dict_to_h5_groups(f, behavioral_response_stats, behavioral_stats_group.name + '/')
+    neuronal_stats_group = stats_group.create_group('neuronal_response')
+    decompose_dict_to_h5_groups(f, neuronal_response_stats, neuronal_stats_group.name + '/')
+    glob_param_stats_group = stats_group.create_group('global_parameters_response')
+    decompose_dict_to_h5_groups(f, statistics_global_params, glob_param_stats_group.name + '/')
+
 
 if not os.path.isdir(session_path + 'analysis_results'):
     os.mkdir(session_path + 'analysis_results')
-session_path = session_path + 'analysis_results/'
-plot_figures(session_path, metadata, concat_rois_traces,
-             neuronal_response_stats, behavioral_response_prob)
+plot_figures(session_path + 'analysis_results/', metadata, concat_rois_traces,
+             neuronal_response_stats, behavioral_response_stats, statistics_global_params)
 
 

@@ -7,6 +7,8 @@ sdf_sigma = 5
 
 
 def analysis_statistics(rois_traces, metadata, config):
+    global_params = {"delta_t": delta_t, "bin_width": bin_width, "sdf_sigma": sdf_sigma}
+
     # evaluate neuronal response
     n_channels = len(list(rois_traces.keys()))
     neuronal_response_stats = {}
@@ -46,7 +48,7 @@ def analysis_statistics(rois_traces, metadata, config):
         "p_lick_post": p_lick_post
     }
 
-    return neuronal_response_stats, behavioral_response_prob
+    return neuronal_response_stats, behavioral_response_prob, global_params
 
 
 def analyze_pstr(pstr):
