@@ -16,7 +16,7 @@ def plot_figures(results_path, metadata, rois_traces, neuronal_response_stats, b
 
 def save_figure(path):
     manager = plt.get_current_fig_manager()
-    manager.window.showMaximized()
+    manager.resize(3000, 1500)
     plt.savefig(path, bbox_inches='tight')
     plt.close()
 
