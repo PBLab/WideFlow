@@ -13,7 +13,7 @@ import cv2
 
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
-mouse_id = '3423'
+mouse_id = '3424'
 session_name = '20211007_nf'
 
 
@@ -73,6 +73,7 @@ for file in os.listdir(session_path):
     if file.endswith(".tif"):
         wf_video_paths.append(os.path.join(session_path, file))
 
+wf_video_paths = sort_video_path_list(wf_video_paths)
 for p, tif_path in enumerate(wf_video_paths):
     print(f"starting analysis for tiff part: {p}")
     wf_data = load_tiff(tif_path)
@@ -109,8 +110,8 @@ for p, tif_path in enumerate(wf_video_paths):
             wf_data[ch] = wf_data[ch][dff_bs_n_frames:, :, :]
 
     # hemodynamics attenuation
-    if regression_coeff_map is not None and hemo_correct_ch != None:
-        hemodynamics_attenuation(wf_data, regression_coeff_map, hemo_correct_ch, dff_bs_n_frames)
+    if hemo_correct_ch != None:
+        regression_coeff_map = hemodynamics_attenuation(wf_data, regression_coeff_map, hemo_correct_ch, dff_bs_n_frames)
 
     # ROIs traces extraction
     rois_traces = extract_roi_traces(wf_data, rois_dict, cortex_mask.shape)
@@ -142,6 +143,8 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
     decompose_dict_to_h5_groups(f, neuronal_response_stats, neuronal_stats_group.name + '/')
     glob_param_stats_group = stats_group.create_group('global_parameters_response')
     decompose_dict_to_h5_groups(f, statistics_global_params, glob_param_stats_group.name + '/')
+
+    session_group.create_dataset('regression_coeff_map', data=regression_coeff_map)
 
 
 if not os.path.isdir(session_path + 'analysis_results'):

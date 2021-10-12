@@ -60,11 +60,24 @@ def plot_sdf(results_path, behavioral_response_stats, dt, delta_t):
 
 
 def plot_cue_response(results_path, cue, serial_readout):
+    cue = np.array(cue)
+    serial_readout = np.array(serial_readout)
+
     plt.figure(figsize=(30.0, 10.0))
     plt.plot(cue)
-    plt.plot((1 - np.array(serial_readout)) * 0.5)
+    plt.plot((1 - serial_readout) * 0.5)
 
-    plt.legend(["cues", "response"])
+    kernel = np.ones((5000,))
+    conv_cue = np.convolve(np.array(cue), kernel, 'same')
+    conv_cue = conv_cue / conv_cue.max()
+    plt.plot(conv_cue)
+
+    conv_resp = np.convolve(np.array(serial_readout), kernel, 'same')
+    conv_resp = conv_resp / conv_resp.max()
+    plt.plot(serial_readout)
+
+
+    plt.legend(["cues", "response", "convolved cues - kernel 5k frames", "convolved response - kernel 5k frames"])
     plt.title("cues and responses")
     plt.xlabel("frames")
     plt.title("Session Cues and Licks Timing")
