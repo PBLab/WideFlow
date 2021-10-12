@@ -13,7 +13,7 @@ import cv2
 
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
-mouse_id = '3423'
+mouse_id = '3424'
 session_name = '20211007_nf'
 
 
@@ -140,7 +140,7 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
     decompose_dict_to_h5_groups(f, behavioral_response_stats, behavioral_stats_group.name + '/')
     neuronal_stats_group = stats_group.create_group('neuronal_response')
     decompose_dict_to_h5_groups(f, neuronal_response_stats, neuronal_stats_group.name + '/')
-    glob_param_stats_group = stats_group.create_group('global_parameters_response')
+    glob_param_stats_group = stats_group.create_group('global_parameters')
     decompose_dict_to_h5_groups(f, statistics_global_params, glob_param_stats_group.name + '/')
 
 
