@@ -60,7 +60,7 @@ def load_extended_rois_list(file_path):
             roi_list[key]['PixelIdxList'] = grp['PixelIdxList'][()] - 1  # -1 to convert from matlab to python
             roi_list[key]['outline'] = grp['outline'][()]
             roi_list[key]['top_left_bottom_rigth'] = grp['top_left_bottom_rigth'][()]
-            # roi_list[key]['Adjacent_rois_Idx'] = grp['Adjacent_rois_Idx'][()]
+            roi_list[key]['name'] = grp['name'][()]
 
 
     # keep keys order as index order

@@ -18,7 +18,7 @@ def convert_dat_to_tif(path, nbytes, tiff_shape, type, nframes):
     if last_tif_shape[0]:
         if np.floor(nframes / tiff_shape[0]) == 0:
             i = -1
-        with TiffWriter(path[:-4] + '_' + str(i+1) + '.tif') as tif:
+        with TiffWriter(path[:-4] + '_' + f'{i+1:3d}' + '.tif') as tif:
             fr_data = np.reshape(np.fromfile(path,
                                              dtype=np.dtype(type),
                                              count=np.prod(last_tif_shape),
