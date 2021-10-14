@@ -273,9 +273,8 @@ if __name__ == "__main__":
     from devices.PVCam import PVCamera
     import pathlib
     mp.set_start_method('fork')
-    imaging_config_path = str(
-    pathlib.Path(
-            '/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
+    imaging_config_path = str(pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_3422_config.json')
+    # imaging_config_path = str(pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
     session_config = load_config(imaging_config_path)
 
     pvc.init_pvcam()
