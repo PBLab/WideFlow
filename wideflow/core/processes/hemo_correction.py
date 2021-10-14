@@ -16,7 +16,7 @@ class HemoCorrect(AbstractProcess):
             cp.ndarray((self.shape[-2:]), dtype=self.dtype)
         ]
 
-        self.ptr = ptr
+        self.ptr = self.capacity - 1
 
     def initialize_buffers(self, data, hemo_data):
         """
