@@ -12,15 +12,16 @@ import numpy as np
 import cv2
 
 # project path
-project_path = 'Z:/Rotem/WideFlow prj/'
-mouse_id = '3697'
-session_name = '20210923'
+project_path = '/data/Rotem/WideFlow prj/'
+mouse_id = '3424'
+session_name = '20211007_nf'
 
 
 # analysis global parameters
 
 crop = False
 register = True
+
 dff_bs_method = "moving_avg"
 accept_transform_matching_points = False
 hemo_correct_ch = ["channel_0", "channel_1"]
@@ -33,12 +34,12 @@ global_params = {
 }
 
 # load cortex data
-cortex_file_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\cortex_map\\allen_2d_cortex.h5"
+cortex_file_path = os.path.abspath(os.path.join(os.path.pardir, '../', 'data', 'cortex_map', 'allen_2d_cortex.h5'))
 with h5py.File(cortex_file_path, 'r') as f:
     cortex_mask = np.transpose(f["mask"][()])
     cortex_map = np.transpose(f["map"][()])
 
-rois_dict_path = "C:\\Users\\motar\\PycharmProjects\\WideFlow\\data\\cortex_map\\allen_2d_cortex_rois_extended.h5"
+rois_dict_path = os.path.abspath(os.path.join(os.path.pardir, '../', 'data', 'cortex_map', 'allen_2d_cortex_rois_extended.h5'))
 rois_dict = load_extended_rois_list(rois_dict_path)
 
 # load session metadata and configurations
@@ -72,6 +73,7 @@ for file in os.listdir(session_path):
     if file.endswith(".tif"):
         wf_video_paths.append(os.path.join(session_path, file))
 
+wf_video_paths = sort_video_path_list(wf_video_paths)
 for p, tif_path in enumerate(wf_video_paths):
     print(f"starting analysis for tiff part: {p}")
     wf_data = load_tiff(tif_path)
@@ -108,8 +110,8 @@ for p, tif_path in enumerate(wf_video_paths):
             wf_data[ch] = wf_data[ch][dff_bs_n_frames:, :, :]
 
     # hemodynamics attenuation
-    if regression_coeff_map is not None and hemo_correct_ch != None:
-        hemodynamics_attenuation(wf_data, regression_coeff_map, hemo_correct_ch, dff_bs_n_frames)
+    if hemo_correct_ch != None:
+        regression_coeff_map = hemodynamics_attenuation(wf_data, regression_coeff_map, hemo_correct_ch, dff_bs_n_frames)
 
     # ROIs traces extraction
     rois_traces = extract_roi_traces(wf_data, rois_dict, cortex_mask.shape)
@@ -120,7 +122,7 @@ for p, tif_path in enumerate(wf_video_paths):
             concat_rois_traces[ch][roi] = np.concatenate((concat_rois_traces[ch][roi], trace))
 
 # results statistics
-neuronal_response_stats, behavioral_response_prob = \
+neuronal_response_stats, behavioral_response_stats, statistics_global_params = \
     analysis_statistics(concat_rois_traces, metadata, config)
 
 # save rois traces
@@ -135,13 +137,19 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
             ch_group.create_dataset(roi, data=trace)
 
     stats_group = session_group.create_group('statistics')
-    decompose_dict_to_h5_groups(f, behavioral_response_prob, stats_group.name + '/')
-    decompose_dict_to_h5_groups(f, neuronal_response_stats, stats_group.name + '/')
+    behavioral_stats_group = stats_group.create_group('behavioral_response')
+    decompose_dict_to_h5_groups(f, behavioral_response_stats, behavioral_stats_group.name + '/')
+    neuronal_stats_group = stats_group.create_group('neuronal_response')
+    decompose_dict_to_h5_groups(f, neuronal_response_stats, neuronal_stats_group.name + '/')
+    glob_param_stats_group = stats_group.create_group('global_parameters_response')
+    decompose_dict_to_h5_groups(f, statistics_global_params, glob_param_stats_group.name + '/')
+
+    session_group.create_dataset('regression_coeff_map', data=regression_coeff_map)
+
 
 if not os.path.isdir(session_path + 'analysis_results'):
     os.mkdir(session_path + 'analysis_results')
-session_path = session_path + 'analysis_results/'
-plot_figures(session_path, metadata, concat_rois_traces,
-             neuronal_response_stats, behavioral_response_prob)
+plot_figures(session_path + 'analysis_results/', metadata, concat_rois_traces,
+             neuronal_response_stats, behavioral_response_stats, statistics_global_params)
 
 

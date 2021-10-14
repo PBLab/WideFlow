@@ -120,8 +120,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         else:
             print("\nLoading regression coefficient maps for hemodynamics effects attenuation...")
             reg_map = self.load_regression_map()
-            self.processes_list_ch2.regression_coeff[0] = reg_map[0]
-            self.processes_list_ch2.regression_coeff[0] = reg_map[1]
+            self.processes_list_ch2[3].regression_coeff[0] = reg_map[0]
+            self.processes_list_ch2[3].regression_coeff[1] = reg_map[1]
             del reg_map
 
         print("Done")

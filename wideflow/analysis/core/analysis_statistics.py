@@ -7,13 +7,21 @@ sdf_sigma = 5
 
 
 def analysis_statistics(rois_traces, metadata, config):
+    global_params = {"delta_t": delta_t, "bin_width": bin_width, "sdf_sigma": sdf_sigma}
+
     # evaluate neuronal response
+    n_channels = len(list(rois_traces.keys()))
     neuronal_response_stats = {}
-    neuronal_response_stats["delta_t"] = delta_t
+    cue = np.array(metadata["cue"])
+    if n_channels > 1:
+        cue = cue[::n_channels]
+        for i in range(1, n_channels):
+            cue = np.maximum(cue, np.array(metadata["cue"])[i::n_channels])
+
     for ch_key, ch_val in rois_traces.items():
         neuronal_response_stats[ch_key] = {}
         for roi_key, roi_val in ch_val.items():
-            neuronal_resp = calc_pstr(metadata["cue"], roi_val, delta_t)
+            neuronal_resp = calc_pstr(cue, roi_val, delta_t)
             rois_pstr_stats, rois_str_pre_stats, rois_str_post_stats = analyze_pstr(neuronal_resp)
             std = np.std(roi_val)
             mean = np.mean(roi_val)
@@ -23,7 +31,8 @@ def analysis_statistics(rois_traces, metadata, config):
                 "str_pre_stats": rois_str_pre_stats,
                 "str_post_stats": rois_str_post_stats,
                 "std": std,
-                "mean": mean
+                "mean": mean,
+                "delta_t": delta_t
             }
 
     # evaluate behavioral response
@@ -31,7 +40,7 @@ def analysis_statistics(rois_traces, metadata, config):
     p_lick_trials, p_lick_pre, p_lick_post = analyze_sdf(behavioral_resp)
     mean_spike_rate = len(np.where(1-np.array(metadata["serial_readout"] == 1))[0]) / len(np.array(metadata["serial_readout"]))
     behavioral_response_prob = {
-        delta_t: delta_t,
+        "delta_t": delta_t,
         "sdf": np.mean(behavioral_resp, axis=0),
         "mean_spike_rate": mean_spike_rate,
         "p_lick_trials": p_lick_trials,
@@ -39,7 +48,7 @@ def analysis_statistics(rois_traces, metadata, config):
         "p_lick_post": p_lick_post
     }
 
-    return neuronal_response_stats, behavioral_response_prob
+    return neuronal_response_stats, behavioral_response_prob, global_params
 
 
 def analyze_pstr(pstr):
