@@ -7,7 +7,7 @@ sdf_sigma = 5
 
 
 def analysis_statistics(rois_traces, metadata, config):
-    global_params = {"delta_t": delta_t, "bin_width": bin_width, "sdf_sigma": sdf_sigma}
+    global_params = {"delta_t": delta_t, "bin_width": bin_width, "sdf_sigma": sdf_sigma, 'threshold_nstd': 2}
 
     # evaluate neuronal response
     n_channels = len(list(rois_traces.keys()))

@@ -13,8 +13,8 @@ import cv2
 
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
-mouse_id = '3424'
-session_name = '20211007_nf'
+mouse_id = '3422'
+session_name = '20211014_nf'
 
 
 # analysis global parameters
@@ -47,6 +47,8 @@ session_path = project_path + mouse_id + '/' + session_name + '/'
 metadata, config = load_session_metadata(session_path)
 if os.path.exists(session_path + 'regression_coeff_map.npy'):
     regression_coeff_map = np.load(session_path + "regression_coeff_map.npy")
+elif os.path.exists(project_path + mouse_id + '/hemodynamics_regression_map.npy'):
+    regression_coeff_map = np.load(project_path + mouse_id + "/hemodynamics_regression_map.npy")
 else:
     regression_coeff_map = None
 
@@ -150,6 +152,6 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
 if not os.path.isdir(session_path + 'analysis_results'):
     os.mkdir(session_path + 'analysis_results')
 plot_figures(session_path + 'analysis_results/', metadata, concat_rois_traces,
-             neuronal_response_stats, behavioral_response_stats, statistics_global_params)
+             neuronal_response_stats, behavioral_response_stats, statistics_global_params, rois_dict)
 
 
