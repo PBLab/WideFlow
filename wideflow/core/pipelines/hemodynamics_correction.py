@@ -84,7 +84,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.processes_list[2].initialize_buffers()
         self.processes_list_ch2[2].initialize_buffers()
 
-        if os.path.exists(self.regression_map_path):
+        if not os.path.exists(self.regression_map_path):
             # collect data to calculate regression coefficient for the hemodynamic correction
             print("\nCollecting data to calculate regression coefficient for hemodynamics effects attenuation...")
             ch1i, ch2i = 0, 0
@@ -120,8 +120,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         else:
             print("\nLoading regression coefficient maps for hemodynamics effects attenuation...")
             reg_map = self.load_regression_map()
-            self.processes_list_ch2.regression_coeff[0] = reg_map[0]
-            self.processes_list_ch2.regression_coeff[0] = reg_map[1]
+            self.processes_list_ch2[3].regression_coeff[0] = reg_map[0]
+            self.processes_list_ch2[3].regression_coeff[1] = reg_map[1]
             del reg_map
 
         print("Done")
