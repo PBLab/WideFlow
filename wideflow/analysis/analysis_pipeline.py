@@ -151,7 +151,7 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
 
 if not os.path.isdir(session_path + 'analysis_results'):
     os.mkdir(session_path + 'analysis_results')
-plot_figures(session_path + 'analysis_results/', metadata, concat_rois_traces,
+plot_figures(session_path + 'analysis_results/', metadata, config, concat_rois_traces,
              neuronal_response_stats, behavioral_response_stats, statistics_global_params, rois_dict)
 
 

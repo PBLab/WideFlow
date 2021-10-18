@@ -28,9 +28,9 @@ import json
 
 import multiprocessing as mp
 from multiprocessing import shared_memory, Queue
-import asyncio
 import subprocess
-from wideflow.Imaging.utils.async_subprocess import run_async_subprocess
+# import asyncio
+# from wideflow.Imaging.utils.async_subprocess import run_async_subprocess
 
 
 def run_session(config, cam):
@@ -150,9 +150,6 @@ def run_session(config, cam):
             vis_buffers.append(vis_config["buffer"])
     del temp_arr
 
-    # start session
-    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     results_seq = []  # initialize cues_seq with 1 to avoid ".index" failure
     frame_counter = 0
     feedback_time = 0
@@ -167,9 +164,11 @@ def run_session(config, cam):
     if behavioral_camera_config["process"] == "python":
         bcam_q.put("start")
 
-    print(
-        f'starting session at {time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}')
+    print(f'starting session at {time.localtime().tm_hour:02d}:{time.localtime().tm_min:02d}:{time.localtime().tm_sec:02d}')
     pipeline.camera.start_live()
+    # start session
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
         pipeline.process()
