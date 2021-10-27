@@ -30,6 +30,6 @@ def registration(video, match_p_src, match_p_dst, cortex_map, accept=False):
     # start registration
     video_reg = np.ndarray((vid_shape[0], new_shape[0], new_shape[1]), dtype=video.dtype)
     for i, frame in enumerate(video):
-        video_reg[i] = np.reshape(map_coordinates(frame, coordinates, order=1), new_shape)
+        video_reg[i] = np.reshape(map_coordinates(frame, coordinates, order=3), new_shape)
 
     return video_reg

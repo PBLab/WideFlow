@@ -13,8 +13,8 @@ import cv2
 
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
-mouse_id = '3424'
-session_name = '20211007_nf'
+mouse_id = '3422'
+session_name = '20211014_nf'
 
 
 # analysis global parameters
@@ -47,6 +47,8 @@ session_path = project_path + mouse_id + '/' + session_name + '/'
 metadata, config = load_session_metadata(session_path)
 if os.path.exists(session_path + 'regression_coeff_map.npy'):
     regression_coeff_map = np.load(session_path + "regression_coeff_map.npy")
+elif os.path.exists(project_path + mouse_id + '/hemodynamics_regression_map.npy'):
+    regression_coeff_map = np.load(project_path + mouse_id + "/hemodynamics_regression_map.npy")
 else:
     regression_coeff_map = None
 
@@ -141,7 +143,7 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
     decompose_dict_to_h5_groups(f, behavioral_response_stats, behavioral_stats_group.name + '/')
     neuronal_stats_group = stats_group.create_group('neuronal_response')
     decompose_dict_to_h5_groups(f, neuronal_response_stats, neuronal_stats_group.name + '/')
-    glob_param_stats_group = stats_group.create_group('global_parameters_response')
+    glob_param_stats_group = stats_group.create_group('global_parameters')
     decompose_dict_to_h5_groups(f, statistics_global_params, glob_param_stats_group.name + '/')
 
     session_group.create_dataset('regression_coeff_map', data=regression_coeff_map)
@@ -149,7 +151,7 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
 
 if not os.path.isdir(session_path + 'analysis_results'):
     os.mkdir(session_path + 'analysis_results')
-plot_figures(session_path + 'analysis_results/', metadata, concat_rois_traces,
-             neuronal_response_stats, behavioral_response_stats, statistics_global_params)
+plot_figures(session_path + 'analysis_results/', metadata, config, concat_rois_traces,
+             neuronal_response_stats, behavioral_response_stats, statistics_global_params, rois_dict)
 
 

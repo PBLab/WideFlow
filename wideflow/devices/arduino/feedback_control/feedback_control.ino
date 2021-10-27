@@ -35,6 +35,8 @@ byte msg;
 const int valvePin = 42; // the pin that the solenoid is attached to
 const int lickPortPin = 52; //the pin that the lick port is attached to
 const int ledPin = 46; // the pin that the LED is attached to
+const int speakerPin = 44; // the pin that the speaker is attached to
+
 
 int ledAnalogVal = 100; // control the LED illumination intensity
 
@@ -45,8 +47,13 @@ byte lickPortStat;
 unsigned long globalClock;
 unsigned long valveClock = 0;
 unsigned long ledClock = 0;
+unsigned long speakerClock = 0;
+unsigned long speakerActivationClock = 0
 int valveActivationTime = 14;
 int ledActivationTime = 1500;
+int speakerActivationTime = 1000;
+int speakerDelayTime = 3000;
+boolean activateSpeaker = false;
 
 
 //==========================================================
@@ -57,12 +64,14 @@ void setup() {
   // initialize serial communication:
   Serial.begin(9600);
 
-  // initialize the TTL pin as an output:
+  // initialize the LED pin as an output:
   pinMode(ledPin, OUTPUT);
   // initialize the valve pin as an output:
   pinMode(valvePin, OUTPUT);
   // initialize the TTL pin as an output:
   pinMode(lickPortPin, INPUT);
+  // initialize the speaker pin as an output:
+  pinMode(speakerPin, OUTPUT);
 
   // tell the PC we are ready
   //Serial.println("<Arduino is ready>");
@@ -88,10 +97,13 @@ void process() {
       if (msg == activateFeedback){   // open the valve and light the LED
         valveClock = millis();
         ledClock = millis();
+        speakerClock = millis();
         digitalWrite(valvePin, HIGH);
         analogWrite(ledPin, ledAnalogVal);
+        activateSpeaker = false;
       }
-      if (msg == sendReport){
+
+      else if (msg == sendReport){
         lickPortStat = digitalRead(lickPortPin);
         if (lickPortStat == 0) {
           dataSend = '0';
@@ -102,11 +114,11 @@ void process() {
         sendDataToPC();
       }
 
-      if (msg == openValve){
+      else if (msg == openValve){
         digitalWrite(valvePin, HIGH);
       }
 
-      if (msg == closeValve){
+      else if (msg == closeValve){
         digitalWrite(valvePin, LOW);
       }
       
@@ -125,7 +137,22 @@ void process() {
     digitalWrite(ledPin, LOW);
   }
 
+  // if lickPort is connected while no reward has been given in the last "speakerDelayTime" - play aversive sound
+  if ((speakerClock > 0) && (globalClock > (speakerClock + speakerDelayTime)) && lickPortStat == 0){
+    activateSpeaker = true;
+    speakerActivationClock = millis();
+  }
   
+  // turn off aversive sound if speakerActivationTime has passed
+  else if ((globalClock - speakerActivationClock) > speakerActivationTime) {
+    activateSpeaker = false;
+  }
+
+  // play aversive sound
+  if activateSpeaker{
+     analogWrite(speakerPin, ledAnalogVal);
+  }
+
 }
 
 
