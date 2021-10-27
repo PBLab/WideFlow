@@ -52,8 +52,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         # set processes for channel 2
         masking_ch2 = Mask(self.warped_input, self.mask, self.warped_buffer_ch2, ptr=self.capacity-1)
         dff_ch2 = DFF(self.dff_buffer_ch2, self.warped_buffer_ch2, ptr=0)
-        Hemo_correct = HemoCorrect(self.dff_buffer_ch2, ptr=0)
-        self.processes_list_ch2 = [map_coord, masking_ch2, dff_ch2, Hemo_correct]
+        hemo_correct = HemoCorrect(self.dff_buffer_ch2, ptr=0)
+        self.processes_list_ch2 = [map_coord, masking_ch2, dff_ch2, hemo_correct]
 
         # set metric
         rois_pixels_list = []
