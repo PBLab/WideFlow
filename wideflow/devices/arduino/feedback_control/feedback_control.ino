@@ -138,7 +138,7 @@ void process() {
   }
 
   // if lickPort is connected while no reward has been given in the last "speakerDelayTime" - play aversive sound
-  if ((speakerClock > 0) && (globalClock > (speakerClock + speakerDelayTime)) && lickPortStat == 0){
+  if (globalClock > (speakerClock + speakerDelayTime) && lickPortStat == 0){
     activateSpeaker = true;
     speakerActivationClock = millis();
   }
