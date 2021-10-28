@@ -120,8 +120,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         else:
             print("\nLoading regression coefficients for hemodynamics correction...")
             reg_map = self.load_regression_map()
-            self.processes_list_ch2[3].regression_coeff[0] = reg_map[0]
-            self.processes_list_ch2[3].regression_coeff[1] = reg_map[1]
+            self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(reg_map[0])
+            self.processes_list_ch2[3].regression_coeff[1] = cp.asanyarray(reg_map[1])
             del reg_map
         print("Done")
 
