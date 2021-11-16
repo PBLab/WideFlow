@@ -40,7 +40,7 @@ class Camera:
             return np.random.random(self.sensor_size) * 255
         else:
             time.sleep(0.02)
-            return self.vid[self.frame_idx, self.roi[2]:self.roi[3], self.roi[0]:self.roi[1]]
+            return self.vid[self.frame_idx, self.roi[0]:self.roi[1], self.roi[2]:self.roi[3]]
 
     def start_live(self):
         pass

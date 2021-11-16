@@ -5,7 +5,7 @@ def calc_pstr(stimuli, responses, delta_t, bin_width=1):
     stimuli = np.pad(np.array(stimuli), delta_t)
     responses = np.pad(np.array(responses), delta_t)
 
-    if not isinstance(delta_t, list):
+    if not isinstance(delta_t, list) and not isinstance(delta_t, np.ndarray):
         delta_t = [delta_t, delta_t]
 
     if bin_width > 1:
@@ -29,7 +29,7 @@ def calc_sdf(stimuli, responses, delta_t, sigma):
     responses = np.pad(np.array(responses), delta_t)
 
     stimuli_inds = np.where(stimuli == 1)[0]
-    if not isinstance(delta_t, list):
+    if not isinstance(delta_t, list) and not isinstance(delta_t, np.ndarray):
         delta_t = [delta_t, delta_t]
 
     trial_len = delta_t[0] + delta_t[1]

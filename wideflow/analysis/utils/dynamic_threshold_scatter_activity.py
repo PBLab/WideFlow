@@ -14,5 +14,5 @@ def dynamic_threshold(traces, n_std):
 
     mn = np.mean(traces, axis=0)
     band = np.std(traces, axis=0) * n_std
-    th = np.ones(traces.shape) * (mn - band)
+    th = np.ones(traces.shape) * (mn + band)
     return traces > th

@@ -14,7 +14,7 @@ import cv2
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
 mouse_id = '2680'
-session_name = '20211115_training'
+session_name = '20211014_nf'
 
 
 # analysis global parameters
@@ -24,7 +24,7 @@ register = True
 
 dff_bs_method = "moving_avg"
 accept_transform_matching_points = False
-hemo_correct_ch = None
+hemo_correct_ch = ["channel_0", "channel_1"]
 global_params = {
     "crop": crop,
     "register": register,
@@ -128,7 +128,7 @@ neuronal_response_stats, behavioral_response_stats, statistics_global_params = \
     analysis_statistics(concat_rois_traces, metadata, config)
 
 # save rois traces
-with h5py.File(project_path + 'results/' + 'sessions_dataset2.h5', 'a') as f:
+with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
     main_group = f[mouse_id]
     session_group = main_group.create_group(session_name)  # create group named by session name
 
@@ -145,8 +145,8 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset2.h5', 'a') as f:
     decompose_dict_to_h5_groups(f, neuronal_response_stats, neuronal_stats_group.name + '/')
     glob_param_stats_group = stats_group.create_group('global_parameters')
     decompose_dict_to_h5_groups(f, statistics_global_params, glob_param_stats_group.name + '/')
-    if regression_coeff_map is not None:
-        session_group.create_dataset('regression_coeff_map', data=regression_coeff_map)
+
+    session_group.create_dataset('regression_coeff_map', data=regression_coeff_map)
 
 
 if not os.path.isdir(session_path + 'analysis_results'):

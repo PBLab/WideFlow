@@ -44,16 +44,16 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
         map_coord = MapCoordinates(self.input, self.warped_input, self.mapping_coordinates, self.new_shape)
         # set processes for channel 1
-        masking = Mask(self.warped_input, self.mask, self.warped_buffer, ptr=0)
+        masking = Mask(self.warped_input, self.mask, self.warped_buffer, ptr=self.capacity-1)
         dff = DFF(self.dff_buffer, self.warped_buffer, ptr=0)
         hemo_subtract = HemoSubtraction(self.dff_buffer, self.dff_buffer_ch2, ptr=0)
         self.processes_list = [map_coord, masking, dff, hemo_subtract]
 
         # set processes for channel 2
-        masking_ch2 = Mask(self.warped_input, self.mask, self.warped_buffer_ch2, ptr=0)
+        masking_ch2 = Mask(self.warped_input, self.mask, self.warped_buffer_ch2, ptr=self.capacity-1)
         dff_ch2 = DFF(self.dff_buffer_ch2, self.warped_buffer_ch2, ptr=0)
-        Hemo_correct = HemoCorrect(self.dff_buffer_ch2, ptr=0)
-        self.processes_list_ch2 = [map_coord, masking_ch2, dff_ch2, Hemo_correct]
+        hemo_correct = HemoCorrect(self.dff_buffer_ch2, ptr=0)
+        self.processes_list_ch2 = [map_coord, masking_ch2, dff_ch2, hemo_correct]
 
         # set metric
         rois_pixels_list = []
@@ -86,7 +86,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
         if not os.path.exists(self.regression_map_path):
             # collect data to calculate regression coefficient for the hemodynamic correction
-            print("\nCollecting data to calculate regression coefficient for hemodynamics effects attenuation...")
+            print("\nCollecting data to calculate regression coefficients for hemodynamics correction...")
             ch1i, ch2i = 0, 0
             for i in range(self.regression_n_samples * 2):
                 if self.ptr == self.capacity - 1:
@@ -97,19 +97,19 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 self.get_input()
                 if not i % 2:
                     for process in self.processes_list[:3]:
-                        process.initialize_buffers()
+                        process.process()
                     self.regression_buffer[ch1i, :, :, 0] = cp.asnumpy(self.dff_buffer[self.ptr, :, :])
                     ch1i += 1
 
                 else:
                     for process in self.processes_list_ch2[:3]:
-                        process.initialize_buffers()
+                        process.process()
                     self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
                     ch2i += 1
 
             self.camera.stop_live()
-            print("Done collecting the data\n")
-            print("Calculating the regression coefficients...", end="\t")
+            print("Done collecting data\n")
+            print("Calculating regression coefficients...", end="\t")
             self.processes_list_ch2[3].initialize_buffers(
                 self.regression_buffer[:, :, :, 0],
                 self.regression_buffer[:, :, :, 1]
@@ -118,13 +118,13 @@ class HemoDynamicsDFF(AbstractPipeLine):
             del self.regression_buffer
 
         else:
-            print("\nLoading regression coefficient maps for hemodynamics effects attenuation...")
+            print("\nLoading regression coefficients for hemodynamics correction...")
             reg_map = self.load_regression_map()
-            self.processes_list_ch2[3].regression_coeff[0] = reg_map[0]
-            self.processes_list_ch2[3].regression_coeff[1] = reg_map[1]
+            self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(reg_map[0])
+            self.processes_list_ch2[3].regression_coeff[1] = cp.asanyarray(reg_map[1])
             del reg_map
-
         print("Done")
+
         self.camera.start_live()
         for i in range(self.capacity * 2):
             self.get_input()
@@ -179,7 +179,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 process.process()
 
     def evaluate(self):
-        self.metric.evaluate()
+        if not self.ptr_2c % 2:
+            self.metric.evaluate()
         return self.metric.result
 
     def update_config(self, config):
