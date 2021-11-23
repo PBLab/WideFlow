@@ -1,7 +1,6 @@
 import numpy as np
 
 
-
 def calc_dff(wf_data, bs_calc_method, dff_bs_n_frames=None):
     dff = {}
     for ch, video in wf_data.items():

@@ -37,12 +37,6 @@ const int lickPortPin = 52; //the pin that the lick port is attached to
 const int ledPin = 46; // the pin that the LED is attached to
 const int speakerPin = 44; // the pin that the speaker is attached to
 
-//const int valvePin = 42; // the pin that the solenoid is attached to
-//const int lickPortPin = 52; //the pin that the lick port is attached to
-//const int ledPin = 46; // the pin that the LED is attached to
-//const int speakerPin = 44; // the pin that the speaker is attached to
-
-
 int ledAnalogVal = 100; // control the LED illumination intensity
 int speakerAnalogVal = 8;
 
