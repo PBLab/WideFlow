@@ -44,7 +44,7 @@ const int speakerPin = 44; // the pin that the speaker is attached to
 
 
 int ledAnalogVal = 100; // control the LED illumination intensity
-int speakerAnalogVal = 5;
+int speakerAnalogVal = 8;
 
 byte lickPortStat;
 
@@ -59,7 +59,6 @@ int valveActivationTime = 14;
 int ledActivationTime = 1500;
 int speakerActivationTime = 500;
 int speakerDelayTime = 5000;
-boolean activateSpeaker = false;
 
 
 //==========================================================
@@ -107,7 +106,6 @@ void process() {
         speakerClock = millis();
         digitalWrite(valvePin, HIGH);
         analogWrite(ledPin, ledAnalogVal);
-        activateSpeaker = false;
       }
 
       else if (msg == sendReport){
@@ -142,23 +140,18 @@ void process() {
     ledClock = 0;
     digitalWrite(ledPin, LOW);
   }
-
+  
   // if lickPort is connected while no reward has been given in the last "speakerDelayTime" - play aversive sound
   if ((globalClock > (speakerClock + speakerDelayTime)) && lickPortStat == 0){
-    activateSpeaker = true;
+    analogWrite(speakerPin, speakerAnalogVal);
     speakerActivationClock = millis();
   }
   
   // turn off aversive sound if speakerActivationTime has passed
   else if (globalClock > (speakerActivationClock + speakerActivationTime)) {
-    activateSpeaker = false;
     analogWrite(speakerPin, 0);
   }
-
-  // play aversive sound
-  if (activateSpeaker) {
-     analogWrite(speakerPin, speakerAnalogVal);
-  }
+  
 
 }
 
