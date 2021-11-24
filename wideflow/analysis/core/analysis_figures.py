@@ -23,6 +23,8 @@ def plot_figures(results_path, metadata, config, rois_traces, neuronal_response_
         cue_ch = cue[::n_channels]
         for i in range(1, n_channels):
             cue_ch = np.maximum(cue_ch, np.array(metadata["cue"])[i::n_channels])
+    else:
+        cue_ch = cue
 
     neuronal_resp = {}
     for ch_key, ch_val in rois_traces.items():
@@ -42,8 +44,8 @@ def plot_figures(results_path, metadata, config, rois_traces, neuronal_response_
 
 def save_figure(path):
     manager = plt.get_current_fig_manager()
-    # manager.resize(3000, 1500)
-    manager.window.showMaximized()
+    manager.resize(3000, 1500)
+    # manager.window.showMaximized()
     plt.tight_layout()
     plt.pause(2)
     plt.savefig(path, bbox_inches='tight')
