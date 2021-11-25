@@ -195,3 +195,4 @@ def plot_th_traces_pstr(results_path, stimuli, traces, n_std, rois_dict, dt, del
         plt.title(f'ROIs Peristimulus Time Response - channel {ch}')
         plt.axvline(x=0, color='k')
         save_figure(results_path + 'rois_threshold_traces_pstr_of_' + ch + '.png')
+

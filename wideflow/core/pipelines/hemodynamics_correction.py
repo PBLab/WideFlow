@@ -1,6 +1,6 @@
 from core.abstract_pipeline import AbstractPipeLine
 from core.processes import *
-from core.metrics import ROIMean
+from core.metrics import ROIContrast
 import cupy as cp
 import numpy as np
 
@@ -62,7 +62,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
             for roi_pixels in roi_pixels_list:
                 rois_pixels_list.append(roi_pixels)
 
-        self.metric = ROIMean(self.dff_buffer, rois_pixels_list, ptr=0)
+        self.metric = ROIContrast(self.dff_buffer, rois_pixels_list, self.mask, 0)
 
         self.camera.set_param(PARAM_LAST_MUXED_SIGNAL,
                               2)  # setting camera active output wires to 2 - strobbing of two LEDs
