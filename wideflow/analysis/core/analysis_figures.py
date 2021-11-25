@@ -10,7 +10,7 @@ def plot_figures(results_path, metadata, config, rois_traces, neuronal_response_
     else:
         metric_rois_names = []
 
-    cue, serial_readout, timestamp = metadata["cue"], metadata["serial_readout"], metadata["timestamp"]
+    cue, serial_readout, timestamp, metric_result, threshold = metadata["cue"], metadata["serial_readout"], metadata["timestamp"], metadata["metric_result"], metadata["threshold"]
     timediff = np.array(timestamp)[1:] - np.array(timestamp)[:-1]
     dt = int(np.mean(timediff) * 1000)  # in milliseconds
     delta_t = statistics_global_param["delta_t"]
@@ -40,6 +40,8 @@ def plot_figures(results_path, metadata, config, rois_traces, neuronal_response_
     plot_rois_traces(results_path, rois_traces, rois_dict)
     plot_th_traces_scatter_plot(results_path, rois_traces, n_std, rois_dict)
     plot_th_traces_pstr(results_path, cue_ch, rois_traces, n_std, rois_dict, dt, delta_t, sigma)
+
+    plot_metric_result(results_path, metric_result, cue, threshold, rois_traces, metric_rois_names)
 
 
 def save_figure(path):
@@ -196,3 +198,40 @@ def plot_th_traces_pstr(results_path, stimuli, traces, n_std, rois_dict, dt, del
         plt.axvline(x=0, color='k')
         save_figure(results_path + 'rois_threshold_traces_pstr_of_' + ch + '.png')
 
+
+def plot_metric_result(results_path, metric_results, cues, threshold, rois_traces, metric_rois_names):
+
+    n_frames = len(metric_results)
+    trace_len = len(rois_traces['channel_0'][metric_rois_names[0]])
+    if n_frames > trace_len:
+        dup = int(n_frames / trace_len)
+    else:
+        dup = 1
+
+    plot_traces = {}
+    for roi_name, trace in rois_traces['channel_0'].items():
+        if roi_name in metric_rois_names:
+            plot_traces[roi_name] = np.zeros((n_frames,))
+            for i in range(dup):
+                plot_traces[roi_name][i::dup] = trace
+
+    f, ax = plt.subplots()
+
+    ax.plot(metric_results, color='tab:red')
+    ax.plot(threshold)
+    ax.vlines(np.where(cues), ymin=np.min(plot_traces[metric_rois_names[0]]), ymax=np.max(plot_traces[metric_rois_names[0]]), color='k')
+    ax.set_ylabel('metric result', color='tab:red')
+    leg = ['metric_results', 'threshold', 'reward timing']
+
+    ax2 = ax.twinx()
+    for key, val in plot_traces.items():
+        ax2.plot(val)
+        leg.append(key)
+
+    ax2.set_ylabel('metric - ROI DFF - trace ')
+    ax2.set_xlabel('Frames')
+    ax.legend(leg)
+
+    f.tight_layout()
+    f.suptitle('Metric vs Threshold, metric ROI trace')
+    save_figure(results_path + 'Metric vs Threshold vs ROI trace.png')
