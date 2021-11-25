@@ -37,9 +37,9 @@ class ROIContrast(AbstractMetric):
         for i, (roi_key, roi_dict) in enumerate(self.rois_dict.items()):
             self.rois_mean[i] = cp.mean(self.x[self.ptr, roi_dict['unravel_index'][1], roi_dict['unravel_index'][0]])
 
-        np_rois_mean = cp.asnumpy(self.rois_mean)
-        all_rois_mean = np.mean(np_rois_mean)
-        std = np.std(np_rois_mean)
-        eval_rois_mean = np.mean(np_rois_mean[self.eval_rois_ind])
+        rois_mean = cp.asnumpy(self.rois_mean)
+        all_rois_mean = np.mean(rois_mean)
+        std = np.std(rois_mean)
+        eval_rois_mean = np.mean(rois_mean[self.eval_rois_ind])
 
         self.result = (eval_rois_mean - all_rois_mean) / (std + self.eps)
