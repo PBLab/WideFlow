@@ -39,7 +39,7 @@ def plot_figures(results_path, metadata, config, rois_traces, neuronal_response_
     plot_cue_response(results_path, cue, serial_readout)
     plot_rois_traces(results_path, rois_traces, rois_dict)
     plot_th_traces_scatter_plot(results_path, rois_traces, n_std, rois_dict)
-    plot_th_traces_pstr(results_path, cue_ch, neuronal_response_stats, n_std, rois_dict, dt, delta_t, sigma)
+    plot_th_traces_pstr(results_path, cue_ch, rois_traces, n_std, rois_dict, dt, delta_t, sigma)
 
 
 def save_figure(path):
