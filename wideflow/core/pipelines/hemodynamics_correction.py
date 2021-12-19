@@ -62,7 +62,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
             for roi_pixels in roi_pixels_list:
                 rois_pixels_list.append(roi_pixels)
 
-        self.metric = ROIContrast(self.dff_buffer, rois_pixels_list, self.mask, 0)
+        self.metric = ROIContrast(self.dff_buffer, self.rois_dict, self.rois_names, self.mask, 0)
 
         self.camera.set_param(PARAM_LAST_MUXED_SIGNAL,
                               2)  # setting camera active output wires to 2 - strobbing of two LEDs
@@ -208,7 +208,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         mps = MatchingPointSelector(frame, self.map * np.random.random(self.map.shape),
                                     match_p_src,
                                     match_p_dst,
-                                    25)
+                                    4)
         src_cols = mps.src_cols
         src_rows = mps.src_rows
         mapping_coordinates = cp.asanyarray([src_cols, src_rows])

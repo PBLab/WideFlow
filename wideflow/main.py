@@ -95,7 +95,7 @@ def run_session(config, cam):
     else:  # if a reference image exist, use it to select roi and matching points
         ref_image = load_tiff(config["reference_image_path"] + "reference_image.tif")
         ref_bbox = load_bbox(config["reference_image_path"] + "bbox.txt")
-        match_p_src, match_p_dst = load_matching_points(config["reference_image_path"] + "matching_points.txt")
+        match_p_src, match_p_dst = load_matching_points(config["reference_image_path"] + "matching_points_affine.txt")
         if 'match_p_src' and 'match_p_dst' in analysis_pipeline_config['args'].keys():
             analysis_pipeline_config['args']["match_p_src"] = match_p_src
             analysis_pipeline_config['args']["match_p_dst"] = match_p_dst
@@ -179,7 +179,8 @@ def run_session(config, cam):
         cue = 0
         result = pipeline.evaluate()
         if int(cp.asnumpy(result) > feedback_threshold) and\
-                (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
+                (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay and\
+                frame_counter > feedback_config['update_frames'] / 2:
             ser.sendFeedback()
             feedback_time = perf_counter()
             cue = 1
@@ -272,7 +273,7 @@ if __name__ == "__main__":
     from devices.PVCam import PVCamera
     import pathlib
     mp.set_start_method('fork')
-    imaging_config_path = str(pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_2680_config.json')
+    imaging_config_path = str(pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'neurofeedback_2683_config.json')
     # imaging_config_path = str(pathlib.Path('/home') / 'pb' / 'PycharmProjects' / 'WideFlow' / 'wideflow' / 'Imaging' / 'imaging_configurations' / 'training_config.json')
     session_config = load_config(imaging_config_path)
 
