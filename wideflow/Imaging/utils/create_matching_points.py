@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 
 from scipy.ndimage import map_coordinates
-from skimage.transform import PiecewiseAffineTransform, warp_coords
+from skimage.transform import AffineTransform, warp_coords
 
 
 def select_matching_points(src_np, dst_np, n_pairs, src_p_init=[], dst_p_init=[]):
@@ -96,6 +96,8 @@ class MatchingPointSelector:
         self.match_p_src = match_p_src
         self.match_p_dst = match_p_dst
 
+        self.tform = AffineTransform()
+
         self.src_cols = None
         self.src_rows = None
         self.image_warp = self.warp_image()
@@ -122,9 +124,9 @@ class MatchingPointSelector:
             self.match_p_src, self.match_p_dst = select_matching_points(image_src, image_dst, self.n_matching_pairs,
                                                                         self.match_p_src, self.match_p_dst)
 
-        tform = PiecewiseAffineTransform()
-        tform.estimate(self.match_p_src, self.match_p_dst)
-        warp_coor = warp_coords(tform.inverse, (self.dst_n_rows, self.dst_n_cols))
+
+        self.tform.estimate(self.match_p_src, self.match_p_dst)
+        warp_coor = warp_coords(self.tform.inverse, (self.dst_n_rows, self.dst_n_cols))
         self.src_cols = np.reshape(warp_coor[0], (self.dst_n_rows * self.dst_n_cols, 1))
         self.src_rows = np.reshape(warp_coor[1], (self.dst_n_rows * self.dst_n_cols, 1))
 

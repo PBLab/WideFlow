@@ -5,15 +5,16 @@ import numpy as np
 
 
 class Resize(AbstractProcess):
-    def __init__(self, src, dst):
+    def __init__(self, src, dst, trans_mat=None):
         self.src = src
         self.dst = dst
         self.new_shape = dst.shape
         self.old_shape = src.shape
 
-        trans_mat = cp.eye(3)
-        trans_mat[0][0] = self.old_shape[0] / self.new_shape[0]
-        trans_mat[1][1] = self.old_shape[1] / self.new_shape[1]
+        if trans_mat is None:
+            trans_mat = cp.eye(3)
+            trans_mat[0][0] = self.new_shape[1] / self.old_shape[1]
+            trans_mat[1][1] = self.new_shape[0] / self.old_shape[0]
         self.trans_mat = trans_mat
 
     def initialize_buffers(self):
