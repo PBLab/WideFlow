@@ -13,8 +13,8 @@ import cv2
 
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
-mouse_id = '2680'
-session_name = '20211014_nf'
+mouse_id = '2683'
+session_name = '20211130_neurofeedback'
 
 
 # analysis global parameters
@@ -22,9 +22,10 @@ session_name = '20211014_nf'
 crop = False
 register = True
 
-dff_bs_method = "moving_avg"
+dff_bs_method = "moving_min"
 accept_transform_matching_points = False
 hemo_correct_ch = ["channel_0", "channel_1"]
+# hemo_correct_ch = None
 global_params = {
     "crop": crop,
     "register": register,
@@ -39,7 +40,8 @@ with h5py.File(cortex_file_path, 'r') as f:
     cortex_mask = np.transpose(f["mask"][()])
     cortex_map = np.transpose(f["map"][()])
 
-rois_dict_path = os.path.abspath(os.path.join(os.path.pardir, '../', 'data', 'cortex_map', 'allen_2d_cortex_rois_extended.h5'))
+rois_dict_path = os.path.abspath(os.path.join(os.path.pardir, '../', 'data', 'cortex_map',
+                                              'allen_2d_cortex_rois_extended.h5'))
 rois_dict = load_extended_rois_list(rois_dict_path)
 
 # load session metadata and configurations
@@ -106,14 +108,15 @@ for p, tif_path in enumerate(wf_video_paths):
 
     # dff
     wf_data = calc_dff(wf_data, dff_bs_method, dff_bs_n_frames)
-    # remove remainder
-    if p != 0:
-        for ch in wf_data:
-            wf_data[ch] = wf_data[ch][dff_bs_n_frames:, :, :]
 
     # hemodynamics attenuation
     if hemo_correct_ch != None:
         regression_coeff_map = hemodynamics_attenuation(wf_data, regression_coeff_map, hemo_correct_ch, dff_bs_n_frames)
+
+    # remove remainder
+    if p != 0:
+        for ch in wf_data:
+            wf_data[ch] = wf_data[ch][dff_bs_n_frames:, :, :]
 
     # ROIs traces extraction
     rois_traces = extract_roi_traces(wf_data, rois_dict, cortex_mask.shape)
@@ -128,7 +131,7 @@ neuronal_response_stats, behavioral_response_stats, statistics_global_params = \
     analysis_statistics(concat_rois_traces, metadata, config)
 
 # save rois traces
-with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
+with h5py.File(project_path + 'results/' + 'sessions_dataset2.h5', 'a') as f:
     main_group = f[mouse_id]
     session_group = main_group.create_group(session_name)  # create group named by session name
 
@@ -145,8 +148,8 @@ with h5py.File(project_path + 'results/' + 'sessions_dataset.h5', 'a') as f:
     decompose_dict_to_h5_groups(f, neuronal_response_stats, neuronal_stats_group.name + '/')
     glob_param_stats_group = stats_group.create_group('global_parameters')
     decompose_dict_to_h5_groups(f, statistics_global_params, glob_param_stats_group.name + '/')
-
-    session_group.create_dataset('regression_coeff_map', data=regression_coeff_map)
+    if regression_coeff_map is not None:
+        session_group.create_dataset('regression_coeff_map', data=regression_coeff_map)
 
 
 if not os.path.isdir(session_path + 'analysis_results'):
