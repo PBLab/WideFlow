@@ -1,7 +1,7 @@
 from scipy.ndimage import map_coordinates
 import numpy as np
 from wideflow.utils.create_matching_points import MatchingPointSelector
-from skimage.transform import PiecewiseAffineTransform, warp_coords
+from skimage.transform import AffineTransform, warp_coords
 
 
 def registration(video, match_p_src, match_p_dst, cortex_map, accept=False):
@@ -11,7 +11,7 @@ def registration(video, match_p_src, match_p_dst, cortex_map, accept=False):
 
     if accept:
         dst_n_rows, dst_n_cols = cortex_map.shape
-        tform = PiecewiseAffineTransform()
+        tform = AffineTransform()
         tform.estimate(match_p_src, match_p_dst)
         warp_coor = warp_coords(tform.inverse, (dst_n_rows, dst_n_cols))
         src_cols = np.reshape(warp_coor[0], (dst_n_rows * dst_n_cols, 1))
@@ -21,7 +21,7 @@ def registration(video, match_p_src, match_p_dst, cortex_map, accept=False):
         mps = MatchingPointSelector(reference_frame, cortex_map * np.random.random(cortex_map.shape),
                                     match_p_src,
                                     match_p_dst,
-                                    25)
+                                    4)
         src_cols = mps.src_cols
         src_rows = mps.src_rows
 
