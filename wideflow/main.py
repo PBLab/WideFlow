@@ -207,6 +207,7 @@ def run_session(config, cam):
 
         frame_counter += 1
         frame_clock_stop = perf_counter()
+        # print status
         print(f'frame: {frame_counter:06d} '
               f'elapsed time:{frame_clock_stop - frame_clock_start:.3f} '
               f'threshold: {feedback_threshold:.3f} '

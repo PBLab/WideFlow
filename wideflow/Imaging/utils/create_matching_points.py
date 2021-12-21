@@ -87,10 +87,11 @@ def select_matching_points(src_np, dst_np, n_pairs, src_p_init=[], dst_p_init=[]
 
 
 class MatchingPointSelector:
-    def __init__(self, image_src, image_dst, match_p_src=None, match_p_dst=None, n_matching_pairs=20):
+    def __init__(self, image_src, image_dst, match_p_src=None, match_p_dst=None, n_matching_pairs=4, add_corners=False):
         self.image_src = image_src
         self.image_dst = image_dst
         self.n_matching_pairs = n_matching_pairs
+        self.add_corners = add_corners
         self.dst_n_rows, self.dst_n_cols = image_dst.shape
         self.src_n_rows, self.src_n_cols = image_src.shape
         self.match_p_src = match_p_src
@@ -119,11 +120,14 @@ class MatchingPointSelector:
         if self.match_p_src is None or self.match_p_dst is None:
             image_src = self.image_src
             image_dst = self.image_dst
-            self.match_p_src = [[0, 0], [0, self.src_n_cols], [self.src_n_rows, 0], [self.src_n_rows, self.src_n_cols]]
-            self.match_p_dst = [[0, 0], [0, self.dst_n_cols], [self.dst_n_rows, 0], [self.dst_n_rows, self.dst_n_cols]]
+            if self.add_corners:
+                self.match_p_src = [[0, 0], [0, self.src_n_cols], [self.src_n_rows, 0], [self.src_n_rows, self.src_n_cols]]
+                self.match_p_dst = [[0, 0], [0, self.dst_n_cols], [self.dst_n_rows, 0], [self.dst_n_rows, self.dst_n_cols]]
+            else:
+                self.match_p_src = []
+                self.match_p_dst = []
             self.match_p_src, self.match_p_dst = select_matching_points(image_src, image_dst, self.n_matching_pairs,
                                                                         self.match_p_src, self.match_p_dst)
-
 
         self.tform.estimate(self.match_p_src, self.match_p_dst)
         warp_coor = warp_coords(self.tform.inverse, (self.dst_n_rows, self.dst_n_cols))
@@ -152,3 +156,4 @@ class MatchingPointSelector:
         self.ax.imshow(self.image_warp)
 
 
+mps = MatchingPointSelector(np.random.random((512, 512)), np.random.random((256, 256)), n_matching_pairs=3)
