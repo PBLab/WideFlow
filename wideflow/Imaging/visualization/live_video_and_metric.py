@@ -5,7 +5,7 @@ from multiprocessing import shared_memory
 import numpy as np
 
 
-class LiveVideo(AbstractVis):
+class LiveVideoMetric(AbstractVis):
     def __init__(self, query, image_shape, frame_rate=50, vmin=-0.05, vmax=0.1):
         self.query = query
         self.image_shape = image_shape
