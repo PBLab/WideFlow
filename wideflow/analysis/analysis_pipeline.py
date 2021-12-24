@@ -14,7 +14,7 @@ import cv2
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
 mouse_id = '2683'
-session_name = '20211206_neurofeedback'
+session_name = '20211208_neurofeedback'
 
 
 # analysis global parameters

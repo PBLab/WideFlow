@@ -2,7 +2,7 @@
 
 import pathlib
 from utils.imaging_utils import load_config
-from core.session.neurofeedback_session import NeuroFeedbackSession
+from core.session.mock_neurofeedback_session import NeuroFeedbackSession
 
 
 if __name__ == "__main__":

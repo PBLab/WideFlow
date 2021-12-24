@@ -6,7 +6,7 @@ import cupy as cp
 import random
 
 import h5py
-from Imaging.utils.create_matching_points import *
+from wideflow.utils.create_matching_points import MatchingPointSelector
 
 
 class TrainingPipe(AbstractPipeLine):

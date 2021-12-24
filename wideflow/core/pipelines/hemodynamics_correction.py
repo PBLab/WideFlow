@@ -1,40 +1,43 @@
 from core.abstract_pipeline import AbstractPipeLine
 from core.processes import *
 from core.metrics import ROIContrast
-import cupy as cp
-import numpy as np
 
-import os
-import h5py
 from utils.load_matlab_vector_field import load_extended_rois_list
 from Imaging.utils.create_matching_points import MatchingPointSelector
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
 
 from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
+import cupy as cp
+import numpy as np
+from skimage.transform import AffineTransform, warp_coords
+
+import os
+import h5py
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
-    def __init__(self, camera, save_path, new_shape, capacity, rois_dict_path, mask_path, rois_names,
-                 regression_n_samples, match_p_src=None, match_p_dst=None, regression_map_path=""):
+    def __init__(self, camera, save_path, new_shape, capacity, mask, map, rois_dict, rois_names,
+                 match_p_src, match_p_dst, regression_map, regression_n_samples=512):
         self.camera = camera
         self.save_path = save_path
         self.new_shape = new_shape
         self.capacity = capacity + capacity % 2  # make sure capacity is an even number
-        self.rois_dict_path = rois_dict_path
-        self.mask_path = mask_path
-        self.mask, self.map, self.rois_dict = self.load_datasets()
+        self.mask = mask
+        self.map = map
+        self.rois_dict = rois_dict  # metric rois name
         self.rois_names = rois_names
+        self.match_p_src = match_p_src
+        self.match_p_dst = match_p_dst
+        self.regression_map = regression_map
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
-        # self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src,
-        #                                                                                              match_p_dst)
-        self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_affine_mapping_coordinates()
-        self.regression_map_path = regression_map_path
+
+        self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
 
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
 
         # allocate memory
-        self.frame = np.ndarray(self.input_shape)
-        self.input = cp.ndarray(self.input_shape)
+        self.frame = np.ndarray(self.input_shape, dtype=np.uint16)
+        self.input = cp.ndarray(self.input_shape, dtype=cp.uint16)
         self.warped_input = cp.ndarray((self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.warped_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.warped_buffer_ch2 = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
@@ -86,7 +89,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.processes_list[2].initialize_buffers()
         self.processes_list_ch2[2].initialize_buffers()
 
-        if not os.path.exists(self.regression_map_path):
+        if self.regression_map is None:
             # collect data to calculate regression coefficient for the hemodynamic correction
             print("\nCollecting data to calculate regression coefficients for hemodynamics correction...")
             ch1i, ch2i = 0, 0
@@ -120,11 +123,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
             del self.regression_buffer
 
         else:
-            print("\nLoading regression coefficients for hemodynamics correction...")
-            reg_map = self.load_regression_map()
-            self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(reg_map[0])
-            self.processes_list_ch2[3].regression_coeff[1] = cp.asanyarray(reg_map[1])
-            del reg_map
+            self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(self.regression_map[0])
+            self.processes_list_ch2[3].regression_coeff[1] = cp.asanyarray(self.regression_map[1])
         print("Done")
 
         self.camera.start_live()
@@ -202,27 +202,15 @@ class HemoDynamicsDFF(AbstractPipeLine):
         return mask, map, rois_dict
 
     def find_mapping_coordinates(self, match_p_src, match_p_dst):
-        if match_p_src is not None:
-            match_p_src = np.array(match_p_src)
-        if match_p_dst is not None:
-            match_p_dst = np.array(match_p_dst)
-        frame = self.camera.get_frame()
-        mps = MatchingPointSelector(frame, self.map * np.random.random(self.map.shape),
-                                    match_p_src,
-                                    match_p_dst,
-                                    25)
-        src_cols = mps.src_cols
-        src_rows = mps.src_rows
-        mapping_coordinates = cp.asanyarray([src_cols, src_rows])
-        return mps.match_p_src, mps.match_p_dst, mapping_coordinates
+        tform = AffineTransform()
+        tform.estimate(np.roll(match_p_src, 1, axis=1), np.roll(match_p_dst, 1, axis=1))
 
-    def find_affine_mapping_coordinates(self):
-        frame = self.camera.get_frame()
-        iat = InteractiveAffineTransform(frame, self.map)
-        src_cols = iat.src_cols
-        src_rows = iat.src_rows
+        warp_coor = warp_coords(self.tform.inverse, (self.map_nrows, self.map_ncols))
+        src_cols = np.reshape(warp_coor[0], (self.map_nrows * self.map_ncols, 1))
+        src_rows = np.reshape(warp_coor[1], (self.map_nrows * self.map_ncols, 1))
         mapping_coordinates = cp.asanyarray([src_cols, src_rows])
-        return iat.trans_points_pos, iat.fixed_points_pos, mapping_coordinates
+
+        return mapping_coordinates
 
     def save_regression_buffers(self):
         with open(self.save_path + "regression_coeff_map.npy", "wb") as f:
