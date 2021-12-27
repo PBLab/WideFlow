@@ -1,5 +1,6 @@
 from wideflow.core.abstract_session import AbstractSession
 from wideflow.core.pipelines.hemodynamics_correction import HemoDynamicsDFF
+from wideflow.core.pipelines.training_pipeline import TrainingPipe
 
 from pyvcam import pvc
 from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
@@ -157,13 +158,24 @@ class NeuroFeedbackSession(AbstractSession):
             match_p_src, match_p_dst = self.find_affine_mapping_coordinates(frame)
 
         # instantiate analysis pipeline
-        self.analysis_pipeline = HemoDynamicsDFF(
-            self.camera, self.session_path,
-            self.analysis_pipeline_config["args"]["new_shape"], self.analysis_pipeline_config["args"]["capacity"],
-            self.cortex_mask, self.cortex_map, self.cortex_rois_dict, self.analysis_pipeline_config["args"]["rois_names"],
-            match_p_src, match_p_dst,
-            regression_map, self.analysis_pipeline_config["args"]["regression_n_samples"]
-        )
+        if self.analysis_pipeline_config["pipeline"] == "HemoDynamicsDFF":
+            self.analysis_pipeline = HemoDynamicsDFF(
+                self.camera, self.session_path,
+                self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
+                match_p_src, match_p_dst,
+                regression_map,
+                self.analysis_pipeline_config["args"]["capacity"],  self.analysis_pipeline_config["args"]["rois_names"]
+            )
+        elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
+            self.analysis_pipeline = TrainingPipe(
+                self.camera,
+                self.analysis_pipeline_config["args"]["min_frame_count"], self.analysis_pipeline_config["args"]["max_frame_count"],
+                self.cortex_mask, self.cortex_map,
+                match_p_src, match_p_dst,
+                self.analysis_pipeline_config["args"]["capacity"]
+            )
+        else:
+            raise NameError()
 
         # imaging data memory handler
         data_shape = (self.acquisition_config["num_of_frames"], self.camera.shape[1], self.camera.shape[0])

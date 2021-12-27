@@ -8,11 +8,13 @@ from skimage.transform import AffineTransform, warp_coords
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
-    def __init__(self, camera, save_path, new_shape, capacity, mask, map, rois_dict, rois_names,
-                 match_p_src, match_p_dst, regression_map, regression_n_samples=512):
+    def __init__(self, camera, save_path,
+                 mask, map, rois_dict,
+                 match_p_src, match_p_dst,
+                 regression_map,
+                 capacity, rois_names, regression_n_samples=512):
         self.camera = camera
         self.save_path = save_path
-        self.new_shape = new_shape
         self.capacity = capacity + capacity % 2  # make sure capacity is an even number
         self.mask = mask
         self.map = map
@@ -23,6 +25,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.regression_map = regression_map
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
 
+        self.new_shape = self.map.shape
         self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
 
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])

@@ -1,16 +1,16 @@
 from wideflow.core.abstract_pipeline import AbstractPipeLine
 from wideflow.core.processes import *
 
+from wideflow.Imaging.utils.create_matching_points import MatchingPointSelector
+
 import numpy as np
+from skimage.transform import AffineTransform, warp_coords
 import cupy as cp
 import random
 
-import h5py
-from wideflow.Imaging.utils.create_matching_points import MatchingPointSelector
-
 
 class TrainingPipe(AbstractPipeLine):
-    def __init__(self, camera, min_frame_count, max_frame_count, new_shape, mask_path, match_p_src=None, match_p_dst=None):
+    def __init__(self, camera, min_frame_count, max_frame_count, mask, map, match_p_src, match_p_dst, capacity):
         """
 
         :param min_frame_count: int - minimal number of pipeline circles between rewards
@@ -19,12 +19,15 @@ class TrainingPipe(AbstractPipeLine):
         self.camera = camera
         self.min_frame_count = min_frame_count
         self.max_frame_count = max_frame_count
-        self.new_shape = new_shape
-        self.mask_path = mask_path
-        self.map, self.mask = self.load_datasets()
-        self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
+        self.mask = mask
+        self.map = map
+        self.match_p_src = match_p_src
+        self.match_p_dst = match_p_dst
+        self.capacity = capacity
 
-        self.capacity = 32
+        self.new_shape = self.map.shape
+        self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
+
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
 
         self.frame = np.ndarray(self.input_shape)
@@ -80,32 +83,13 @@ class TrainingPipe(AbstractPipeLine):
 
         return self.cue
 
-    def update_config(self, config):
-        config["analysis_pipeline_config"]["match_p_src"] = self.match_p_src.tolist()
-        config["analysis_pipeline_config"]["match_p_dst"] = self.match_p_dst.tolist()
-        config["camera_config"]["core_attr"]["roi"] = self.camera.roi
-        return config
-
-    def load_datasets(self):
-        with h5py.File(self.mask_path, 'r') as f:
-            mask = np.transpose(f["mask"][()])
-            map = np.transpose(f["map"][()])
-
-        mask = cp.asanyarray(mask, dtype=cp.float32)
-
-        return map, mask
-
     def find_mapping_coordinates(self, match_p_src, match_p_dst):
-        if match_p_src is not None:
-            match_p_src = np.array(match_p_src)
-        if match_p_dst is not None:
-            match_p_dst = np.array(match_p_dst)
-        frame = self.camera.get_frame()
-        mps = MatchingPointSelector(frame, self.map * np.random.random(self.map.shape),
-                                    match_p_src,
-                                    match_p_dst,
-                                    25)
-        src_cols = mps.src_cols
-        src_rows = mps.src_rows
+        tform = AffineTransform()
+        tform.estimate(np.roll(match_p_src, 1, axis=1), np.roll(match_p_dst, 1, axis=1))
+
+        warp_coor = warp_coords(tform.inverse, (self.new_shape[0], self.new_shape[1]))
+        src_cols = np.reshape(warp_coor[0], (self.new_shape[0] * self.new_shape[1], 1))
+        src_rows = np.reshape(warp_coor[1], (self.new_shape[0] * self.new_shape[1], 1))
         mapping_coordinates = cp.asanyarray([src_cols, src_rows])
-        return mps.match_p_src, mps.match_p_dst, mapping_coordinates
+
+        return mapping_coordinates
