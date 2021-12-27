@@ -27,4 +27,5 @@ class MemoryHandler:
 
             elif q == "terminate":
                 del vid_mem
+                existing_shm.close()
                 break

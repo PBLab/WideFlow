@@ -1,12 +1,12 @@
-from core.abstract_pipeline import AbstractPipeLine
-from core.processes import *
+from wideflow.core.abstract_pipeline import AbstractPipeLine
+from wideflow.core.processes import *
 
 import numpy as np
 import cupy as cp
 import random
 
 import h5py
-from wideflow.utils.create_matching_points import MatchingPointSelector
+from wideflow.Imaging.utils.create_matching_points import MatchingPointSelector
 
 
 class TrainingPipe(AbstractPipeLine):

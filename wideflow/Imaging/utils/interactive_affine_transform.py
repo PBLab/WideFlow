@@ -111,15 +111,15 @@ class InteractiveAffineTransform:
         self.update_transform()
 
 
-import h5py
-from wideflow.utils.load_tiff import load_tiff
-cortex_file_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
-with h5py.File(cortex_file_path, 'r') as f:
-    cortex_mask = np.transpose(f["mask"][()])
-    cortex_map = np.transpose(f["map"][()])
-
-image_file_path = '/data/Rotem/WideFlow prj/extras/tests/cropped_wf_image.ome.tif'
-image = load_tiff(image_file_path)
-iat = InteractiveAffineTransform(image, cortex_map)
-
-print(iat.tform.params)
+# import h5py
+# from wideflow.utils.load_tiff import load_tiff
+# cortex_file_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
+# with h5py.File(cortex_file_path, 'r') as f:
+#     cortex_mask = np.transpose(f["mask"][()])
+#     cortex_map = np.transpose(f["map"][()])
+#
+# image_file_path = '/data/Rotem/WideFlow prj/extras/tests/cropped_wf_image.ome.tif'
+# image = load_tiff(image_file_path)
+# iat = InteractiveAffineTransform(image, cortex_map)
+#
+# print(iat.tform.params)

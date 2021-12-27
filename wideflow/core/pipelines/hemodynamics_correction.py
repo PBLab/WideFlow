@@ -1,18 +1,10 @@
-from core.abstract_pipeline import AbstractPipeLine
-from core.processes import *
-from core.metrics import ROIContrast
+from wideflow.core.abstract_pipeline import AbstractPipeLine
+from wideflow.core.processes import *
+from wideflow.core.metrics.ROI_Contrast import ROIContrast
 
-from utils.load_matlab_vector_field import load_extended_rois_list
-from Imaging.utils.create_matching_points import MatchingPointSelector
-from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
-
-from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 import cupy as cp
 import numpy as np
 from skimage.transform import AffineTransform, warp_coords
-
-import os
-import h5py
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
@@ -67,10 +59,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
             for roi_pixels in roi_pixels_list:
                 rois_pixels_list.append(roi_pixels)
 
-        self.metric = ROIContrast(self.dff_buffer, rois_pixels_list, self.mask, 0)
+        self.metric = ROIContrast(self.dff_buffer, self.rois_dict, rois_pixels_list, self.mask, 0)
 
-        self.camera.set_param(PARAM_LAST_MUXED_SIGNAL,
-                              2)  # setting camera active output wires to 2 - strobbing of two LEDs
         self.ptr = self.capacity - 1
         self.ptr_2c = 2 * self.capacity - 1
 
@@ -161,7 +151,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         pinned_mempool.free_all_blocks()
 
     def get_input(self):
-        self.frame = self.camera.get_live_frame()
+        self.frame[:] = self.camera.get_live_frame()
         self.input[:] = cp.asanyarray(self.frame)
 
     def process(self):
@@ -191,23 +181,13 @@ class HemoDynamicsDFF(AbstractPipeLine):
         config["camera_config"]["core_attr"]["roi"] = self.camera.roi
         return config
 
-    def load_datasets(self):
-        with h5py.File(self.mask_path, 'r') as f:
-            mask = np.transpose(f["mask"][()])
-            map = np.transpose(f["map"][()])
-        mask = cp.asanyarray(mask, dtype=cp.float32)
-
-        rois_dict = load_extended_rois_list(self.rois_dict_path)
-
-        return mask, map, rois_dict
-
     def find_mapping_coordinates(self, match_p_src, match_p_dst):
         tform = AffineTransform()
         tform.estimate(np.roll(match_p_src, 1, axis=1), np.roll(match_p_dst, 1, axis=1))
 
-        warp_coor = warp_coords(self.tform.inverse, (self.map_nrows, self.map_ncols))
-        src_cols = np.reshape(warp_coor[0], (self.map_nrows * self.map_ncols, 1))
-        src_rows = np.reshape(warp_coor[1], (self.map_nrows * self.map_ncols, 1))
+        warp_coor = warp_coords(tform.inverse, (self.new_shape[0], self.new_shape[1]))
+        src_cols = np.reshape(warp_coor[0], (self.new_shape[0] * self.new_shape[1], 1))
+        src_rows = np.reshape(warp_coor[1], (self.new_shape[0] * self.new_shape[1], 1))
         mapping_coordinates = cp.asanyarray([src_cols, src_rows])
 
         return mapping_coordinates
@@ -219,8 +199,4 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 self.processes_list_ch2[3].regression_coeff[1].get()
                                 ))
                     )
-
-    def load_regression_map(self):
-        reg_map = np.load(self.regression_map_path)
-        return reg_map
 

@@ -1,11 +1,12 @@
 {
-    "name": "mouseID",
+    "name": "mouse ID",
+    "session": "session name",
 
-    "path": "path_to_session_results_directory",
+    "path": "path_to_base_directory",
 
     "camera_config": {
         "core_attr": {
-            "exp_time": 50,
+            "exp_time": 20,
             "binning": [2, 2],
             "roi": [0, 2048, 0, 2048],
             "clear_mode": 0
@@ -63,7 +64,8 @@
     "acquisition_config": {
         "vid_file_name": "vid.dat",
         "meta_file_name": "meta.txt",
-        "num_of_frames": 10000
+        "num_of_frames": 10000,
+        "convert_to_tiff": true
     },
 
     "feedback_config": {
@@ -94,16 +96,22 @@
             "capacity": 32,
             "rois_dict_path": "..../WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
             "mask_path": "..../WideFlow/data/cortex_map/allen_2d_cortex.h5",
-            "roi_name": "roi_3",
-            "regression_n_samples": 500
+            "roi_name": "roi_17",
+            "regression_n_samples": 512
         }
     },
 
     "visualization_config": {
-        "show_live_stream": {
+
+        "show_live_stream_and_metric": {
             "status": true,
             "size": [297, 337], "dtype": "float32", "buffer": "dff_buffer",
             "class": "LiveVideo", "params": {"image_shape": [297, 337], "frame_rate": 50}
+        },
+        "show_live_stream": {
+            "status": false,
+            "size": [297, 337], "dtype": "float32", "buffer": "dff_buffer",
+            "class": "LiveVideoMetric", "params": {"image_shape": [297, 337], "frame_rate": 50}
         },
         "show_rois_trace": {
             "status":false,
