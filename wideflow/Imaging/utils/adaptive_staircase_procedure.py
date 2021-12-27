@@ -25,5 +25,9 @@ def fixed_step_staircase_procedure(threshold, results_seq, num_frames, typical_c
         return threshold
 
 
+def std_contrast_one_update():
+    pass
+
+
 def bayesian_update():
     pass

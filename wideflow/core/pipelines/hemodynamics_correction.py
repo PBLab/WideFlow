@@ -7,7 +7,8 @@ import numpy as np
 import os
 import h5py
 from utils.load_matlab_vector_field import load_extended_rois_list
-from Imaging.utils.create_matching_points import *
+from Imaging.utils.create_matching_points import MatchingPointSelector
+from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
 
 from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 
@@ -24,8 +25,9 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.mask, self.map, self.rois_dict = self.load_datasets()
         self.rois_names = rois_names
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
-        self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src,
-                                                                                                     match_p_dst)
+        # self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_mapping_coordinates(match_p_src,
+        #                                                                                              match_p_dst)
+        self.match_p_src, self.match_p_dst, self.mapping_coordinates = self.find_affine_mapping_coordinates()
         self.regression_map_path = regression_map_path
 
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
@@ -213,6 +215,14 @@ class HemoDynamicsDFF(AbstractPipeLine):
         src_rows = mps.src_rows
         mapping_coordinates = cp.asanyarray([src_cols, src_rows])
         return mps.match_p_src, mps.match_p_dst, mapping_coordinates
+
+    def find_affine_mapping_coordinates(self):
+        frame = self.camera.get_frame()
+        iat = InteractiveAffineTransform(frame, self.map)
+        src_cols = iat.src_cols
+        src_rows = iat.src_rows
+        mapping_coordinates = cp.asanyarray([src_cols, src_rows])
+        return iat.trans_points_pos, iat.fixed_points_pos, mapping_coordinates
 
     def save_regression_buffers(self):
         with open(self.save_path + "regression_coeff_map.npy", "wb") as f:
