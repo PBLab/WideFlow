@@ -1,7 +1,7 @@
 {
-    "name": "2683",
+    "name": "2604",
 
-    "path": "/home/pb/WideFlow_prj/2683/20211118_training/",
+    "path": "/home/pb/WideFlow_prj/2604/20211226_CueRewardCoupling/",
 
     "camera_config": {
         "core_attr": {
@@ -67,7 +67,7 @@
         "enable_gpu" : 1,
         "vid_file_name": "t1_vid.dat",
         "meta_file_name": "t1_meta.txt",
-        "num_of_frames": 50000,
+        "num_of_frames": 60000,
         "capacity": 32
     },
 
@@ -81,7 +81,7 @@
         "update_frames": 0
     },
 
-    "reference_image_path": "/home/pb/WideFlow_prj/2683/",
+    "reference_image_path": "",
 
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
