@@ -175,12 +175,6 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.metric.evaluate()
         return self.metric.result
 
-    def update_config(self, config):
-        config["analysis_pipeline_config"]["match_p_src"] = self.match_p_src.tolist()
-        config["analysis_pipeline_config"]["match_p_dst"] = self.match_p_dst.tolist()
-        config["camera_config"]["core_attr"]["roi"] = self.camera.roi
-        return config
-
     def find_mapping_coordinates(self, match_p_src, match_p_dst):
         tform = AffineTransform()
         tform.estimate(np.roll(match_p_src, 1, axis=1), np.roll(match_p_dst, 1, axis=1))

@@ -21,6 +21,8 @@ from wideflow.utils.matplotlib_rectangle_selector_events import *
 from wideflow.utils.find_2d_max_correlation_coordinates import find_2d_max_correlation_coordinates
 from wideflow.utils.convert_dat_to_tif import convert_dat_to_tif
 from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
+from wideflow.utils.write_bbox_file import write_bbox_file
+from wideflow.utils.write_matching_point_file import write_matching_point_file
 
 import numpy as np
 import cupy as cp
@@ -44,7 +46,11 @@ from datetime import datetime
 class NeuroFeedbackSession(AbstractSession):
     def __init__(self, config):
         self.config = config
-        self.base_path = config["path"]
+        self.base_path = config["base_path"]
+        self.mouse_id = config["mouse_id"]
+        self.session_name = config["session_name"]
+        self.session_path = f"{self.base_path}/{self.mouse_id}/{self.session_name}/"
+
         self.camera_config = config["camera_config"]
         self.serial_config = config["serial_port_config"]
         self.behavioral_camera_config = config["behavioral_camera_config"]
@@ -59,10 +65,13 @@ class NeuroFeedbackSession(AbstractSession):
         self.serial_controller = self.set_serial_controler()
         self.metadata = self.set_metadata_writer()
 
+        # load supplementary data
+        self.cortex_mask, self.cortex_map, self.cortex_rois_dict = self.load_datasets()
+
         self.analysis_pipeline = None
 
         # shared memory to save imaging data
-        self.data_dtype = np.uint16
+        self.data_dtype = 'uint16'
         self.data_shm, self.frame_shm, self.memq, self.mem_process = None, None, None, None
 
         # visualization shared memory and query
@@ -97,14 +106,14 @@ class NeuroFeedbackSession(AbstractSession):
                 cam.set_splice_post_processing_attributes(plugin_dict["name"], plugin_dict["parameters"])
 
         # setting camera active output wires to 2 - strobbing of two LEDs
-        self.camera.set_param(PARAM_LAST_MUXED_SIGNAL, 2)
+        cam.set_param(PARAM_LAST_MUXED_SIGNAL, 2)
         return cam
 
     def set_behavioral_camera(self):
         if self.behavioral_camera_config["process"] == "python":
             self.behavioral_camera_q = Queue(3)
             self.behavioral_camera_process = mp.Process(target=run_triggered_behavioral_camera,
-                                                   args=(self.behavioral_camera_q, self.base_path + self.behavioral_camera_config["vid_file_name"]),
+                                                   args=(self.behavioral_camera_q, self.session_path + self.behavioral_camera_config["vid_file_name"]),
                                                    kwargs=self.behavioral_camera_config["attr"])
 
     def set_serial_controler(self):
@@ -115,7 +124,7 @@ class NeuroFeedbackSession(AbstractSession):
         return serial_controller
 
     def set_metadata_writer(self):
-        metadata = AcquisitionMetaData(session_config_path=None, config=self.config)
+        metadata = AcquisitionMetaData(self.config)
         return metadata
 
     def session_preparation(self):
@@ -140,24 +149,20 @@ class NeuroFeedbackSession(AbstractSession):
         else:
             bbox = self.select_camera_sensor_roi(frame)
             self.camera.roi = bbox
+            regression_map = None
 
         self.camera.binning = tuple(self.camera_config["core_attr"]["binning"])  # restore configuration binning
         frame = self.camera.get_frame()
         if not os.path.exists(self.registration_config["matching_point_path"]):
             match_p_src, match_p_dst = self.find_affine_mapping_coordinates(frame)
 
-        self.analysis_pipeline_config['args']["match_p_src"] = match_p_src
-        self.analysis_pipeline_config['args']["match_p_dst"] = match_p_dst
-
-        cortex_mask, cortex_map, cortex_rois_dict = self.load_datasets()
-
-        # initialzie analysis pipeline
+        # instantiate analysis pipeline
         self.analysis_pipeline = HemoDynamicsDFF(
-            self.camera, self.analysis_pipeline_config["args"]["save_path"],
+            self.camera, self.session_path,
             self.analysis_pipeline_config["args"]["new_shape"], self.analysis_pipeline_config["args"]["capacity"],
-            cortex_mask, cortex_map, cortex_rois_dict, self.analysis_pipeline_config["args"]["rois_names"],
+            self.cortex_mask, self.cortex_map, self.cortex_rois_dict, self.analysis_pipeline_config["args"]["rois_names"],
             match_p_src, match_p_dst,
-            regression_map, self.analysis_pipeline_config["args"]["regression_map_path"]
+            regression_map, self.analysis_pipeline_config["args"]["regression_n_samples"]
         )
 
         # imaging data memory handler
@@ -166,7 +171,7 @@ class NeuroFeedbackSession(AbstractSession):
         shm_name = self.data_shm.name
         self.frame_shm = np.ndarray(data_shape[-2:], dtype=frame.dtype, buffer=self.data_shm.buf)
         self.memq = Queue(1)
-        memory_handler = MemoryHandler(self.memq, self.base_path + self.acquisition_config["vid_file_name"], data_shape,
+        memory_handler = MemoryHandler(self.memq, self.session_path + self.acquisition_config["vid_file_name"], data_shape,
                                        frame.dtype.name)
         self.mem_process = mp.Process(target=memory_handler, args=(shm_name,))
         self.mem_process.start()
@@ -176,6 +181,10 @@ class NeuroFeedbackSession(AbstractSession):
             self.behavioral_camera_process.start()
         elif self.behavioral_camera_config["process"] == "cpp":
             subprocess.Popen([self.behavioral_camera_config["script"]])
+
+        self.initialize_visualization()
+
+        self.update_config(self.camera.roi, match_p_src, match_p_dst)
 
     def run_session_pipeline(self):
         # set feedback properties
@@ -248,21 +257,20 @@ class NeuroFeedbackSession(AbstractSession):
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # end session
         self.session_termination()
-        print(f'session endded at {datetime.now()}')
 
     def session_termination(self):
+        print(f'session endded at {datetime.now()}')
         self.metadata.save_file()
 
         self.analysis_pipeline.camera.stop_live()
         self.analysis_pipeline.camera.close()
         self.analysis_pipeline.clear_buffers()
-        config = self.analysis_pipeline.update_config(self.config)
 
         self.serial_controller.close()
 
         now = datetime.now()
-        with open(config["path"] + config["name"] + "_" + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
-            json.dump(config, fp)
+        with open(self.session_path + "session_config_" + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
+            json.dump(self.config, fp)
 
         try:
             self.terminate_visualiztion()
@@ -285,11 +293,11 @@ class NeuroFeedbackSession(AbstractSession):
                 frame_offset = self.analysis_pipeline.frame.nbytes
                 frame_shape = data_shape[-2:]
 
-                convert_dat_to_tif(self.base_path + self.acquisition_config["vid_file_name"], frame_offset,
+                convert_dat_to_tif(self.session_path + self.acquisition_config["vid_file_name"], frame_offset,
                                    (2000, frame_shape[0], frame_shape[1]),
                                    # ~2000 frames is the maximum amount of frames readable using Fiji imagej
-                                   str(self.data_dtype), self.acquisition_config["num_of_frames"])
-                os.remove(self.base_path + self.acquisition_config["vid_file_name"])
+                                   self.data_dtype, self.acquisition_config["num_of_frames"])
+                os.remove(self.session_path + self.acquisition_config["vid_file_name"])
             except RuntimeError:
                 print("something went wrong while converting to tiff. dat file still exist in folder")
                 print("Unexpected error:", sys.exc_info()[0])
@@ -302,19 +310,19 @@ class NeuroFeedbackSession(AbstractSession):
 
     def initialize_visualization(self):
         # live stream with metric
-        config = self.visualization_config["show_live_stream"]
+        config = self.visualization_config["show_live_stream_and_metric"]
         if config["status"]:
             image = np.ndarray(config["size"], dtype=np.dtype(config["dtype"]))
             shm = shared_memory.SharedMemory(create=True, size=image.nbytes)
             image_shm = np.ndarray(image.shape, dtype=image.dtype, buffer=shm.buf)
             image_shm_name = shm.name
 
-            metric = np.float()
+            metric = np.ndarray((1, ), dtype=np.float32)
             shm = shared_memory.SharedMemory(create=True, size=metric.nbytes)
             metric_shm = np.ndarray(metric.shape, dtype=metric.dtype, buffer=shm.buf)
             metric_shm_name = shm.name
 
-            threshold = np.float()
+            threshold = np.ndarray((1, ), dtype=np.float32)
             shm = shared_memory.SharedMemory(create=True, size=threshold.nbytes)
             threshold_shm = np.ndarray(threshold.shape, dtype=threshold.dtype, buffer=shm.buf)
             threshold_shm_name = shm.name
@@ -324,12 +332,12 @@ class NeuroFeedbackSession(AbstractSession):
             live_stream_process = mp.Process(target=target, args=(image_shm_name, metric_shm_name, threshold_shm_name))
             live_stream_process.start()
 
-            self.vis_shm["live_stream"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
+            self.vis_shm["live_stream"] = {"image": image_shm, "me2tric": metric_shm, "threshold": threshold_shm}
             self.vis_query["live_stream"] = live_stream_que
             self.vis_processes["live_stream"] = live_stream_process
 
     def update_visualiztion(self, feedback_threshold, metric):
-        if self.visualization_config["show_live_stream"]["status"]:
+        if self.visualization_config["show_live_stream_and_metric"]["status"]:
             self.vis_shm["live_stream"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr])
             self.vis_shm["live_stream"]["metric"][:] = metric
             self.vis_shm["live_stream"]["threshold"][:] = feedback_threshold
@@ -360,7 +368,7 @@ class NeuroFeedbackSession(AbstractSession):
         return bbox
 
     def find_affine_mapping_coordinates(self, frame):
-        iat = InteractiveAffineTransform(frame, self.map)
+        iat = InteractiveAffineTransform(frame, self.cortex_map)
         return iat.trans_points_pos, iat.fixed_points_pos
 
     def find_piecewise_affine_mapping_coordinates(self, frame, match_p_src, match_p_dst):
@@ -389,3 +397,12 @@ class NeuroFeedbackSession(AbstractSession):
         print("\nLoading regression coefficients for hemodynamics correction...")
         reg_map = np.load(self.regression_map_path)
         return reg_map
+
+    def update_config(self, bbox, match_p_src, match_p_dst):
+        self.config["registration_config"]["cropping_bbox_path"] = self.session_path + 'bbox.txt'
+        self.config["registration_config"]["matching_point_path"] = self.session_path + 'matching_points.txt'
+
+        write_bbox_file(self.config["registration_config"]["cropping_bbox_path"], bbox)
+        write_matching_point_file(self.config["registration_config"]["matching_point_path"], match_p_src.tolist(), match_p_dst.tolist())
+
+

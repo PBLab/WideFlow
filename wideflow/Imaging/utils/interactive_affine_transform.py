@@ -97,7 +97,7 @@ class InteractiveAffineTransform:
 
         self.ax_dst.imshow(image_warp)
         self.fig_dst.canvas.draw()
-        plt.pause(0.02)
+        # plt.pause(0.02)
 
     def accept(self, event):
         plt.close(self.fig_src)

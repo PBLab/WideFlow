@@ -1,8 +1,9 @@
 {
-    "name": "mouse ID",
-    "session": "session name",
+    "base_path": "/home/pb/WideFlow_prj",
 
-    "path": "path_to_base_directory",
+    "mouse_id": "mouse ID",
+
+    "session_name": "session name",
 
     "camera_config": {
         "core_attr": {
@@ -52,6 +53,7 @@
     },
 
         "behavioral_camera_config": {
+        "process": "",
         "file_name": "behavioral_vid.avi",
         "attr": {
             "exp_time": 5,
@@ -73,7 +75,9 @@
         "inter_feedback_delay": 1e2,
         "typical_n": 1000,
         "typical_count": 2,
-        "step": 0.01
+        "count_band": 1,
+        "step": 0.002,
+        "update_frames": 8000
 
     },
 
@@ -92,11 +96,9 @@
     "analysis_pipeline_config": {
         "pipeline": "HemoDynamicsDFF",
         "args": {
-            "new_shape": [297, 337],
+           "new_shape": [297, 337],
             "capacity": 32,
-            "rois_dict_path": "..../WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
-            "mask_path": "..../WideFlow/data/cortex_map/allen_2d_cortex.h5",
-            "roi_name": "roi_17",
+            "rois_names": ["roi_17"],
             "regression_n_samples": 512
         }
     },

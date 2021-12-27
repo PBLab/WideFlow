@@ -13,7 +13,7 @@ class LiveVideoMetric(AbstractVis):
         self.vmax = vmax
         self.vmin = vmin
 
-        f, (self.vid_ax, self.metric_ax) = plt.subplots(1,2)
+        self.fig, (self.vid_ax, self.metric_ax) = plt.subplots(1,2)
         self.metric_ax.set_xlim([-1, 1])
         self.metric_ax.set_ylim([-3, 3])
         self.vid_ax.set_title('Live Video')
@@ -23,13 +23,13 @@ class LiveVideoMetric(AbstractVis):
         image = np.ndarray(shape=self.image_shape, dtype=np.float32, buffer=vid_existing_shm.buf)
 
         metric_existing_shm = shared_memory.SharedMemory(name=metric_shared_mem_name)
-        metric = np.ndarray(shape=self.image_shape, dtype=np.float32, buffer=metric_existing_shm.buf)
+        metric = np.ndarray(shape=(1, ), dtype=np.float32, buffer=metric_existing_shm.buf)
 
         threshold_existing_shm = shared_memory.SharedMemory(name=threshold_shared_mem_name)
-        threshold = np.ndarray(shape=self.image_shape, dtype=np.float32, buffer=threshold_existing_shm.buf)
+        threshold = np.ndarray(shape=(1, ), dtype=np.float32, buffer=threshold_existing_shm.buf)
 
-        self.vid_ax.imshow(image, vmin=self.vmin, vmax=self.vmax)
-        plt.colorbar()
+        im = self.vid_ax.imshow(image, vmin=self.vmin, vmax=self.vmax)
+        plt.colorbar(im, ax=self.vid_ax)
 
         metric_bar = self.metric_ax.bar(0, 0)
         threshold_line = self.metric_ax.hlines(0, -1, 1)
@@ -39,6 +39,7 @@ class LiveVideoMetric(AbstractVis):
 
             q = self.query.get()
             if q == "draw":
+                print("updating vizzzzzzzzzzzzzzzzzzzzzzzzzzzz")
                 self.vid_ax.clear()
                 self.vid_ax.imshow(image, vmin=self.vmin, vmax=self.vmax)
 

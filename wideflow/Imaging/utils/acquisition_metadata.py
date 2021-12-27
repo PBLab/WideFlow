@@ -4,10 +4,9 @@ import numpy as np
 
 
 class AcquisitionMetaData:
-    def __init__(self, session_config_path=None, config=None):
+    def __init__(self, config):
         self.datetime = time.localtime()
-        self.session_config_path = session_config_path
-        self.config = config or load_config(session_config_path)
+        self.config = config
         self.write_metafile_header()
 
     def write_frame_metadata(self, timestemp, cue, result, threshold, readout):
@@ -40,6 +39,6 @@ class AcquisitionMetaData:
         return "{" + "\n".join("{!r}: {!r},".format(k, v) for k, v in dictionary.items()) + "}"
 
     def save_file(self):
-        path = self.config["path"] + self.config["acquisition_config"]["meta_file_name"]
+        path = f"{self.config['base_path']}/{self.config['mouse_id']}/{self.config['session_name']}/metadata.txt"
         with open(path, 'w') as f:
             f.write(self.metatext)
