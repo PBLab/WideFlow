@@ -54,6 +54,7 @@
 
         "behavioral_camera_config": {
         "process": "",
+        "script":"/home/pb/PycharmProjects/WideFlow/wideflow/devices/spinnaker_flir_cam/bin/FLIRcam_main",
         "file_name": "behavioral_vid.avi",
         "attr": {
             "exp_time": 5,
