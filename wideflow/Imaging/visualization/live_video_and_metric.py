@@ -33,13 +33,13 @@ class LiveVideoMetric(AbstractVis):
 
         metric_bar = self.metric_ax.bar(0, 0)
         threshold_line = self.metric_ax.hlines(0, -1, 1)
+
         while True:
             if self.query.empty():
                 continue
 
             q = self.query.get()
             if q == "draw":
-                print("updating vizzzzzzzzzzzzzzzzzzzzzzzzzzzz")
                 self.vid_ax.clear()
                 self.vid_ax.imshow(image, vmin=self.vmin, vmax=self.vmax)
 
@@ -51,8 +51,11 @@ class LiveVideoMetric(AbstractVis):
                 self.fig.canvas.draw()
                 plt.pause(1/self.frame_rate)
             elif q == "terminate":
-                print("live video terminating")
-                self.terminate()
+                print("terminating live video process")
+                self.terminate(vid_existing_shm, metric_existing_shm, threshold_existing_shm)
+                vid_existing_shm.close()
+                metric_existing_shm.close()
+                threshold_existing_shm.close()
                 break
             else:
                 raise KeyError(f'LiveVideo query "{q}" is invalid')

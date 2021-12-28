@@ -76,7 +76,7 @@ class NeuroFeedbackSession(AbstractSession):
         self.data_shm, self.frame_shm, self.memq, self.mem_process = None, None, None, None
 
         # visualization shared memory and query
-        self.vis_shm, self.vis_query, self.vis_processes = {}, {}, {}
+        self.vis_shm, self.vis_query, self.vis_processes = [], [], []
 
         # set behavioral camera process
         self.behavioral_camera_process, self.behavioral_camera_q = None, None
@@ -106,8 +106,8 @@ class NeuroFeedbackSession(AbstractSession):
             for plugin_dict in self.camera_config["splice_plugins_settings"]:
                 cam.set_splice_post_processing_attributes(plugin_dict["name"], plugin_dict["parameters"])
 
-        # setting camera active output wires to 2 - strobbing of two LEDs
-        cam.set_param(PARAM_LAST_MUXED_SIGNAL, 2)
+        # setting camera active output wires equals the number of channels - strobbing of illumination LEDs
+        cam.set_param(PARAM_LAST_MUXED_SIGNAL, self.camera_config["attr"]["channels"])
         return cam
 
     def set_behavioral_camera(self):
@@ -340,24 +340,28 @@ class NeuroFeedbackSession(AbstractSession):
             threshold_shm_name = shm.name
 
             live_stream_que = Queue(5)
-            target = LiveVideoMetric(live_stream_que, **config["params"])
+            target = LiveVideoMetric(live_stream_que, config["params"]["image_shape"])
             live_stream_process = mp.Process(target=target, args=(image_shm_name, metric_shm_name, threshold_shm_name))
             live_stream_process.start()
 
-            self.vis_shm["live_stream"] = {"image": image_shm, "me2tric": metric_shm, "threshold": threshold_shm}
+            self.vis_shm["live_stream"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
             self.vis_query["live_stream"] = live_stream_que
             self.vis_processes["live_stream"] = live_stream_process
 
     def update_visualiztion(self, feedback_threshold, metric):
         if self.visualization_config["show_live_stream_and_metric"]["status"]:
-            self.vis_shm["live_stream"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr])
-            self.vis_shm["live_stream"]["metric"][:] = metric
-            self.vis_shm["live_stream"]["threshold"][:] = feedback_threshold
+            print('update image')
+            self.vis_shm["live_stream"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr, :, :])
+            print('update metric')
+            self.vis_shm["live_stream"]["metric"][:] = metric or np.nan_to_num(0, metric)
+            print('update threshold')
+            self.vis_shm["live_stream"]["threshold"][:] = feedback_threshold or np.nan_to_num(0, feedback_threshold)
             if not self.vis_query["live_stream"].full():
+                print("send queueueueue")
                 self.vis_query["live_stream"].put("draw")
 
     def terminate_visualiztion(self):
-        if self.visualization_config["show_live_stream"]["status"]:
+        if self.visualization_config["show_live_stream_and_metric"]["status"]:
             if self.vis_query["live_stream"].full():
                 self.vis_query["live_stream"].get()
             self.vis_query["live_stream"].put("terminate")
