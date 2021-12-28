@@ -37,15 +37,31 @@ from time import perf_counter
 from datetime import datetime
 
 from wideflow.analysis.utils.load_session_metadata import load_session_metadata
+from wideflow.utils.imaging_utils import load_config
 
 
 class PostAnalysisNeuroFeedbackSession(AbstractSession):
-    def __init__(self, config):
+    def __init__(self, config_path, crop_sensor=False):
+        """
+
+        Args:
+            config_path: str - path to directory where session config and all other data is located
+            crop_sensor: bool - crop image using roi config or not
+        """
+
+        self.config_path = config_path
+        self.crop_sensor = crop_sensor
+
+        config = load_config(self.config_path)
         # use the same config used for running the live neurofeedback session
         self.config = config
-        self.mouse_id = config['name']
-        self.base_path = config["path"]
+        self.base_path = config["base_path"]
+        self.mouse_id = config["mouse_id"]
+        self.session_name = config["session_name"]
+        self.session_path = f"{self.base_path}/{self.mouse_id}/{self.session_name}/"
+
         self.camera_config = config["camera_config"]
+
         self.serial_config = config["serial_port_config"]
         self.behavioral_camera_config = config["behavioral_camera_config"]
         self.acquisition_config = config["acquisition_config"]
@@ -53,8 +69,6 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         self.registration_config = config["registration_config"]
         self.supplementary_data_config = config["supplementary_data_config"]
         self.analysis_pipeline_config = config["analysis_pipeline_config"]
-
-        self.session_name = self.base_path.split('/')[-2]
 
         self.camera = self.set_imaging_camera()
         self.serial_controller = self.set_serial_controler()
@@ -65,15 +79,8 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
         self.analysis_pipeline = None
 
-        # shared memory to save imaging data
-        self.data_dtype = np.uint16
-        self.frame_shm, self.memq, self.mem_process = None, None, None
-
-        # visualization shared memory and query
-        self.vis_shm, self.vis_query, self.vis_processes = {}, {}, {}
-
     def set_imaging_camera(self):
-        cam = MockPVCamera(self.camera_config, self.base_path, self.camera_config["crop_sensor"])
+        cam = MockPVCamera(self.camera_config, self.config_path, self.crop_sensor)
         return cam
 
     def set_behavioral_camera(self):
@@ -86,8 +93,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         return serial_controller
 
     def set_metadata_writer(self):
-        metadata = AcquisitionMetaData(session_config_path=None, config=self.config)
-        return metadata
+        pass
 
     def session_preparation(self):
         # select roi
@@ -137,13 +143,14 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         self.analysis_pipeline.camera.start_live()
         rois_traces = {}
         for roi_key in self.cortex_rois_dict:
-            rois_traces[roi_key] = np.zeros((int(self.acquisition_config["num_of_frames"] / 2), ), dtype=np.float32)
+            rois_traces[roi_key] = np.zeros((int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']), )
+                                            , dtype=np.float32)
 
         print(f'starting session at {datetime.now()}')
         # start session
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        while frame_counter < self.acquisition_config["num_of_frames"]:
+        while self.camera.total_cap_frames < self.acquisition_config["num_of_frames"]:
             self.analysis_pipeline.process()
             for roi_key in rois_traces:
                 rois_traces[roi_key][frame_counter] = cp.asnumpy(
