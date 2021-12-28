@@ -76,7 +76,7 @@ class NeuroFeedbackSession(AbstractSession):
         self.data_shm, self.frame_shm, self.memq, self.mem_process = None, None, None, None
 
         # visualization shared memory and query
-        self.vis_shm, self.vis_query, self.vis_processes = [], [], []
+        self.vis_shm_obj, self.vis_shm, self.vis_query, self.vis_processes = {}, {}, {}, {}
 
         # set behavioral camera process
         self.behavioral_camera_process, self.behavioral_camera_q = None, None
@@ -325,39 +325,36 @@ class NeuroFeedbackSession(AbstractSession):
         config = self.visualization_config["show_live_stream_and_metric"]
         if config["status"]:
             image = np.ndarray(config["size"], dtype=np.dtype(config["dtype"]))
-            shm = shared_memory.SharedMemory(create=True, size=image.nbytes)
-            image_shm = np.ndarray(image.shape, dtype=image.dtype, buffer=shm.buf)
-            image_shm_name = shm.name
+            vshm = shared_memory.SharedMemory(create=True, size=image.nbytes)
+            image_shm = np.ndarray(image.shape, dtype=image.dtype, buffer=vshm.buf)
+            image_shm_name = vshm.name
 
             metric = np.ndarray((1, ), dtype=np.float32)
-            shm = shared_memory.SharedMemory(create=True, size=metric.nbytes)
-            metric_shm = np.ndarray(metric.shape, dtype=metric.dtype, buffer=shm.buf)
-            metric_shm_name = shm.name
+            mshm = shared_memory.SharedMemory(create=True, size=metric.nbytes)
+            metric_shm = np.ndarray(metric.shape, dtype=metric.dtype, buffer=mshm.buf)
+            metric_shm_name = mshm.name
 
             threshold = np.ndarray((1, ), dtype=np.float32)
-            shm = shared_memory.SharedMemory(create=True, size=threshold.nbytes)
-            threshold_shm = np.ndarray(threshold.shape, dtype=threshold.dtype, buffer=shm.buf)
-            threshold_shm_name = shm.name
+            tshm = shared_memory.SharedMemory(create=True, size=threshold.nbytes)
+            threshold_shm = np.ndarray(threshold.shape, dtype=threshold.dtype, buffer=tshm.buf)
+            threshold_shm_name = tshm.name
 
             live_stream_que = Queue(5)
             target = LiveVideoMetric(live_stream_que, config["params"]["image_shape"])
             live_stream_process = mp.Process(target=target, args=(image_shm_name, metric_shm_name, threshold_shm_name))
             live_stream_process.start()
 
+            self.vis_shm_obj["live_stream"] = {"image": vshm, "metric": mshm, "threshold": tshm}
             self.vis_shm["live_stream"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
             self.vis_query["live_stream"] = live_stream_que
             self.vis_processes["live_stream"] = live_stream_process
 
     def update_visualiztion(self, feedback_threshold, metric):
         if self.visualization_config["show_live_stream_and_metric"]["status"]:
-            print('update image')
             self.vis_shm["live_stream"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr, :, :])
-            print('update metric')
             self.vis_shm["live_stream"]["metric"][:] = metric or np.nan_to_num(0, metric)
-            print('update threshold')
             self.vis_shm["live_stream"]["threshold"][:] = feedback_threshold or np.nan_to_num(0, feedback_threshold)
             if not self.vis_query["live_stream"].full():
-                print("send queueueueue")
                 self.vis_query["live_stream"].put("draw")
 
     def terminate_visualiztion(self):
@@ -367,6 +364,10 @@ class NeuroFeedbackSession(AbstractSession):
             self.vis_query["live_stream"].put("terminate")
             self.vis_processes["live_stream"].join()
             self.vis_processes["live_stream"].terminate()
+            for key in self.vis_shm_obj["live_stream"]:
+                del self.vis_shm["live_stream"][key]
+                self.vis_shm_obj["live_stream"][key].close()
+                self.vis_shm_obj["live_stream"][key].unlink()
 
     def select_camera_sensor_roi(self, frame):
         fig, ax = plt.subplots()
