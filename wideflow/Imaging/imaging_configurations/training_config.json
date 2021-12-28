@@ -67,7 +67,7 @@
 
     "acquisition_config": {
         "enable_gpu" : 1,
-        "vid_file_name": "wf_video.dat",
+        "vid_file_name": "wf_raw_data.dat",
         "meta_file_name": "session_metadata.txt",
         "num_of_frames": 10000,
         "convert_to_tiff": true
@@ -83,17 +83,23 @@
         "update_frames": 0
     },
 
-    "reference_image_path": "",
+    "registration_config": {
+        "automatic_cropping": false,
+        "reference_image_path": "",
+        "cropping_bbox_path": "",
+        "matching_point_path": ""
+    },
+
+    "supplementary_data_config": {
+        "rois_dict_path": "..../WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5",
+        "mask_path": "..../WideFlow/data/cortex_map/allen_2d_cortex.h5"
+    },
 
     "analysis_pipeline_config": {
         "pipeline": "TrainingPipe",
         "args": {
             "min_frame_count": 1000,
-            "max_frame_count": 2000,
-            "new_shape": [297, 337],
-            "mask_path": "/home/pb/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
-            "match_p_src": null,
-            "match_p_dst": null
+            "max_frame_count": 4000
             }
     },
 

@@ -65,8 +65,8 @@
     },
 
     "acquisition_config": {
-        "vid_file_name": "vid.dat",
-        "meta_file_name": "meta.txt",
+        "vid_file_name": "wf_raw_data.dat",
+        "meta_file_name": "session_metadata.txt",
         "num_of_frames": 10000,
         "convert_to_tiff": true
     },
@@ -97,10 +97,8 @@
     "analysis_pipeline_config": {
         "pipeline": "HemoDynamicsDFF",
         "args": {
-           "new_shape": [297, 337],
             "capacity": 32,
-            "rois_names": ["roi_17"],
-            "regression_n_samples": 512
+            "rois_names": ["roi_17"]
         }
     },
 
