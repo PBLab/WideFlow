@@ -1,7 +1,9 @@
 {
-    "name": "3424",
+    "base_path": "/home/pb/WideFlow_prj",
 
-    "path": "/home/pb/WideFlow_prj/3424/20211005/",
+    "mouse_id": "mouse ID",
+
+    "session_name": "session name",
 
     "camera_config": {
         "core_attr": {
@@ -68,7 +70,7 @@
         "vid_file_name": "wf_raw_data.dat",
         "meta_file_name": "session_metadata.txt",
         "num_of_frames": 10000,
-        "capacity": 32
+        "convert_to_tiff": true
     },
 
     "feedback_config": {
