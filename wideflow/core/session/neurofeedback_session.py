@@ -11,6 +11,7 @@ from wideflow.Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from wideflow.Imaging.utils.memmap_process import MemoryHandler
 from wideflow.Imaging.utils.adaptive_staircase_procedure import fixed_step_staircase_procedure
 from wideflow.Imaging.visualization.live_video_and_metric import LiveVideoMetric
+from wideflow.Imaging.visualization.live_video import LiveVideo
 from wideflow.Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
 from wideflow.Imaging.utils.create_matching_points import MatchingPointSelector
 from wideflow.Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
@@ -168,11 +169,12 @@ class NeuroFeedbackSession(AbstractSession):
             )
         elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
             self.analysis_pipeline = TrainingPipe(
-                self.camera,
+                self.camera, self.session_path,
                 self.analysis_pipeline_config["args"]["min_frame_count"], self.analysis_pipeline_config["args"]["max_frame_count"],
                 self.cortex_mask, self.cortex_map,
                 match_p_src, match_p_dst,
-                self.analysis_pipeline_config["args"]["capacity"]
+                regression_map,
+                self.analysis_pipeline_config["args"]["capacity"],
             )
         else:
             raise NameError()
@@ -344,30 +346,61 @@ class NeuroFeedbackSession(AbstractSession):
             live_stream_process = mp.Process(target=target, args=(image_shm_name, metric_shm_name, threshold_shm_name))
             live_stream_process.start()
 
-            self.vis_shm_obj["live_stream"] = {"image": vshm, "metric": mshm, "threshold": tshm}
-            self.vis_shm["live_stream"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
-            self.vis_query["live_stream"] = live_stream_que
-            self.vis_processes["live_stream"] = live_stream_process
+            self.vis_shm_obj["live_stream_metric"] = {"image": vshm, "metric": mshm, "threshold": tshm}
+            self.vis_shm["live_stream_metric"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
+            self.vis_query["live_stream_metric"] = live_stream_que
+            self.vis_processes["live_stream_metric"] = live_stream_process
+
+            config = self.visualization_config["show_live_stream"]
+            if config["status"]:
+                image = np.ndarray(config["size"], dtype=np.dtype(config["dtype"]))
+                vshm = shared_memory.SharedMemory(create=True, size=image.nbytes)
+                image_shm = np.ndarray(image.shape, dtype=image.dtype, buffer=vshm.buf)
+                image_shm_name = vshm.name
+
+                live_stream_que = Queue(5)
+                target = LiveVideo(live_stream_que, config["params"]["image_shape"])
+                live_stream_process = mp.Process(target=target, args=(image_shm_name,))
+                live_stream_process.start()
+
+                self.vis_shm_obj["live_stream"] = {"image": vshm, "metric": mshm, "threshold": tshm}
+                self.vis_shm["live_stream"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
+                self.vis_query["live_stream"] = live_stream_que
+                self.vis_processes["live_stream"] = live_stream_process
 
     def update_visualiztion(self, feedback_threshold, metric):
         if self.visualization_config["show_live_stream_and_metric"]["status"]:
+            self.vis_shm["live_stream_metric"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr, :, :])
+            self.vis_shm["live_stream_metric"]["metric"][:] = metric or np.nan_to_num(0, metric)
+            self.vis_shm["live_stream_metric"]["threshold"][:] = feedback_threshold or np.nan_to_num(0, feedback_threshold)
+            if not self.vis_query["live_stream_metric"].full():
+                self.vis_query["live_stream_metric"].put("draw")
+
+        if self.visualization_config["show_live_stream"]["status"]:
             self.vis_shm["live_stream"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr, :, :])
-            self.vis_shm["live_stream"]["metric"][:] = metric or np.nan_to_num(0, metric)
-            self.vis_shm["live_stream"]["threshold"][:] = feedback_threshold or np.nan_to_num(0, feedback_threshold)
             if not self.vis_query["live_stream"].full():
                 self.vis_query["live_stream"].put("draw")
 
     def terminate_visualiztion(self):
         if self.visualization_config["show_live_stream_and_metric"]["status"]:
+            if self.vis_query["live_stream_metric"].full():
+                self.vis_query["live_stream_metric"].get()
+            self.vis_query["live_stream_metric"].put("terminate")
+            self.vis_processes["live_stream_metric"].join()
+            self.vis_processes["live_stream_metric"].terminate()
+            for key in self.vis_shm_obj["live_stream_metric"]:
+                del self.vis_shm["live_stream_metric"][key]
+                self.vis_shm_obj["live_stream_metric"][key].close()
+                self.vis_shm_obj["live_stream_metric"][key].unlink()
+
+        if self.visualization_config["show_live_stream"]["status"]:
             if self.vis_query["live_stream"].full():
                 self.vis_query["live_stream"].get()
             self.vis_query["live_stream"].put("terminate")
             self.vis_processes["live_stream"].join()
             self.vis_processes["live_stream"].terminate()
-            for key in self.vis_shm_obj["live_stream"]:
-                del self.vis_shm["live_stream"][key]
-                self.vis_shm_obj["live_stream"][key].close()
-                self.vis_shm_obj["live_stream"][key].unlink()
+            del self.vis_shm["live_stream"]["image"]
+            self.vis_shm_obj["live_stream"]["image"].close()
 
     def select_camera_sensor_roi(self, frame):
         fig, ax = plt.subplots()
