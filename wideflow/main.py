@@ -7,8 +7,8 @@ import argparse
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Wide Field Real-Time Analysis and Neurofeedback')
 
-    parser.add_argument('--config_path', type=str, help='full path to session configuration JSON file')
-    parser.add_argument('--session', type=str, help='session pipeline class name')
+    parser.add_argument('-c', '--config_path', type=str, help='full path to session configuration JSON file')
+    parser.add_argument('-s', '--session', type=str, help='session pipeline class name')
 
     args = parser.parse_args()
 

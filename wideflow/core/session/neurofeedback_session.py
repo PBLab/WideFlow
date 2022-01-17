@@ -320,6 +320,10 @@ class NeuroFeedbackSession(AbstractSession):
             finally:
                 print("done")
 
+            write_bbox_file(self.session_path + 'bbox.txt', self.camera.roi)
+            write_matching_point_file(self.session_path + 'matching_points.txt',
+                                      self.analysis_pipeline.match_p_src, self.analysis_pipeline.match_p_dst)
+
         print(f"ready for another?")
 
     def initialize_visualization(self):
