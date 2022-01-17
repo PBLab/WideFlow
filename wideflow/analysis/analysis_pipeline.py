@@ -13,7 +13,7 @@ import cv2
 
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
-mouse_id = '2683'
+mouse_id = '2680'
 session_name = '20211219_neurofeedback'
 
 

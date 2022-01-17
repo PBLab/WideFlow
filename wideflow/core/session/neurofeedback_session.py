@@ -283,7 +283,7 @@ class NeuroFeedbackSession(AbstractSession):
         self.serial_controller.close()
 
         now = datetime.now()
-        with open(self.session_path + "session_config_" + now.strftime("%m_%d_%Y__%H_%M_%S") + '.json', 'w') as fp:
+        with open(self.session_path + "session_config.json", 'w') as fp:
             json.dump(self.config, fp)
 
         try:

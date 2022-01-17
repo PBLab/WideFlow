@@ -36,13 +36,18 @@ class InteractiveAffineTransform:
         mng = self.fig_dst.canvas.manager
         mng.window.wm_geometry(f'+{self.src_nrows + 10}+1')
 
+        self.td_offset = [
+            [40, 40],
+            [-40, 40],
+            [-40, -40]
+        ]
         self.tform = AffineTransform()
         self.src_cols = None
         self.dst_cols = None
         self.draggable_point, self.fixed_points_pos, self.trans_points_pos = self.initiate_transform_points()
         self.update_transform()
 
-        self.cidmotion = self.fig_src.canvas.mpl_connect('motion_notify_event', self.on_mouse_motion)
+        self.cidrelease = self.fig_src.canvas.mpl_connect('button_release_event', self.on_release)
         plt.show()
 
     def initiate_transform_points(self):
@@ -50,19 +55,19 @@ class InteractiveAffineTransform:
             [0, 0],
             [self.map_nrows, 0],
             [self.map_nrows, self.map_ncols]
-        ])
+        ], dtype=np.float64())
 
         trans_points_pos = np.array([
             [0, 0],
             [self.src_nrows, 0],
             [self.src_nrows, self.src_ncols]
-        ])
+        ], dtype=np.float64())
 
         circ_rad = np.min((self.src_nrows, self.src_ncols)) / 20
         circ_patches = {
-            'point1': patches.Circle((trans_points_pos[0, 1], trans_points_pos[0, 0]), circ_rad, fc='r', alpha=0.5),
-            'point2': patches.Circle((trans_points_pos[1, 1], trans_points_pos[1, 0]), circ_rad, fc='r', alpha=0.5),
-            'point3': patches.Circle((trans_points_pos[2, 1], trans_points_pos[2, 0]), circ_rad, fc='r', alpha=0.5)
+            'point1': patches.Circle((trans_points_pos[0, 1] + self.td_offset[0][1], trans_points_pos[0, 0] + self.td_offset[0][0]), circ_rad, fc='r', alpha=0.5),
+            'point2': patches.Circle((trans_points_pos[1, 1] + self.td_offset[1][1], trans_points_pos[1, 0] + self.td_offset[1][0]), circ_rad, fc='r', alpha=0.5),
+            'point3': patches.Circle((trans_points_pos[2, 1] + self.td_offset[2][1], trans_points_pos[2, 0] + self.td_offset[2][0]), circ_rad, fc='r', alpha=0.5)
         }
 
         draggable_point = {}
@@ -74,15 +79,15 @@ class InteractiveAffineTransform:
 
         return draggable_point, fixed_points_pos, trans_points_pos
 
-    def on_mouse_motion(self, event):
+    def on_release(self, event):
         for i, (key, point) in enumerate(self.draggable_point.items()):
-            if self.trans_points_pos[i, 1] != point.point.center[0] or self.trans_points_pos[i, 0] != point.point.center[1]:
-                self.trans_points_pos[i] = (point.point.center[1], point.point.center[0])
+            if not np.allclose(self.trans_points_pos[i, 1] - self.td_offset[i][1], point.point.center[0]) \
+                    or not np.allclose(self.trans_points_pos[i, 0] - self.td_offset[i][0], point.point.center[1]):
+                self.trans_points_pos[i] = (point.point.center[1] - self.td_offset[i][0], point.point.center[0] - self.td_offset[i][1])
                 self.update_transform()
-                break
 
     def disconnect(self):
-        self.fig_src.canvas.mpl_disconnect(self.cidmotion)
+        self.fig_src.canvas.mpl_disconnect(self.cidrelease)
 
     def update_transform(self):
         # TODO: why roll axis (switch between x, y coordinates)?
@@ -97,7 +102,6 @@ class InteractiveAffineTransform:
 
         self.ax_dst.imshow(image_warp)
         self.fig_dst.canvas.draw()
-        # plt.pause(0.02)
 
     def accept(self, event):
         plt.close(self.fig_src)
@@ -111,6 +115,7 @@ class InteractiveAffineTransform:
         self.update_transform()
 
 
+## Test GUI
 # import h5py
 # from wideflow.utils.load_tiff import load_tiff
 # cortex_file_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'

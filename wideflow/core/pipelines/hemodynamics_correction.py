@@ -1,6 +1,6 @@
 from wideflow.core.abstract_pipeline import AbstractPipeLine
 from wideflow.core.processes import *
-from wideflow.core.metrics.ROI_Contrast import ROIContrast
+from wideflow.core.metrics.ROI_Diff import ROIDiff
 
 import cupy as cp
 import numpy as np
@@ -62,7 +62,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
             for roi_pixels in roi_pixels_list:
                 rois_pixels_list.append(roi_pixels)
 
-        self.metric = ROIContrast(self.dff_buffer, self.rois_dict, rois_pixels_list, self.mask, 0)
+        self.metric = ROIDiff(self.dff_buffer, self.rois_dict, rois_pixels_list)
 
         self.ptr = self.capacity - 1
         self.ptr_2c = 2 * self.capacity - 1

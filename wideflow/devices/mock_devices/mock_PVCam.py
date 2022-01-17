@@ -48,13 +48,13 @@ class MockPVCamera:
 
     def get_frame(self):
         self.frame_idx += 1
+        self.total_cap_frames += 1
         if self.frame_idx == self.num_of_frames:
             self.load_video_data()
         if self.crop_sensor:
             return self.video[self.frame_idx, self.roi[2]:self.roi[3], self.roi[0]:self.roi[1]]
         else:
             return self.video[self.frame_idx]
-        self.total_cap_frames += 1
 
     def get_live_frame(self):
         return self.get_frame()
