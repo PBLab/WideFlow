@@ -1,6 +1,7 @@
 import h5py
 import numpy as np
-from wideflow.utils.gen_utils import add_properties_to_roi_list, add_morphological_adjacent_rois_to_roi_list
+from wideflow.utils.gen_utils import add_properties_to_roi_list
+# from wideflow.utils.gen_utils import add_morphological_adjacent_rois_to_roi_list
 
 
 def load_matlab_OF(mat_path):
@@ -60,7 +61,7 @@ def load_extended_rois_list(file_path):
             roi_list[key]['PixelIdxList'] = grp['PixelIdxList'][()] - 1  # -1 to convert from matlab to python
             roi_list[key]['outline'] = grp['outline'][()]
             roi_list[key]['top_left_bottom_rigth'] = grp['top_left_bottom_rigth'][()]
-            # roi_list[key]['Adjacent_rois_Idx'] = grp['Adjacent_rois_Idx'][()]
+            roi_list[key]['name'] = grp['name'][()]
 
 
     # keep keys order as index order

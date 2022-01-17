@@ -8,7 +8,7 @@ def crop(video, ref_bbox=None, reference_image=None):
     vid_shape = video.shape
     reference_frame = video[0]
 
-    if ref_bbox != None and reference_image != None:
+    if ref_bbox != None and reference_image is not None:
         ref_shape = reference_image.shape
         if ref_shape[0] != vid_shape[1] or ref_shape[1] != vid_shape[2]:
             resize = True

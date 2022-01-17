@@ -12,7 +12,7 @@ class Mask(AbstractProcess):
         self.ptr = ptr
 
     def initialize_buffers(self):
-        pass
+        self.ptr = self.capacity - 1
 
     def process(self):
         if self.ptr == self.capacity - 1:
