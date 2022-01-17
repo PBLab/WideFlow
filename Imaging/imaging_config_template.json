@@ -10,6 +10,9 @@
             "roi": [0, 2048, 0, 2048],
             "clear_mode": 0
         },
+        "attr": {
+            "channels": 1
+        },
         "splice_plugins_enable": false,
         "splice_plugin_setting": [
             {
@@ -39,6 +42,12 @@
                 ]
             }
                                  ]
+    },
+
+    "behavioral_camera_config": {
+        "exp_time": 20,
+        "avi_type": "MJPG",
+        "saving_path": "/home/pb/PycharmProjects/WideFlow/session_results/bvid.MJPG"
     },
 
     "serial_port_config": {
@@ -104,4 +113,4 @@
             "class": "ROIsTracePlot", "params": {"image_shape": [297, 337], "frame_rate": 50}
         }
      }
-}
+},

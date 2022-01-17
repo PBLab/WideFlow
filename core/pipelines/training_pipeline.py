@@ -25,8 +25,8 @@ class TrainingPipe(AbstractPipeLine):
 
         self.capacity = 1
         self.input_shape = self.camera.shape
-        self.frame = np.ndarray(self.new_shape)
-        self.input = cp.ndarray(self.input_shape)
+        self.frame = np.ndarray((self.input_shape[1], self.input_shape[0]))
+        self.input = cp.ndarray((self.input_shape[1], self.input_shape[0]))
         self.warped_input = cp.ndarray((self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.warped_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.dff_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
@@ -43,7 +43,19 @@ class TrainingPipe(AbstractPipeLine):
         self.counter = 0
 
     def fill_buffers(self):
-        pass
+        for _ in range(self.capacity):
+            self.get_input()
+            self.processes_list[0].process()
+            self.processes_list[1].process()
+
+        for process in self.processes_list:
+            process.initialize_buffers()
+
+    def clear_buffers(self):
+        self.input = None
+        self.warped_input = None
+        self.warped_buffer = None
+        self.dff_buffer = None
 
     def get_input(self):
         self.frame = self.camera.get_live_frame()

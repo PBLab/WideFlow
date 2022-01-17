@@ -1,7 +1,7 @@
 {
-    "name": "3697",
+    "name": "3422",
 
-    "path": "/home/pb/WideFlow_prj/3697/26072021/",
+    "path": "/home/pb/WideFlow_prj/3422/01082021/",
 
     "camera_config": {
         "core_attr": {
@@ -9,6 +9,9 @@
             "binning": [2, 2],
             "roi": [0, 2048, 0, 2048],
             "clear_mode": 0
+        },
+        "attr": {
+            "channels": 1
         },
         "splice_plugins_enable": false,
         "splice_plugin_setting": [
@@ -41,6 +44,12 @@
                                  ]
     },
 
+    "behavioral_camera_config": {
+        "exp_time": 20,
+        "avi_type": "MJPG",
+        "saving_path": "/home/pb/WideFlow_prj/3422/01082021/behavioral_cam_vid.MJPG"
+    },
+
     "serial_port_config": {
         "port_id": "/dev/ttyACM0",
         "baudrate": 9600,
@@ -50,9 +59,9 @@
     "acquisition_config": {
         "enable_gpu" : 1,
         "vid_writer": {"nrows": 1024, "ncols": 1024, "frame_var": "frame"},
-        "vid_save_path": "/home/pb/WideFlow_prj/3697/26072021/t1_vid.dat",
-        "meta_save_path": "/home/pb/WideFlow_prj/3697/26072021/t1_meta.txt",
-        "num_of_frames": 20000,
+        "vid_save_path": "/home/pb/WideFlow_prj/3422/01082021/t1_vid.dat",
+        "meta_save_path": "/home/pb/WideFlow_prj/3422/01082021/t1_meta.txt",
+        "num_of_frames": 200,
         "capacity": 32
     },
 

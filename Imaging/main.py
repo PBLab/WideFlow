@@ -1,6 +1,8 @@
-# from core.pipelines.training_pipeline import TrainingPipe as PipeLine
+# from core.pipelines.hemodynamics_correction import HemoDynamicsDFF as PipeLine
 from core.pipelines import *
 from devices.serial_port import SerialControler
+# from devices.FLIRCam import FLIRCam
+from Imaging.behavioral_camera import behavioral_camera
 
 from utils.imaging_utils import load_config
 from utils.convert_dat_to_tif import convert_dat_to_tif
@@ -10,10 +12,12 @@ from Imaging.visualization import *
 from Imaging.utils.create_matching_points import *
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
+from utils.load_matching_points import load_matching_points
 
 import cupy as cp
 import numpy as np
 from scipy.signal import fftconvolve
+import cv2
 import os
 import sys
 
@@ -28,12 +32,23 @@ import json
 from tifffile import TiffWriter
 
 import multiprocessing as mp
-from multiprocessing import shared_memory, Queue
+if int(sys.version[2]) > 7:
+    from multiprocessing import shared_memory, Queue
+    from multiprocessing.shared_memory import SharedMemory
+else:
+    from shared_numpy import SharedMemory, Queue
 
 
 def run_session(config, cam):
+    # free gpu memory
+    mempool = cp.get_default_memory_pool()
+    pinned_mempool = cp.get_default_pinned_memory_pool()
+    mempool.free_all_blocks()
+    pinned_mempool.free_all_blocks()
+
     # session config
     camera_config = config["camera_config"]
+    behavioral_camera_config = config["behavioral_camera_config"]
     serial_config = config["serial_port_config"]
     cortex_config = config["rois_data_config"]
     acquisition_config = config["acquisition_config"]
@@ -56,19 +71,23 @@ def run_session(config, cam):
 
     # open camera and set camera settings
     cam.open()
-    cam.start_up()
+    for key, value in camera_config["attr"].items():
+        setattr(cam, key, value)
+
     for key, value in camera_config["core_attr"].items():
         if type(getattr(cam, key)) == type(value):
             setattr(cam, key, value)
         else:
             setattr(cam, key, type(getattr(cam, key))(value))
 
+    cam.start_up()
+
     if camera_config["splice_plugins_enable"]:
         for plugin_dict in camera_config["splice_plugins_settings"]:
             cam.set_splice_post_processing_attributes(plugin_dict["name"], plugin_dict["parameters"])
 
     # select roi
-    # cam.binning = (1, 1)  # set no binning for ROI selection
+    cam.binning = (1, 1)  # set no binning for ROI selection
     frame = cam.get_frame()
     if not os.path.exists(config["rois_data_config"]["reference_image_path"]):
         fig, ax = plt.subplots()
@@ -79,25 +98,29 @@ def run_session(config, cam):
         bbox = toggle_selector._rect_bbox
         if np.sum(bbox) > 1:
             # convert to PyVcam format
-            bbox = (bbox[0]/cam.binning[0], bbox[1]*cam.binning[0], bbox[2]/cam.binning[1], bbox[3]*cam.binning[1])
-            bbox = (int(bbox[1]), int(bbox[1] + bbox[3]), int(bbox[0]), int(bbox[0] + bbox[2]))
-            # bbox = (bbox[0], bbox[1]*cam.binning[0], bbox[2], bbox[3]*cam.binning[1])
+            bbox = (int(bbox[0]), int(bbox[0] + bbox[2]), int(bbox[1]), int(bbox[1] + bbox[3]))
             cam.roi = bbox
+            #  camera ROI is defined as: (x_min, x_max, y_min, y_max)
+            #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
 
     else:  # if a reference image exist, use
         ref_image = load_tiff(config["rois_data_config"]["reference frame path"] + "reference_image.tif")
         ref_bbox = load_bbox(config["rois_data_config"]["reference frame path"] + "bbox.txt")
-        ref_image_roi = ref_image[ref_bbox[0]: ref_bbox[1], ref_bbox[2]: ref_bbox[3]]
+        match_p_src, match_p_dst = load_matching_points(config["rois_data_config"]["reference frame path"] + "matching_points.txt")
+        cortex_config["cortex_matching_point"]["match_p_src"] = match_p_src
+        cortex_config["cortex_matching_point"]["match_p_dst"] = match_p_dst
+
+        ref_image_roi = ref_image[ref_bbox[2]: ref_bbox[3], ref_bbox[0]: ref_bbox[1]]
 
         corr = fftconvolve(frame, np.fliplr(np.flipud(ref_image_roi)))
         (yi, xi) = np.unravel_index(np.argmax(corr), corr.shape)
         yi = yi - (corr.shape[0] - frame.shape[0])
         xi = xi - (corr.shape[1] - frame.shape[1])
-        bbox = (yi, yi + (ref_bbox[1] - ref_bbox[0]), xi, xi + ref_bbox + (ref_bbox[3] - ref_bbox[2]))
+        bbox = (xi, xi + (ref_bbox[1] - ref_bbox[0]), yi, yi + (ref_bbox[3] - ref_bbox[2]))
         cam.roi = bbox
-    # cam.binning = tuple(camera_config["core_attr"]["binning"])
-    # select matching points for allen atlas alignment
+    cam.binning = tuple(camera_config["core_attr"]["binning"])
 
+    # select matching points for allen atlas alignment
     frame = cam.get_frame()
     mps = MatchingPointSelector(frame, cortex_map * np.random.random(cortex_map.shape),
                                 cortex_config["cortex_matching_point"]["match_p_src"],
@@ -116,16 +139,21 @@ def run_session(config, cam):
     # video writer settings
     metadata = AcquisitionMetaData(session_config_path=None, config=config)
     dat_shape = (acquisition_config["num_of_frames"],
-                 acquisition_config["vid_writer"]["nrows"], acquisition_config["vid_writer"]["ncols"])
+                 frame.shape[0], frame.shape[1])
     vid_mem = np.memmap(acquisition_config["vid_save_path"], dtype='uint16', mode='w+',
                         shape=dat_shape)
+
+    # initialize behavioral camera
+    # behavioral_cam = FLIRCam(behavioral_camera_config)
+    # behavioral_cam_qs = Queue(5)
+    # behavioral_process = mp.Process(target=behavioral_camera, args=(behavioral_cam, behavioral_cam_qs))
 
     # initialize visualization processes
     vis_shm, vis_processes, vis_qs, vis_buffers = [], [], [], []
     for key, vis_config in visualization_config.items():
         if vis_config["status"]:
             a = np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]))
-            shm = shared_memory.SharedMemory(create=True, size=a.nbytes)
+            shm = SharedMemory(create=True, size=a.nbytes)
             shm_name = shm.name
             vis_shm.append(np.ndarray(vis_config["size"], dtype=np.dtype(vis_config["dtype"]), buffer=shm.buf))
 
@@ -152,6 +180,7 @@ def run_session(config, cam):
     feedback_time = 0
     while frame_counter < acquisition_config["num_of_frames"]:
         frame_clock_start = perf_counter()
+        # behavioral_cam_qs.put("grab")
         pipeline.process()
 
         # evaluate metric
@@ -164,7 +193,8 @@ def run_session(config, cam):
             feedback_time = perf_counter()
             cue = 1
             ser.sendFeedback()
-            print('________________FEEDBACK HAS BEEN SENT___________________')
+            print('________________FEEDBACK HAS BEEN SENT___________________\n'
+                  '_________________________________________________________')
 
         # save data
         # vid_mem[frame_counter] = getattr(pipeline, acquisition_config["frame_var"])
@@ -183,7 +213,7 @@ def run_session(config, cam):
         frame_counter += 1
         frame_clock_stop = perf_counter()
         print(f'frame: {frame_counter}      metric results: {result}')
-        print("Elapsed time:", frame_clock_stop - frame_clock_start)
+        # print("Elapsed time:", frame_clock_stop - frame_clock_start)
         print(f'serial_readout: {serial_readout}')
 
     ###########################################################################################################
@@ -192,6 +222,9 @@ def run_session(config, cam):
 
     pipeline.camera.stop_live()
     pipeline.camera.close()
+    pipeline.clear_buffers()
+
+    # behavioral_cam_qs.put("terminate")
 
     ser.close()
 
@@ -200,7 +233,8 @@ def run_session(config, cam):
         frame_offset = frame.nbytes
         frame_shape = frame.shape
         del vid_mem  # closes the dat file
-        convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset, frame_shape,
+        convert_dat_to_tif(acquisition_config["vid_save_path"], frame_offset,
+                           (2000, frame_shape[0], frame_shape[1]),
                            str(frame.dtype), acquisition_config["num_of_frames"])
         os.remove(acquisition_config["vid_save_path"])
 
@@ -228,8 +262,8 @@ def run_session(config, cam):
     pinned_mempool = cp.get_default_pinned_memory_pool()
     mempool.free_all_blocks()
     pinned_mempool.free_all_blocks()
-    print(
-        f"session finished successfully at {time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
+    print(f"session finished successfully at: "
+          f"{time.localtime().tm_hour}:{time.localtime().tm_min}:{time.localtime().tm_sec}")
 
 
 if __name__ == "__main__":

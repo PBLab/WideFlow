@@ -45,7 +45,7 @@ byte lickPortStat;
 unsigned long globalClock;
 unsigned long valveClock = 0;
 unsigned long ledClock = 0;
-int valveActivationTime = 15;
+int valveActivationTime = 25;
 int ledActivationTime = 1500;
 
 
@@ -85,6 +85,7 @@ void loop() {
 void process() {
     if (allReceived) {
       msg = inputBuffer[0];
+      
       if (msg == activateFeedback){   // open the valve and light the LED
         valveClock = millis();
         ledClock = millis();
