@@ -133,4 +133,4 @@
             "class": "ROIsTracePlot", "params": {"image_shape": [297, 337], "frame_rate": 50}
         }
      }
-},
+}

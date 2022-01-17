@@ -1,10 +1,10 @@
-from wideflow.analysis.core import *
-from wideflow.analysis.utils import *
-from wideflow.utils.load_tiff import load_tiff
-from wideflow.utils.load_bbox import load_bbox
-from wideflow.utils.load_matching_points import load_matching_points
-from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
-from wideflow.utils.decompose_dict_and_h5_groups import decompose_dict_to_h5_groups
+from analysis.core import *
+from analysis.utils import *
+from utils.load_tiff import load_tiff
+from utils.load_bbox import load_bbox
+from utils.load_matching_points import load_matching_points
+from utils.load_matlab_vector_field import load_extended_rois_list
+from utils.decompose_dict_and_h5_groups import decompose_dict_to_h5_groups
 
 import os
 import h5py

@@ -5,7 +5,7 @@ from scipy.ndimage import map_coordinates
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.widgets import Button
-from wideflow.utils.draggable_point import DraggablePoint
+from utils.draggable_point import DraggablePoint
 
 
 class InteractiveAffineTransform:

@@ -1,7 +1,8 @@
 from scipy.ndimage import map_coordinates
 import numpy as np
-from wideflow.Imaging.utils.create_matching_points import MatchingPointSelector
 from skimage.transform import AffineTransform, warp_coords
+
+from Imaging.utils.create_matching_points import MatchingPointSelector
 
 
 def registration(video, match_p_src, match_p_dst, cortex_map, accept=False):

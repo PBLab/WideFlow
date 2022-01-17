@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from multiprocessing import shared_memory
 import numpy as np
 from utils.load_matlab_vector_field import load_extended_rois_list
-import time
 
 
 class ROIsTracePlot(TracePlot):

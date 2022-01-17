@@ -1,13 +1,8 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.widgets import RectangleSelector
-import time
+import os
+import json
 
 
 def load_config(path, handler=None):
-    import os
-    import json
-
     if not os.path.exists(path):
         raise RuntimeError('could not find path: ' + path)
 

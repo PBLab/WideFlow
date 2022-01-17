@@ -1,5 +1,5 @@
 import numpy as np
-from wideflow.analysis.utils import calc_regression_map
+from analysis.utils import calc_regression_map
 
 
 def hemodynamics_attenuation(wf_data, regression_coeff_map, hemo_correct_ch, capacity, reg_smooth_fac):

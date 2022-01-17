@@ -1,4 +1,3 @@
-
 def deinterleave(video, n_channels):
     deinterleav_data = {}
     for i in range(n_channels):

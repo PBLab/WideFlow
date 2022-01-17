@@ -1,24 +1,27 @@
-from wideflow.core.abstract_session import AbstractSession
-from wideflow.core.pipelines.hemodynamics_correction import HemoDynamicsDFF
-from wideflow.core.pipelines.training_pipeline import TrainingPipe
+from core.abstract_session import AbstractSession
+from core.pipelines.hemodynamics_correction import HemoDynamicsDFF
+from core.pipelines.training_pipeline import TrainingPipe
 
-from wideflow.devices.mock_devices.mock_PVCam import MockPVCamera
-from wideflow.devices.mock_devices.mock_serial_controller import MockSerialControler
+from devices.mock_devices.mock_PVCam import MockPVCamera
+from devices.mock_devices.mock_serial_controller import MockSerialControler
 
-from wideflow.Imaging.utils.acquisition_metadata import AcquisitionMetaData
-from wideflow.Imaging.utils.memmap_process import MemoryHandler
-from wideflow.Imaging.utils.adaptive_staircase_procedure import fixed_step_staircase_procedure
-from wideflow.Imaging.visualization.live_video_and_metric import LiveVideoMetric
-from wideflow.Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
-from wideflow.Imaging.utils.create_matching_points import MatchingPointSelector
+from Imaging.utils.acquisition_metadata import AcquisitionMetaData
+from Imaging.utils.memmap_process import MemoryHandler
+from Imaging.utils.adaptive_staircase_procedure import fixed_step_staircase_procedure
+from Imaging.visualization.live_video_and_metric import LiveVideoMetric
+from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
+from Imaging.utils.create_matching_points import MatchingPointSelector
 
-from wideflow.utils.load_tiff import load_tiff
-from wideflow.utils.load_bbox import load_bbox
-from wideflow.utils.load_matching_points import load_matching_points
-from wideflow.utils.matplotlib_rectangle_selector_events import *
-from wideflow.utils.find_2d_max_correlation_coordinates import find_2d_max_correlation_coordinates
-from wideflow.utils.convert_dat_to_tif import convert_dat_to_tif
-from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_tiff import load_tiff
+from utils.load_bbox import load_bbox
+from utils.load_matching_points import load_matching_points
+from utils.matplotlib_rectangle_selector_events import *
+from utils.find_2d_max_correlation_coordinates import find_2d_max_correlation_coordinates
+from utils.convert_dat_to_tif import convert_dat_to_tif
+from utils.load_matlab_vector_field import load_extended_rois_list
+
+from analysis.utils.load_session_metadata import load_session_metadata
+from utils.imaging_utils import load_config
 
 import numpy as np
 import cupy as cp
@@ -36,9 +39,6 @@ from multiprocessing import shared_memory, Queue
 
 from time import perf_counter
 from datetime import datetime
-
-from wideflow.analysis.utils.load_session_metadata import load_session_metadata
-from wideflow.utils.imaging_utils import load_config
 
 
 class PostAnalysisNeuroFeedbackSession(AbstractSession):

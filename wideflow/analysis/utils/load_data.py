@@ -1,8 +1,8 @@
 import os
 from tifffile import TiffFile
-from wideflow.utils.imaging_utils import load_config
+from utils.imaging_utils import load_config
 import cv2
-from .extract_from_metadata_file import extract_from_metadata_file
+from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 import numpy as np
 
 

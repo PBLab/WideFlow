@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
-from wideflow.analysis.utils.dynamic_threshold_scatter_activity import dynamic_threshold
-from wideflow.analysis.utils.peristimulus_time_response import calc_pstr, calc_sdf
-from wideflow.utils.interleave_matrix import interleave_matrix
+from analysis.utils.dynamic_threshold_scatter_activity import dynamic_threshold
+from analysis.utils.peristimulus_time_response import calc_pstr, calc_sdf
+from utils.interleave_matrix import interleave_matrix
 
 
 def plot_figures(results_path, metadata, config, rois_traces, neuronal_response_stats, behavioral_response_stats, statistics_global_param, rois_dict):

@@ -1,9 +1,7 @@
-import numpy as np
-import time
 import os
 
-from wideflow.utils.load_tiff import load_tiff
-from wideflow.analysis.utils.sort_video_path_list import sort_video_path_list
+from utils.load_tiff import load_tiff
+from analysis.utils.sort_video_path_list import sort_video_path_list
 
 
 class MockPVCamera:

@@ -1,6 +1,5 @@
-from wideflow.core.abstract_pipeline import AbstractPipeLine
-from wideflow.core.processes import *
-from wideflow.core.metrics.ROI_Contrast import ROIContrast
+from core.abstract_pipeline import AbstractPipeLine
+from core.processes import *
 
 import random
 import cupy as cp

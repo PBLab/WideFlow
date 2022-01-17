@@ -1,6 +1,6 @@
-from wideflow.core.abstract_pipeline import AbstractPipeLine
-from wideflow.core.processes import *
-from wideflow.core.metrics.ROI_Diff import ROIDiff
+from core.abstract_pipeline import AbstractPipeLine
+from core.processes import *
+from core.metrics.ROI_Diff import ROIDiff
 
 import cupy as cp
 import numpy as np

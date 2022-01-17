@@ -1,6 +1,6 @@
-from wideflow.utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
-from wideflow.analysis.utils.load_session_metadata import load_session_metadata
-from wideflow.analysis.utils.peristimulus_time_response import calc_pstr, calc_sdf
+from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
+from analysis.utils.load_session_metadata import load_session_metadata
+from analysis.utils.peristimulus_time_response import calc_pstr, calc_sdf
 
 
 import numpy as np

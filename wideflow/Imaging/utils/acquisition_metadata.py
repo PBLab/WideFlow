@@ -1,6 +1,4 @@
 import time
-from wideflow.utils.imaging_utils import load_config
-import numpy as np
 
 
 class AcquisitionMetaData:

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import random
 
 
-
 class TimeGraph():
     def __init__(self, roi_list, flow_shape, graph=None, flow=None, exclude_adjacent_rois=False):
         """
