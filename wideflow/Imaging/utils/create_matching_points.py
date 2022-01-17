@@ -154,6 +154,3 @@ class MatchingPointSelector:
         self.fig.set_visible(not self.fig.get_visible())
         plt.draw()
         self.ax.imshow(self.image_warp)
-
-
-mps = MatchingPointSelector(np.random.random((512, 512)), np.random.random((256, 256)), n_matching_pairs=3)

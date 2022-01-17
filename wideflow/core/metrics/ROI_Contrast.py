@@ -4,7 +4,7 @@ import numpy as np
 
 
 class ROIContrast(AbstractMetric):
-    def __init__(self, x, rois_dict, eval_rois_names, mask, ptr):
+    def __init__(self, x, rois_dict, eval_rois_names, mask, ptr=0):
         self.x = x
         self.rois_dict = rois_dict
         self.eval_rois_names = eval_rois_names

@@ -12,7 +12,9 @@ def load_config(path, handler=None):
         raise RuntimeError('could not find path: ' + path)
 
     if os.path.isdir(path):
-        path = os.path.join(path, 'config.json')
+        for file in os.listdir(path):
+            if file.endswith('json'):
+                path = os.path.join(path, file)
 
     with open(path, 'r') as f:
         data = f.read()

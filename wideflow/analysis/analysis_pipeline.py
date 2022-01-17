@@ -13,13 +13,14 @@ import cv2
 
 # project path
 project_path = '/data/Rotem/WideFlow prj/'
-mouse_id = '2683'
-session_name = '20211206_neurofeedback'
+mouse_id = '2680'
+session_name = '20211219_neurofeedback'
 
 
 # analysis global parameters
 crop = False
 register = True
+reg_smooth_fac = 3
 
 dff_bs_method = "moving_min"
 accept_transform_matching_points = False
@@ -30,7 +31,8 @@ global_params = {
     "register": register,
     "dff_bs_method": dff_bs_method,
     "accept_transform_matching_points": accept_transform_matching_points,
-    "hemo_correct_ch": hemo_correct_ch
+    "hemo_correct_ch": hemo_correct_ch,
+    "reg_smooth_fac": reg_smooth_fac
 }
 
 # load cortex data
@@ -110,7 +112,7 @@ for p, tif_path in enumerate(wf_video_paths):
 
     # hemodynamics attenuation
     if hemo_correct_ch != None:
-        regression_coeff_map = hemodynamics_attenuation(wf_data, regression_coeff_map, hemo_correct_ch, dff_bs_n_frames)
+        regression_coeff_map = hemodynamics_attenuation(wf_data, regression_coeff_map, hemo_correct_ch, dff_bs_n_frames, reg_smooth_fac)
 
     # remove remainder
     if p != 0:
