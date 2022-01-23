@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pickle
-from analysis.utils.dynamic_threshold_scatter_activity import dynamic_threshold
-from analysis.utils.peristimulus_time_response import calc_pstr, calc_sdf
+from analysis.utils import calc_pstr
 from utils.interleave_matrix import interleave_matrix
 
 

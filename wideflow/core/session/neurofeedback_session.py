@@ -10,8 +10,8 @@ from devices.serial_port import SerialControler
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.memmap_process import MemoryHandler
 from Imaging.utils.adaptive_staircase_procedure import fixed_step_staircase_procedure
-from Imaging.visualization.live_video_and_metric import LiveVideoMetric
-from Imaging.visualization.live_video import LiveVideo
+from analysis.utils import LiveVideoMetric
+from analysis.utils import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
 from Imaging.utils.create_matching_points import MatchingPointSelector
 from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera

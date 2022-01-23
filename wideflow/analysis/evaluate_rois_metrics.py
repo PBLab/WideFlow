@@ -1,11 +1,13 @@
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 from analysis.utils.load_session_metadata import load_session_metadata
-from analysis.utils.peristimulus_time_response import calc_pstr, calc_sdf
-
+from analysis.utils.peristimulus_time_response import calc_pstr
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from scipy.signal import find_peaks, peak_prominences
+
+from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
+import collections
 
 import h5py
 
@@ -108,22 +110,73 @@ def pstr_process(metric, samples_window, th, min_dst, prominence_th=False):
     return pstr_mat, peaks_inds_arr
 
 
+def calc_adjusted_reward_pstr(traces, n_samp, height, threshold, min_dst, prominence_th):
+    pstr_3d_mat = np.zeros((n_rois, n_rois, 2 * n_samp + 1), dtype=np.float32)
+    for i, (roi_name, roi_trace) in enumerate(traces.items()):
+        peaks, peaks_inds = calc_simulated_rewards(roi_trace, height, threshold, min_dst, prominence_th)
+        for j, (roi_name, roi_trace) in enumerate(traces.items()):
+            pstr = np.mean(calc_pstr(peaks, roi_trace, n_samp),
+                           axis=0)  # pstr return as matrix with each row is response to different reward
+            pstr_3d_mat[i, j] = pstr
+
+    pstr_mat_avg = np.zeros((n_rois + 1, 2 * n_samp + 1),  dtype=np.float32)  # first row will be reward-calc_roi and the other - all rois
+    for i, pstr_mat in enumerate(pstr_3d_mat):
+        if np.isnan(pstr_mat[0, 0]):
+            continue
+        pstr_mat_avg[0] += pstr_mat[i]
+        pstr_mat[i] = np.zeros((2 * n_samp + 1, ), dtype=np.float32)
+        pstr_mat_avg[1:] = pstr_mat
+
+    pstr_mat_avg[0] = pstr_mat_avg[0] / n_rois
+    pstr_mat_avg[1:] = pstr_mat_avg[1:] / (n_rois - 1)
+
+    return pstr_mat_avg
+
+
+rois_dict_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5'
+cortex_map_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
+rois_dict = load_extended_rois_list(rois_dict_path)
+rois_dict = collections.OrderedDict(sorted(rois_dict.items()))
+n_rois = len(rois_dict)
+with h5py.File(cortex_map_path, 'r') as f:
+    cortex_mask = np.transpose(f["mask"][()])
+    cortex_map = np.transpose(f["map"][()])
+
 base_path = '/data/Rotem/WideFlow prj/'
 dataset_path = base_path + 'results/sessions_dataset.h5'
-statistics_path = base_path + 'results/sessions_statistics3.h5'
+statistics_path = base_path + 'results/sessions_statistics.h5'
 
-mouse_id = '2683'
+mouse_id = '2680'
 sessions_list = [
-    '20211115_training',
-    '20211116_training',
-    '20211118_training',
-    '20211123_neurofeedback',
-    '20211125_neurofeedback',
-    '20211130_neurofeedback',
-    '20211206_neurofeedback',
-    '20211208_neurofeedback',
+    # '20211125_neurofeedback',
+    # '20211130_neurofeedback',
+    # '20211206_neurofeedback',
+    # '20211208_neurofeedback',
     '20211219_neurofeedback'
 ]
+
+# frames to exclude for each session. frames indexing of one channel
+# for mouse ID 2680
+sessions_exclution_list = {
+    '20211125_neurofeedback': [],
+    '20211130_neurofeedback': [],
+    '20211206_neurofeedback': np.arange(400).tolist(),
+    '20211208_neurofeedback': np.arange(11700, 11850).tolist() + np.arange(13800, 14720).tolist() + np.arange(21500, 21600).tolist(),
+    '20211219_neurofeedback': np.arange(200).tolist() +
+                              np.arange(13500, 14000).tolist() +
+                              np.arange(24200, 25000).tolist() +
+                              np.arange(28200, 30000).tolist()
+}
+
+# for mouse ID 2683
+# sessions_exclution_list = {
+#     '20211125_neurofeedback': np.arange(11950, 12050).tolist(),
+#     '20211130_neurofeedback': [],
+#     '20211206_neurofeedback':  np.arange(29900, 30000).tolist(),
+#     '20211208_neurofeedback': [],
+#     '20211219_neurofeedback': []
+# }
+
 
 # load data
 n_sessions = len(sessions_list)
@@ -152,7 +205,7 @@ for session_name in sessions_list:
     avg_interval = np.mean(time_intervals) * 1000
     samples_window = int(temporal_window / avg_interval)
 
-    min_reward_interval = avg_interval * sessions_config['feedback_config']['inter_feedback_delay'] / 1000
+    min_reward_interval = avg_interval * sessions_config[session_name]['feedback_config']['inter_feedback_delay'] / 1000
 
     reward = np.array(sessions_metadata[session_name]["cue"])
     if n_channels > 1:
@@ -161,6 +214,12 @@ for session_name in sessions_list:
             reward = np.maximum(reward, np.array(sessions_metadata[session_name]["cue"])[i::n_channels])
 
     traces = np.array(list(sessions_data[session_name]["channel_0"].values()))
+    # exclude corrupted frames
+    ex_list = sessions_exclution_list[session_name]
+    ex_bo = np.array([False if i in ex_list else True for i in range(traces.shape[1])])
+    traces = traces[:, ex_bo]
+    reward = reward[ex_bo]
+
     n_vars, n_samples = traces.shape[0], traces.shape[1]
 
     # dff Intensity___________________________________________________________________________________________________
@@ -169,8 +228,8 @@ for session_name in sessions_list:
     # Z-score
     traces_zscore = calc_z_score(traces)
     # pstr
-    traces_pstr = np.zeros((n_vars, samples_window * 2))
-    traces_zscore_pstr = np.zeros((n_vars, samples_window * 2))
+    traces_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    traces_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     for i in range(n_vars):
         traces_pstr[i] = np.mean(calc_pstr(reward, traces[i], samples_window), axis=0)
         traces_zscore_pstr[i] = np.mean(calc_pstr(reward, traces_zscore[i], samples_window), axis=0)
@@ -181,14 +240,15 @@ for session_name in sessions_list:
     # simulated reward pstr
     traces_sim_pstr_mat, peaks_inds_arr = pstr_process(traces, samples_window, None, min_reward_interval, prominence_th=True)
     traces_zscore_sim_pstr_mat, peaks_inds_arr = pstr_process(traces_zscore, samples_window, fixed_threshold, min_reward_interval)
+
     # regression divergence value_____________________________________________________________________________________
     print("     regression divergence stats")
     divergence = calc_divergence_score(traces, samples_window)
     # Divergence Z-score
     divergence_zscore = calc_z_score(divergence)
     # pstr
-    divergence_pstr = np.zeros((n_vars, samples_window * 2))
-    divergence_zscore_pstr = np.zeros((n_vars, samples_window * 2))
+    divergence_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    divergence_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     for i in range(n_vars):
         divergence_pstr[i] = np.mean(calc_pstr(reward, divergence[i], samples_window), axis=0)
         divergence_zscore_pstr[i] = np.mean(calc_pstr(reward, divergence_zscore[i], samples_window), axis=0)
@@ -197,8 +257,8 @@ for session_name in sessions_list:
     divergence_zscore_rewards_fixed_th = np.mean(divergence_zscore > fixed_threshold, axis=1)
 
     # simulated reward pstr
-    divergence_sim_pstr_mat, peaks_inds_arr = pstr_process(traces, samples_window, None, min_reward_interval, prominence_th=True)
-    divergence_zscore_sim_pstr_mat, peaks_inds_arr = pstr_process(traces_zscore, samples_window, fixed_threshold, min_reward_interval)
+    divergence_sim_pstr_mat, peaks_inds_arr = pstr_process(divergence, samples_window, None, min_reward_interval, prominence_th=True)
+    divergence_zscore_sim_pstr_mat, peaks_inds_arr = pstr_process(divergence_zscore, samples_window, fixed_threshold, min_reward_interval)
 
     # Time to peak____________________________________________________________________________________________________
     print("     Time to peak stats")
@@ -216,14 +276,14 @@ for session_name in sessions_list:
     diff3_zscore = calc_z_score(diff3)
     diff5_zscore = calc_z_score(diff5)
     # pstr
-    diff1_pstr = np.zeros((n_vars, samples_window * 2))
-    diff2_pstr = np.zeros((n_vars, samples_window * 2))
-    diff3_pstr = np.zeros((n_vars, samples_window * 2))
-    diff5_pstr = np.zeros((n_vars, samples_window * 2))
-    diff1_zscore_pstr = np.zeros((n_vars, samples_window * 2))
-    diff2_zscore_pstr = np.zeros((n_vars, samples_window * 2))
-    diff3_zscore_pstr = np.zeros((n_vars, samples_window * 2))
-    diff5_zscore_pstr = np.zeros((n_vars, samples_window * 2))
+    diff1_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    diff2_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    diff3_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    diff5_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    diff1_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    diff2_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    diff3_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
+    diff5_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     for i in range(n_vars):
         diff1_pstr[i] = np.mean(calc_pstr(reward, diff1[i], samples_window), axis=0)
         diff2_pstr[i] = np.mean(calc_pstr(reward, diff2[i], samples_window), axis=0)
@@ -317,4 +377,5 @@ for session_name in sessions_list:
         stats_grp.create_dataset("smoo_kernel_size", data=smoo_kernel_size)
         stats_grp.create_dataset("max_f_to_peak", data=max_f_to_peak)
         stats_grp.create_dataset("fixed_threshold", data=fixed_threshold)
+        stats_grp.create_dataset("excluded_frames", data=sessions_exclution_list[session_name])
 

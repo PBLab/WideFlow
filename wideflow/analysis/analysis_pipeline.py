@@ -1,5 +1,15 @@
-from analysis.core import *
-from analysis.utils import *
+from analysis.core.analysis_dff import calc_dff
+from analysis.core.analysis_crop import crop
+from analysis.core.analysis_deinterleave import deinterleave
+from analysis.core.analysis_figures import plot_figures
+from analysis.core.analysis_hemodynamics_attenuation import hemodynamics_attenuation
+from analysis.core.analysis_image_registration import registration
+from analysis.core.analysis_masking import mask
+from analysis.core.analysis_rois_traces_extraction import extract_roi_traces
+from analysis.core.analysis_statistics import analysis_statistics
+
+from analysis.utils.sort_video_path_list import sort_video_path_list
+from analysis.utils.load_session_metadata import load_session_metadata
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
 from utils.load_matching_points import load_matching_points
@@ -16,6 +26,7 @@ project_path = '/data/Rotem/WideFlow prj/'
 mouse_id = '2680'
 session_name = '20211219_neurofeedback'
 
+# frames to exclude due to bad acquisition
 
 # analysis global parameters
 crop = False
@@ -82,6 +93,7 @@ wf_video_paths = sort_video_path_list(wf_video_paths)
 for p, tif_path in enumerate(wf_video_paths):
     print(f"starting analysis for tiff part: {p}")
     wf_data = load_tiff(tif_path)
+
     if p != 0:
         wf_data = np.concatenate((wf_data_remainder, wf_data), axis=0)
     wf_data_remainder = wf_data[-dff_bs_n_frames*n_channels:, :, :]

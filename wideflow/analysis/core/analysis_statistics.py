@@ -1,4 +1,4 @@
-from analysis.utils.peristimulus_time_response import calc_pstr, calc_sdf
+from analysis.utils import calc_pstr, calc_sdf
 import numpy as np
 
 delta_t = [100, 200]

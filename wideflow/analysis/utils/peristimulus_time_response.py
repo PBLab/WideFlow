@@ -6,7 +6,7 @@ def calc_pstr(stimuli, responses, delta_t, bin_width=1):
     responses = np.pad(np.array(responses), delta_t)
 
     if not isinstance(delta_t, list) and not isinstance(delta_t, np.ndarray):
-        delta_t = [delta_t, delta_t]
+        delta_t = [delta_t, delta_t + 1]
 
     if bin_width > 1:
         bins = np.arange(-delta_t[0], delta_t[1], bin_width)
