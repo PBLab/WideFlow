@@ -163,7 +163,7 @@ class NeuroFeedbackSession(AbstractSession):
             self.analysis_pipeline = HemoDynamicsDFF(
                 self.camera, self.session_path,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
-                affine_matrix,
+                affine_matrix, self.analysis_pipeline_config["args"]["hemispheres"],
                 regression_map,
                 self.analysis_pipeline_config["args"]["capacity"],  self.analysis_pipeline_config["args"]["rois_names"]
             )
