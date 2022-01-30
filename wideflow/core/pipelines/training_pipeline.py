@@ -1,4 +1,5 @@
 from core.abstract_pipeline import AbstractPipeLine
+from core.processes import AffineTrans, Mask, DFF, HemoSubtraction, HemoCorrect
 
 import random
 import cupy as cp
@@ -10,7 +11,7 @@ class TrainingPipe(AbstractPipeLine):
     def __init__(self, camera, save_path,
                  min_frame_count, max_frame_count,
                  mask, map,
-                 match_p_src, match_p_dst,
+                 affine_matrix,
                  regression_map,
                  capacity, regression_n_samples=512):
 
@@ -22,13 +23,11 @@ class TrainingPipe(AbstractPipeLine):
         self.capacity = capacity + capacity % 2  # make sure capacity is an even number
         self.mask = mask
         self.map = map
-        self.match_p_src = match_p_src
-        self.match_p_dst = match_p_dst
+        self.affine_matrix = affine_matrix
         self.regression_map = regression_map
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
 
         self.new_shape = self.map.shape
-        self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
 
         self.input_shape = (self.camera.shape[1], self.camera.shape[0])
 
@@ -44,18 +43,18 @@ class TrainingPipe(AbstractPipeLine):
         self.regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2),
                                             dtype=np.float32)
 
-        map_coord = MapCoordinates(self.input, self.warped_input, self.mapping_coordinates, self.new_shape)
+        affine_transform = AffineTrans(self.input, self.warped_input, self.affine_matrix, self.new_shape)
         # set processes for channel 1
         masking = Mask(self.warped_input, self.mask, self.warped_buffer, ptr=self.capacity-1)
         dff = DFF(self.dff_buffer, self.warped_buffer, ptr=0)
         hemo_subtract = HemoSubtraction(self.dff_buffer, self.dff_buffer_ch2, ptr=0)
-        self.processes_list = [map_coord, masking, dff, hemo_subtract]
+        self.processes_list = [affine_transform, masking, dff, hemo_subtract]
 
         # set processes for channel 2
         masking_ch2 = Mask(self.warped_input, self.mask, self.warped_buffer_ch2, ptr=self.capacity-1)
         dff_ch2 = DFF(self.dff_buffer_ch2, self.warped_buffer_ch2, ptr=0)
         hemo_correct = HemoCorrect(self.dff_buffer_ch2, ptr=0)
-        self.processes_list_ch2 = [map_coord, masking_ch2, dff_ch2, hemo_correct]
+        self.processes_list_ch2 = [affine_transform, masking_ch2, dff_ch2, hemo_correct]
 
         # set metric
         self.ptr = self.capacity - 1
@@ -167,7 +166,6 @@ class TrainingPipe(AbstractPipeLine):
                 process.process()
 
     def evaluate(self):
-
         if self.counter == 0:
             self.cue = 0
             self.cue_delay = random.choice(range(self.min_frame_count, self.max_frame_count, 1))
@@ -178,17 +176,6 @@ class TrainingPipe(AbstractPipeLine):
             self.cue = 1
 
         return self.cue
-
-    def find_mapping_coordinates(self, match_p_src, match_p_dst):
-        tform = AffineTransform()
-        tform.estimate(np.roll(match_p_src, 1, axis=1), np.roll(match_p_dst, 1, axis=1))
-
-        warp_coor = warp_coords(tform.inverse, (self.new_shape[0], self.new_shape[1]))
-        src_cols = np.reshape(warp_coor[0], (self.new_shape[0] * self.new_shape[1], 1))
-        src_rows = np.reshape(warp_coor[1], (self.new_shape[0] * self.new_shape[1], 1))
-        mapping_coordinates = cp.asanyarray([src_cols, src_rows])
-
-        return mapping_coordinates
 
     def save_regression_buffers(self):
         with open(self.save_path + "regression_coeff_map.npy", "wb") as f:

@@ -156,14 +156,14 @@ class NeuroFeedbackSession(AbstractSession):
         self.camera.binning = tuple(self.camera_config["core_attr"]["binning"])  # restore configuration binning
         frame = self.camera.get_frame()
         if not os.path.exists(self.registration_config["matching_point_path"]):
-            match_p_src, match_p_dst = self.find_affine_mapping_coordinates(frame)
+            affine_matrix, match_p_src, match_p_dst = self.find_affine_mapping_coordinates(frame)
 
         # instantiate analysis pipeline
         if self.analysis_pipeline_config["pipeline"] == "HemoDynamicsDFF":
             self.analysis_pipeline = HemoDynamicsDFF(
                 self.camera, self.session_path,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
-                match_p_src, match_p_dst,
+                affine_matrix,
                 regression_map,
                 self.analysis_pipeline_config["args"]["capacity"],  self.analysis_pipeline_config["args"]["rois_names"]
             )
@@ -172,7 +172,7 @@ class NeuroFeedbackSession(AbstractSession):
                 self.camera, self.session_path,
                 self.analysis_pipeline_config["args"]["min_frame_count"], self.analysis_pipeline_config["args"]["max_frame_count"],
                 self.cortex_mask, self.cortex_map,
-                match_p_src, match_p_dst,
+                affine_matrix,
                 regression_map,
                 self.analysis_pipeline_config["args"]["capacity"],
             )
@@ -198,7 +198,7 @@ class NeuroFeedbackSession(AbstractSession):
 
         self.initialize_visualization()
 
-        self.update_config(self.camera.roi, match_p_src, match_p_dst)
+        self.update_config(self.camera.roi, match_p_src, match_p_dst, affine_matrix)
 
     def run_session_pipeline(self):
         # set feedback properties
@@ -233,6 +233,7 @@ class NeuroFeedbackSession(AbstractSession):
             # evaluate metric and give reward if metric above threshold
             cue = 0
             result = self.analysis_pipeline.evaluate()
+            self.serial_controller.sendToArduino(f'{np.min(result/feedback_threshold, 1):1f}')
             if int(cp.asnumpy(result) > feedback_threshold) and \
                     (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
                 self.serial_controller.sendFeedback()
@@ -319,10 +320,6 @@ class NeuroFeedbackSession(AbstractSession):
 
             finally:
                 print("done")
-
-            write_bbox_file(self.session_path + 'bbox.txt', self.camera.roi)
-            write_matching_point_file(self.session_path + 'matching_points.txt',
-                                      self.analysis_pipeline.match_p_src, self.analysis_pipeline.match_p_dst)
 
         print(f"ready for another?")
 
@@ -423,7 +420,7 @@ class NeuroFeedbackSession(AbstractSession):
 
     def find_affine_mapping_coordinates(self, frame):
         iat = InteractiveAffineTransform(frame, self.cortex_map)
-        return iat.trans_points_pos, iat.fixed_points_pos
+        return iat.tform._inv_matrix, iat.trans_points_pos, iat.fixed_points_pos
 
     def find_piecewise_affine_mapping_coordinates(self, frame, match_p_src, match_p_dst):
         if match_p_src is not None:
@@ -452,11 +449,11 @@ class NeuroFeedbackSession(AbstractSession):
         reg_map = np.load(self.regression_map_path)
         return reg_map
 
-    def update_config(self, bbox, match_p_src, match_p_dst):
+    def update_config(self, bbox, match_p_src, match_p_dst, affine_matrix):
         self.config["registration_config"]["cropping_bbox_path"] = self.session_path + 'bbox.txt'
         self.config["registration_config"]["matching_point_path"] = self.session_path + 'matching_points.txt'
 
         write_bbox_file(self.config["registration_config"]["cropping_bbox_path"], bbox)
         write_matching_point_file(self.config["registration_config"]["matching_point_path"], match_p_src.tolist(), match_p_dst.tolist())
-
+        np.savetxt(self.session_path + 'affine_matrix.txt', affine_matrix)
 

@@ -1,15 +1,15 @@
 from core.abstract_pipeline import AbstractPipeLine
 from core.metrics.ROI_Diff import ROIDiff
+from core.processes import AffineTrans, Mask, DFF, HemoSubtraction, HemoCorrect
 
 import cupy as cp
 import numpy as np
-from skimage.transform import AffineTransform, warp_coords
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
     def __init__(self, camera, save_path,
                  mask, map, rois_dict,
-                 match_p_src, match_p_dst,
+                 affine_matrix, hemispheres,
                  regression_map,
                  capacity, rois_names, regression_n_samples=512):
         self.camera = camera
@@ -19,15 +19,22 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.map = map
         self.rois_dict = rois_dict  # metric rois name
         self.rois_names = rois_names
-        self.match_p_src = match_p_src
-        self.match_p_dst = match_p_dst
+        self.affine_matrix = affine_matrix
+        self.hemispheres = hemispheres
         self.regression_map = regression_map
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
 
-        self.new_shape = self.map.shape
-        self.mapping_coordinates = self.find_mapping_coordinates(match_p_src, match_p_dst)
+        # crop captured frame
+        if self.hemispheres == 'left':
+            self.cortex_roi = [0, self.camera.shape[1], 0, int(self.camera.shape[0] / 2)]
+        elif self.hemispheres == 'right':
+            self.cortex_roi = [0, self.camera.shape[1], int(self.camera.shape[0] / 2), self.camera.shape[0]]
+        elif self.hemispheres == 'both':
+            self.cortex_roi = [0, self.camera.shape[1], 0, self.camera.shape[0]]
 
-        self.input_shape = (self.camera.shape[1], self.camera.shape[0])
+        self.new_shape = self.map.shape
+        # self.input_shape = (self.camera.shape[1], self.camera.shape[0])
+        self.input_shape = (self.cortex_roi[1] - self.cortex_roi[0], self.cortex_roi[3] - self.cortex_roi[2])
 
         # allocate memory
         self.frame = np.ndarray(self.input_shape, dtype=np.uint16)
@@ -41,18 +48,18 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2),
                                             dtype=np.float32)
 
-        map_coord = MapCoordinates(self.input, self.warped_input, self.mapping_coordinates, self.new_shape)
+        affine_transform = AffineTrans(self.input, self.warped_input, self.affine_matrix, self.new_shape)
         # set processes for channel 1
         masking = Mask(self.warped_input, self.mask, self.warped_buffer, ptr=self.capacity-1)
         dff = DFF(self.dff_buffer, self.warped_buffer, ptr=0)
         hemo_subtract = HemoSubtraction(self.dff_buffer, self.dff_buffer_ch2, ptr=0)
-        self.processes_list = [map_coord, masking, dff, hemo_subtract]
+        self.processes_list = [affine_transform, masking, dff, hemo_subtract]
 
         # set processes for channel 2
         masking_ch2 = Mask(self.warped_input, self.mask, self.warped_buffer_ch2, ptr=self.capacity-1)
         dff_ch2 = DFF(self.dff_buffer_ch2, self.warped_buffer_ch2, ptr=0)
         hemo_correct = HemoCorrect(self.dff_buffer_ch2, ptr=0)
-        self.processes_list_ch2 = [map_coord, masking_ch2, dff_ch2, hemo_correct]
+        self.processes_list_ch2 = [affine_transform, masking_ch2, dff_ch2, hemo_correct]
 
         # set metric
         rois_pixels_list = []
@@ -154,7 +161,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
     def get_input(self):
         self.frame[:] = self.camera.get_live_frame()
-        self.input[:] = cp.asanyarray(self.frame)
+        self.input[:] = cp.asanyarray(self.frame[self.cortex_roi[0]: self.cortex_roi[1], self.cortex_roi[2]: self.cortex_roi[3]])
 
     def process(self):
         if self.ptr_2c == 2 * self.capacity - 1:
@@ -176,17 +183,6 @@ class HemoDynamicsDFF(AbstractPipeLine):
         if not self.ptr_2c % 2:
             self.metric.evaluate()
         return self.metric.result
-
-    def find_mapping_coordinates(self, match_p_src, match_p_dst):
-        tform = AffineTransform()
-        tform.estimate(np.roll(match_p_src, 1, axis=1), np.roll(match_p_dst, 1, axis=1))
-
-        warp_coor = warp_coords(tform.inverse, (self.new_shape[0], self.new_shape[1]))
-        src_cols = np.reshape(warp_coor[0], (self.new_shape[0] * self.new_shape[1], 1))
-        src_rows = np.reshape(warp_coor[1], (self.new_shape[0] * self.new_shape[1], 1))
-        mapping_coordinates = cp.asanyarray([src_cols, src_rows])
-
-        return mapping_coordinates
 
     def save_regression_buffers(self):
         with open(self.save_path + "regression_coeff_map.npy", "wb") as f:

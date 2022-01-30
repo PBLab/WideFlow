@@ -99,7 +99,11 @@ void process() {
         ledClock = millis();
         speakerClock = millis();
         digitalWrite(valvePin, HIGH);
-        analogWrite(ledPin, ledAnalogVal);
+        //analogWrite(ledPin, ledAnalogVal);
+      }
+
+      else if (isDigit(msg)){
+        analogWrite(ledPin, toFloat(inputBuffer) * ledAnalogVal);
       }
 
       else if (msg == sendReport){
