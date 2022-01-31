@@ -233,7 +233,7 @@ class NeuroFeedbackSession(AbstractSession):
             # evaluate metric and give reward if metric above threshold
             cue = 0
             result = self.analysis_pipeline.evaluate()
-            self.serial_controller.sendToArduino(f'{np.max((result, 0)):2f}')
+            self.serial_controller.sendToArduino(f'{np.max((result / feedback_threshold, 0)):2f}')
             if int(cp.asnumpy(result) > feedback_threshold) and \
                     (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
                 self.serial_controller.sendFeedback()

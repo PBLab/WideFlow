@@ -172,6 +172,9 @@ class TrainingPipe(AbstractPipeLine):
             self.cue_delay = random.choice(range(self.min_frame_count, self.max_frame_count, 1))
 
         self.counter += 1
+        if self.counter > self.cue_delay - 50:
+            self.cue = (50 - (self.cue_delay - self.counter)) / 50
+
         if self.counter == self.cue_delay:
             self.counter = 0
             self.cue = 1
