@@ -104,9 +104,10 @@ void process() {
       }
       
       else if (isDigit(msg)){
-        ledAnalogVal = min(pow(max(0, atof(inputBuffer)), 6), 1) * ledAnalogValMax;
+        // input buffer float should be between zero and 1
+        ledAnalogVal = pow(atof(inputBuffer), 6) * ledAnalogValMax;
         analogWrite(ledPin, ledAnalogVal);
-        //Serial.println(atof(inputBuffer));
+        //Serial.println(ledAnalogVal);
       }
       
 
