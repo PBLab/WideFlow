@@ -59,6 +59,7 @@ class TrainingPipe(AbstractPipeLine):
         # set metric
         self.ptr = self.capacity - 1
         self.ptr_2c = 2 * self.capacity - 1
+        self.counter = 0
 
     def fill_buffers(self):
         # initialize buffers

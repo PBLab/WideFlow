@@ -9,12 +9,12 @@ from utils.draggable_point import DraggablePoint
 
 
 class InteractiveAffineTransform:
-    def __init__(self, src_img, map, ):
+    def __init__(self, src_img, map):
         self.src_img = src_img
         self.map = map
 
-        self.src_nrows, self.src_ncols = src_img.shape
-        self.map_nrows, self.map_ncols = map.shape
+        self.src_nrows, self.src_ncols = self.src_img.shape
+        self.map_nrows, self.map_ncols = self.map.shape
 
         # initiate gui figures
         self.fig_src, self.ax_src = plt.subplots()
@@ -91,17 +91,9 @@ class InteractiveAffineTransform:
 
     def update_transform(self):
         self.tform.estimate(self.trans_points_pos, self.fixed_points_pos)
-        # self.tform.estimate(np.roll(self.trans_points_pos, 1, axis=1), np.roll(self.fixed_points_pos, 1, axis=1))
-        # warp_coor = warp_coords(self.tform.inverse, (self.map_nrows, self.map_ncols))
-        # self.src_cols = np.reshape(warp_coor[0], (self.map_nrows * self.map_ncols, 1))
-        # self.src_rows = np.reshape(warp_coor[1], (self.map_nrows * self.map_ncols, 1))
-        #
-        # image_warp = map_coordinates(self.src_img, [self.src_cols, self.src_rows])
-        # image_warp = np.reshape(image_warp, (self.map_nrows, self.map_ncols))
-        # image_warp = image_warp * (1 - self.map)
 
         image_warp = affine_transform(self.src_img, self.tform._inv_matrix, output_shape=(self.map_nrows, self.map_ncols))
-        self.ax_dst.imshow(image_warp)
+        self.ax_dst.imshow(image_warp * (1 - self.map))
         self.fig_dst.canvas.draw()
 
     def accept(self, event):
@@ -117,15 +109,15 @@ class InteractiveAffineTransform:
 
 
 ## Test GUI
-import h5py
-from wideflow.utils.load_tiff import load_tiff
-cortex_file_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
-with h5py.File(cortex_file_path, 'r') as f:
-    cortex_mask = np.transpose(f["mask"][()])
-    cortex_map = np.transpose(f["map"][()])
-
-image_file_path = '/data/Rotem/WideFlow prj/extras/tests/cropped_wf_image.ome.tif'
-image = load_tiff(image_file_path)
-iat = InteractiveAffineTransform(image, cortex_map)
-
-print(iat.tform.params)
+# import h5py
+# from wideflow.utils.load_tiff import load_tiff
+# cortex_file_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
+# with h5py.File(cortex_file_path, 'r') as f:
+#     cortex_mask = np.transpose(f["mask"][()])
+#     cortex_map = np.transpose(f["map"][()])
+#
+# image_file_path = '/data/Rotem/WideFlow prj/extras/tests/cropped_wf_image.ome.tif'
+# image = load_tiff(image_file_path)
+# iat = InteractiveAffineTransform(image, cortex_map)
+#
+# print(iat.tform.params)
