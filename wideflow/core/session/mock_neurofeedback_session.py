@@ -129,7 +129,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                 self.camera, self.session_path,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
                 match_p_src, match_p_dst,
-                regression_map,
+                regression_map, self.analysis_pipeline_config["args"]["diff_delta_frames"],
                 self.analysis_pipeline_config["args"]["capacity"],  self.analysis_pipeline_config["args"]["rois_names"]
             )
         elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
