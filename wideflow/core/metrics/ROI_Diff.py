@@ -17,13 +17,9 @@ class ROIDiff(AbstractMetric):
         self.capacity = self.shape[0]
         self.ptr_list = np.arange(self.capacity)
 
-        # self.metric_pixels = [np.ndarray((1, )), np.ndarray((1, ))]
-        # for roi_key in self.eval_rois_names:
-        #     pix_ind = np.unravel_index(rois_dict[roi_key]['PixelIdxList'], (self.shape[2], self.shape[1]))
-        #     self.metric_pixels[0] = np.concatenate((self.metric_pixels[0], pix_ind[0]))
-        #     self.metric_pixels[1] = np.concatenate((self.metric_pixels[1], pix_ind[1]))
-        # self.metric_pixels[0] = self.metric_pixels[0][1:]
-        # self.metric_pixels[1] = self.metric_pixels[1][1:]
+        for i, (roi_key, roi_dict) in enumerate(self.rois_dict.items()):
+            self.rois_dict[roi_key]['unravel_index'] = np.unravel_index(roi_dict['PixelIdxList'], (self.shape[2], self.shape[1]))
+
         self.metric_list = [True if key in self.eval_rois_names else False for key in self.rois_dict]
         self.non_metric_list = [False if key in self.eval_rois_names else True for key in self.rois_dict]
 
@@ -52,6 +48,3 @@ class ROIDiff(AbstractMetric):
         self.diff[:] = cp.asnumpy(self.rois_mean[:, self.ptr] - self.rois_mean[:, self.delta_ptr])
         std = np.std(self.diff)
         self.result = (np.mean(self.diff[self.metric_list]) - np.mean(self.diff)) / (std + self.eps)
-
-        # self.metric_rois_mean[self.ptr] = cp.asnumpy(cp.mean(self.x[self.ptr, self.metric_pixels[1], self.metric_pixels[0]]))
-        # self.result = self.metric_rois_mean[self.ptr] - self.metric_rois_mean[self.delta_ptr]

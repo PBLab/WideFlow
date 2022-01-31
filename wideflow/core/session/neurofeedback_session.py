@@ -10,11 +10,11 @@ from devices.serial_port import SerialControler
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.memmap_process import MemoryHandler
 from Imaging.utils.adaptive_staircase_procedure import fixed_step_staircase_procedure
-from analysis.utils import LiveVideoMetric
-from analysis.utils import LiveVideo
+from Imaging.visualization.live_video_and_metric import LiveVideoMetric
+from Imaging.visualization.live_video import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
 from Imaging.utils.create_matching_points import MatchingPointSelector
-from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
+# from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
 
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
@@ -81,7 +81,7 @@ class NeuroFeedbackSession(AbstractSession):
 
         # set behavioral camera process
         self.behavioral_camera_process, self.behavioral_camera_q = None, None
-        self.set_behavioral_camera()
+        # self.set_behavioral_camera()
 
     def set_imaging_camera(self):
         pvc.init_pvcam()
@@ -164,7 +164,7 @@ class NeuroFeedbackSession(AbstractSession):
                 self.camera, self.session_path,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
                 affine_matrix, self.analysis_pipeline_config["args"]["hemispheres"],
-                regression_map,
+                regression_map, self.analysis_pipeline_config["args"]["diff_metric_delta"],
                 self.analysis_pipeline_config["args"]["capacity"],  self.analysis_pipeline_config["args"]["rois_names"]
             )
         elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
@@ -233,7 +233,7 @@ class NeuroFeedbackSession(AbstractSession):
             # evaluate metric and give reward if metric above threshold
             cue = 0
             result = self.analysis_pipeline.evaluate()
-            self.serial_controller.sendToArduino(f'{np.min(result/feedback_threshold, 1):1f}')
+            self.serial_controller.sendToArduino(f'{(1 + np.min((np.max((result / feedback_threshold, -1)), 1))) / 2:3f}')
             if int(cp.asnumpy(result) > feedback_threshold) and \
                     (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
                 self.serial_controller.sendFeedback()
@@ -243,8 +243,8 @@ class NeuroFeedbackSession(AbstractSession):
                       '___________________________________________________________________________')
 
             # update threshold using adaptive staircase procedure
-            results_seq.append(result)
-            if frame_counter < update_frames:
+            if frame_counter > update_frames[0] and frame_counter < update_frames[1]:
+                results_seq.append(result)
                 feedback_threshold = fixed_step_staircase_procedure(
                     feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
 
@@ -281,6 +281,7 @@ class NeuroFeedbackSession(AbstractSession):
         self.analysis_pipeline.camera.close()
         self.analysis_pipeline.clear_buffers()
 
+        self.serial_controller.sendToArduino('0.0')  # make sure cueig LED is off
         self.serial_controller.close()
 
         now = datetime.now()
@@ -352,22 +353,22 @@ class NeuroFeedbackSession(AbstractSession):
             self.vis_query["live_stream_metric"] = live_stream_que
             self.vis_processes["live_stream_metric"] = live_stream_process
 
-            config = self.visualization_config["show_live_stream"]
-            if config["status"]:
-                image = np.ndarray(config["size"], dtype=np.dtype(config["dtype"]))
-                vshm = shared_memory.SharedMemory(create=True, size=image.nbytes)
-                image_shm = np.ndarray(image.shape, dtype=image.dtype, buffer=vshm.buf)
-                image_shm_name = vshm.name
+        config = self.visualization_config["show_live_stream"]
+        if config["status"]:
+            image = np.ndarray(config["size"], dtype=np.dtype(config["dtype"]))
+            vshm = shared_memory.SharedMemory(create=True, size=image.nbytes)
+            image_shm = np.ndarray(image.shape, dtype=image.dtype, buffer=vshm.buf)
+            image_shm_name = vshm.name
 
-                live_stream_que = Queue(5)
-                target = LiveVideo(live_stream_que, config["params"]["image_shape"])
-                live_stream_process = mp.Process(target=target, args=(image_shm_name,))
-                live_stream_process.start()
+            live_stream_que = Queue(5)
+            target = LiveVideo(live_stream_que, config["params"]["image_shape"])
+            live_stream_process = mp.Process(target=target, args=(image_shm_name,))
+            live_stream_process.start()
 
-                self.vis_shm_obj["live_stream"] = {"image": vshm, "metric": mshm, "threshold": tshm}
-                self.vis_shm["live_stream"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
-                self.vis_query["live_stream"] = live_stream_que
-                self.vis_processes["live_stream"] = live_stream_process
+            self.vis_shm_obj["live_stream"] = {"image": vshm}
+            self.vis_shm["live_stream"] = {"image": image_shm}
+            self.vis_query["live_stream"] = live_stream_que
+            self.vis_processes["live_stream"] = live_stream_process
 
     def update_visualiztion(self, feedback_threshold, metric):
         if self.visualization_config["show_live_stream_and_metric"]["status"]:

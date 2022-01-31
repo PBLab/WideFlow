@@ -79,7 +79,7 @@
 
     "feedback_config": {
         "metric_threshold": 0.1,
-        "inter_feedback_delay": 1e2,
+        "inter_feedback_delay": 10e3,
         "typical_n": 1000,
         "typical_count": 2,
         "count_band": 1,

@@ -10,7 +10,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
     def __init__(self, camera, save_path,
                  mask, map, rois_dict,
                  affine_matrix, hemispheres,
-                 regression_map,
+                 regression_map, diff_metric_delta,
                  capacity, rois_names, regression_n_samples=512):
         self.camera = camera
         self.save_path = save_path
@@ -23,21 +23,26 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.hemispheres = hemispheres
         self.regression_map = regression_map
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
+        self.diff_metric_delta = diff_metric_delta
 
         # crop captured frame
         if self.hemispheres == 'left':
             self.cortex_roi = [0, self.camera.shape[1], 0, int(self.camera.shape[0] / 2)]
+            self.mask = self.mask[:, :int(self.mask.shape[1] / 2)]
+            self.map = map[:, :int(self.map.shape[1] / 2)]
         elif self.hemispheres == 'right':
             self.cortex_roi = [0, self.camera.shape[1], int(self.camera.shape[0] / 2), self.camera.shape[0]]
+            self.mask = self.mask[:, int(self.mask.shape[1] / 2):]
+            self.map = map[:, int(self.map.shape[1] / 2):]
         elif self.hemispheres == 'both':
             self.cortex_roi = [0, self.camera.shape[1], 0, self.camera.shape[0]]
 
         self.new_shape = self.map.shape
-        # self.input_shape = (self.camera.shape[1], self.camera.shape[0])
+        self.frame_shape = (self.camera.shape[1], self.camera.shape[0])
         self.input_shape = (self.cortex_roi[1] - self.cortex_roi[0], self.cortex_roi[3] - self.cortex_roi[2])
 
         # allocate memory
-        self.frame = np.ndarray(self.input_shape, dtype=np.uint16)
+        self.frame = np.ndarray(self.frame_shape, dtype=np.uint16)
         self.input = cp.ndarray(self.input_shape, dtype=cp.uint16)
         self.warped_input = cp.ndarray((self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.warped_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
@@ -61,14 +66,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         hemo_correct = HemoCorrect(self.dff_buffer_ch2, ptr=0)
         self.processes_list_ch2 = [affine_transform, masking_ch2, dff_ch2, hemo_correct]
 
-        # set metric
-        rois_pixels_list = []
-        for roi_name in self.rois_names:
-            roi_pixels_list = self.rois_dict[roi_name]["PixelIdxList"]
-            for roi_pixels in roi_pixels_list:
-                rois_pixels_list.append(roi_pixels)
-
-        self.metric = ROIDiff(self.dff_buffer, self.rois_dict, rois_pixels_list)
+        self.metric = ROIDiff(self.dff_buffer, self.rois_dict, self.rois_names, self.diff_metric_delta)
 
         self.ptr = self.capacity - 1
         self.ptr_2c = 2 * self.capacity - 1

@@ -12,7 +12,7 @@
 
 //==========================================================
 // set communication variables =============================
-const byte buffSize = 3;
+const byte buffSize = 5;
 char inputBuffer[buffSize];
 const char startMarker = '<';
 const char endMarker = '>';
@@ -37,7 +37,8 @@ const int lickPortPin = 52; //the pin that the lick port is attached to
 const int ledPin = 46; // the pin that the LED is attached to
 const int speakerPin = 44; // the pin that the speaker is attached to
 
-int ledAnalogVal = 100; // control the LED illumination intensity
+unsigned long ledAnalogValMax = 100; // control the LED illumination intensity
+float ledAnalogVal = 0;
 int speakerAnalogVal = 8;
 
 byte lickPortStat;
@@ -99,12 +100,16 @@ void process() {
         ledClock = millis();
         speakerClock = millis();
         digitalWrite(valvePin, HIGH);
-        //analogWrite(ledPin, ledAnalogVal);
+        //analogWrite(ledPin, ledAnalogValMax);
       }
-
+      
       else if (isDigit(msg)){
-        analogWrite(ledPin, toFloat(inputBuffer) * ledAnalogVal);
+        // input buffer float should be between zero and 1
+        ledAnalogVal = pow(atof(inputBuffer), 6) * ledAnalogValMax;
+        analogWrite(ledPin, ledAnalogVal);
+        //Serial.println(ledAnalogVal);
       }
+      
 
       else if (msg == sendReport){
         if (lickPortStat == 0) {
