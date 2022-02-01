@@ -233,7 +233,7 @@ class NeuroFeedbackSession(AbstractSession):
             # evaluate metric and give reward if metric above threshold
             cue = 0
             result = self.analysis_pipeline.evaluate()
-            self.serial_controller.sendToArduino(f'{(1 + np.min((np.max((result / feedback_threshold, -1)), 1))) / 2:3f}')
+            self.serial_controller.sendToArduino(f'{(1 + np.clip(result / feedback_threshold, -1, 1)) / 2:3f}')  # map result to [0, 1]
             if int(cp.asnumpy(result) > feedback_threshold) and \
                     (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
                 self.serial_controller.sendFeedback()
@@ -457,4 +457,5 @@ class NeuroFeedbackSession(AbstractSession):
         write_bbox_file(self.config["registration_config"]["cropping_bbox_path"], bbox)
         write_matching_point_file(self.config["registration_config"]["matching_point_path"], match_p_src.tolist(), match_p_dst.tolist())
         np.savetxt(self.session_path + 'affine_matrix.txt', affine_matrix)
+
 
