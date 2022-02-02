@@ -441,6 +441,7 @@ class NeuroFeedbackSession(AbstractSession):
             map = np.transpose(f["map"][()])
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
+        print(self.supplementary_data_config["rois_dict_path"])
         rois_dict = load_extended_rois_list(self.supplementary_data_config["rois_dict_path"])
 
         return mask, map, rois_dict

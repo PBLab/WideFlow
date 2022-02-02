@@ -1,7 +1,7 @@
 import os
 
 from utils.load_tiff import load_tiff
-from analysis.utils import sort_video_path_list
+from analysis.utils.sort_video_path_list import sort_video_path_list
 
 
 class MockPVCamera:

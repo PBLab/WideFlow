@@ -36,6 +36,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.map = map[:, int(self.map.shape[1] / 2):]
         elif self.hemispheres == 'both':
             self.cortex_roi = [0, self.camera.shape[1], 0, self.camera.shape[0]]
+        else:
+            raise NameError('pipeline hemisphere keyword unrecognized')
 
         self.new_shape = self.map.shape
         self.frame_shape = (self.camera.shape[1], self.camera.shape[0])

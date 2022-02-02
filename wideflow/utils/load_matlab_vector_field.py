@@ -50,7 +50,7 @@ def extend_rois_list(file_path, save_path, order='F'):
                 f.create_dataset(f'{key}/{rkey}', data=rval)
 
 
-def load_extended_rois_list(file_path):
+def load_extended_rois_list(file_path, shift=0):
     with h5py.File(file_path, 'r') as f:
         roi_list = {}
         for key, grp in f.items():
@@ -58,7 +58,7 @@ def load_extended_rois_list(file_path):
             roi_list[key]['Index'] = int(key.split('_')[1])
             roi_list[key]['Area'] = grp['Area'][()]
             roi_list[key]['Centroid'] = grp['Centroid'][()]
-            roi_list[key]['PixelIdxList'] = grp['PixelIdxList'][()] - 1  # -1 to convert from matlab to python
+            roi_list[key]['PixelIdxList'] = grp['PixelIdxList'][()] - shift  # shift=1 to convert from matlab to python
             roi_list[key]['outline'] = grp['outline'][()]
             roi_list[key]['top_left_bottom_rigth'] = grp['top_left_bottom_rigth'][()]
             roi_list[key]['name'] = grp['name'][()]

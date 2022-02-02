@@ -9,9 +9,10 @@ from utils.draggable_point import DraggablePoint
 
 
 class InteractiveAffineTransform:
-    def __init__(self, src_img, map):
+    def __init__(self, src_img, map, trans_points_pos=None):
         self.src_img = src_img
         self.map = map
+        self.trans_points_pos = trans_points_pos
 
         self.src_nrows, self.src_ncols = self.src_img.shape
         self.map_nrows, self.map_ncols = self.map.shape
@@ -44,7 +45,7 @@ class InteractiveAffineTransform:
         self.tform = AffineTransform()
         self.src_cols = None
         self.dst_cols = None
-        self.draggable_point, self.fixed_points_pos, self.trans_points_pos = self.initiate_transform_points()
+        self.trans_points_pos, self.fixed_points_pos, self.draggable_point = self.initiate_transform_points()
         self.update_transform()
 
         self.cidrelease = self.fig_src.canvas.mpl_connect('button_release_event', self.on_release)
@@ -57,11 +58,14 @@ class InteractiveAffineTransform:
             [self.map_nrows, self.map_ncols]
         ], dtype=np.float64())
 
-        trans_points_pos = np.array([
-            [0, 0],
-            [self.src_nrows, 0],
-            [self.src_nrows, self.src_ncols]
-        ], dtype=np.float64())
+        if self.trans_points_pos is None:
+            trans_points_pos = np.array([
+                [0, 0],
+                [self.src_nrows, 0],
+                [self.src_nrows, self.src_ncols]
+            ], dtype=np.float64())
+        else:
+            trans_points_pos = self.trans_points_pos
 
         circ_rad = np.min((self.src_nrows, self.src_ncols)) / 20
         circ_patches = {
@@ -77,7 +81,7 @@ class InteractiveAffineTransform:
             dp.connect()
             draggable_point[key] = dp
 
-        return draggable_point, fixed_points_pos, trans_points_pos
+        return trans_points_pos, fixed_points_pos, draggable_point
 
     def on_release(self, event):
         for i, (key, point) in enumerate(self.draggable_point.items()):
