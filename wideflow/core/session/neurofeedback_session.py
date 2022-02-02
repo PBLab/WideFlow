@@ -22,7 +22,7 @@ from utils.load_matching_points import load_matching_points
 from utils.matplotlib_rectangle_selector_events import *
 from utils.find_2d_max_correlation_coordinates import find_2d_max_correlation_coordinates
 from utils.convert_dat_to_tif import convert_dat_to_tif
-from utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_rois_data import load_rois_data
 from utils.write_bbox_file import write_bbox_file
 from utils.write_matching_point_file import write_matching_point_file
 
@@ -442,7 +442,7 @@ class NeuroFeedbackSession(AbstractSession):
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
         print(self.supplementary_data_config["rois_dict_path"])
-        rois_dict = load_extended_rois_list(self.supplementary_data_config["rois_dict_path"])
+        rois_dict = load_rois_data(self.supplementary_data_config["rois_dict_path"])
 
         return mask, map, rois_dict
 

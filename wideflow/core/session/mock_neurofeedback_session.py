@@ -13,7 +13,7 @@ from utils.load_bbox import load_bbox
 from utils.load_matching_points import load_matching_points
 from utils.matplotlib_rectangle_selector_events import *
 from utils.find_2d_max_correlation_coordinates import find_2d_max_correlation_coordinates
-from utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_rois_data import load_rois_data
 
 from analysis.utils.load_session_metadata import load_session_metadata
 
@@ -228,7 +228,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             map = np.transpose(f["map"][()])
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
-        rois_dict = load_extended_rois_list(self.supplementary_data_config["rois_dict_path"])
+        rois_dict = load_rois_data(self.supplementary_data_config["rois_dict_path"])
 
         return mask, map, rois_dict
 

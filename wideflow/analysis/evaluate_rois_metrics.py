@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from scipy.signal import find_peaks, peak_prominences
 
-from wideflow.utils.load_matlab_vector_field import load_extended_rois_list
+from wideflow.utils.load_rois_data import load_rois_data
 import collections
 
 import h5py
@@ -135,7 +135,7 @@ def calc_adjusted_reward_pstr(traces, n_samp, height, threshold, min_dst, promin
 
 rois_dict_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5'
 cortex_map_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
-rois_dict = load_extended_rois_list(rois_dict_path)
+rois_dict = load_rois_data(rois_dict_path)
 rois_dict = collections.OrderedDict(sorted(rois_dict.items()))
 n_rois = len(rois_dict)
 with h5py.File(cortex_map_path, 'r') as f:

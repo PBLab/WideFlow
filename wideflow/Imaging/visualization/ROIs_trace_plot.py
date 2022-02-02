@@ -2,13 +2,13 @@ from Imaging.visualization.multiple_trace_plot import TracePlot
 import matplotlib.pyplot as plt
 from multiprocessing import shared_memory
 import numpy as np
-from utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_rois_data import load_rois_data
 
 
 class ROIsTracePlot(TracePlot):
     def __init__(self, queue, rois_dict_path, image_shape, n_traces, expected_amp, n_frames, update_rate=50):
         self.rois_dict_path = rois_dict_path[0]
-        self.rois_dict = load_extended_rois_list(self.rois_dict_path)
+        self.rois_dict = load_rois_data(self.rois_dict_path)
         self.image_shape = image_shape
         labels = list(self.rois_dict.keys())
         super().__init__(queue, n_traces, expected_amp, labels, n_frames, update_rate)

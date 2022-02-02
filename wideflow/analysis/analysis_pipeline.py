@@ -13,7 +13,7 @@ from analysis.utils.load_session_metadata import load_session_metadata
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
 from utils.load_matching_points import load_matching_points
-from utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_rois_data import load_rois_data
 from utils.decompose_dict_and_h5_groups import decompose_dict_to_h5_groups
 
 import os
@@ -54,7 +54,7 @@ with h5py.File(cortex_file_path, 'r') as f:
 
 rois_dict_path = os.path.abspath(os.path.join(os.path.pardir, '../', 'data', 'cortex_map',
                                               'allen_2d_cortex_rois_extended.h5'))
-rois_dict = load_extended_rois_list(rois_dict_path)
+rois_dict = load_rois_data(rois_dict_path)
 
 # load session metadata and configurations
 session_path = project_path + mouse_id + '/' + session_name + '/'
