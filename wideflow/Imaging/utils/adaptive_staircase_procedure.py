@@ -35,15 +35,16 @@ def percentile_fixed_step_staircase_procedure(threshold, samples, num_frames, pe
         return threshold
 
 
-def percentile_update_procedure(threshold, samples, percentile, nbins):
-    hist, bins = np.histogram(samples, nbins, density=True)
+def percentile_update_procedure(threshold, samples, percentile, nbins, n_frames):
+    hist, bins = np.histogram(samples[-n_frames:], nbins, density=True)
     bins_width = np.diff(bins)
     p_density = hist * bins_width
-    percentile_inds = np.where(bins > np.percentile(p_density, percentile))[0]
+    cs = np.cumsum(p_density)
+    percentile_inds = np.where(cs > np.percentile(cs, percentile))[0]
     if not len(percentile_inds):
         return threshold
     else:
-        return bins[percentile_inds[0]] * (nbins/100)
+        return bins[percentile_inds[0]] #* (nbins/100)
 
 
 def std_contrast_one_update():
