@@ -65,7 +65,7 @@ class InteractiveAffineTransform:
                 [self.src_nrows, self.src_ncols]
             ], dtype=np.float64())
         else:
-            trans_points_pos = self.trans_points_pos
+            trans_points_pos = np.array(self.trans_points_pos)
 
         circ_rad = np.min((self.src_nrows, self.src_ncols)) / 20
         circ_patches = {
@@ -108,20 +108,7 @@ class InteractiveAffineTransform:
         for _, dg in self.draggable_point.items():
             dg.disconnect()
             dg.point.remove()
-        self.draggable_point, self.fixed_points_pos, self.trans_points_pos = self.initiate_transform_points()
+        self.trans_points_pos = None
+        self.trans_points_pos, self.fixed_points_pos, self.draggable_point = self.initiate_transform_points()
         self.update_transform()
 
-
-## Test GUI
-# import h5py
-# from wideflow.utils.load_tiff import load_tiff
-# cortex_file_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
-# with h5py.File(cortex_file_path, 'r') as f:
-#     cortex_mask = np.transpose(f["mask"][()])
-#     cortex_map = np.transpose(f["map"][()])
-#
-# image_file_path = '/data/Rotem/WideFlow prj/extras/tests/cropped_wf_image.ome.tif'
-# image = load_tiff(image_file_path)
-# iat = InteractiveAffineTransform(image, cortex_map)
-#
-# print(iat.tform.params)

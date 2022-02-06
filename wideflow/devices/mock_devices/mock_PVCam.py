@@ -25,9 +25,9 @@ class MockPVCamera:
         self.crop_sensor = crop_sensor  # return raw loaded frame or crop frame according to roi
 
         self.num_of_frames = None
-        self.frame_idx = None
         self.video = None
         self.load_video_data()
+        self.frame_idx = -1  # for first call to get_frame method
         self.total_cap_frames = 0
         if self.crop_sensor:
             self.shape = (self.roi[3]-self.roi[2], self.roi[1]-self.roi[0])
@@ -70,4 +70,4 @@ class MockPVCamera:
         self.video = load_tiff(self.videos_files_list[0])
         self.videos_files_list.pop(0)
         self.num_of_frames = self.video.shape[0]
-        self.frame_idx = -1
+        self.frame_idx = 0

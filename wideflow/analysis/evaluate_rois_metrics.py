@@ -133,7 +133,7 @@ def calc_adjusted_reward_pstr(traces, n_samp, height, threshold, min_dst, promin
     return pstr_mat_avg
 
 
-rois_dict_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5'
+rois_dict_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex_rois.h5'
 cortex_map_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
 rois_dict = load_rois_data(rois_dict_path)
 rois_dict = collections.OrderedDict(sorted(rois_dict.items()))
@@ -149,10 +149,10 @@ statistics_path = base_path + 'results/sessions_statistics.h5'
 mouse_id = '2680'
 sessions_list = [
     # '20211125_neurofeedback',
-    # '20211130_neurofeedback',
+    '20211130_neurofeedback',
     # '20211206_neurofeedback',
     # '20211208_neurofeedback',
-    '20211219_neurofeedback'
+    # '20211219_neurofeedback'
 ]
 
 # frames to exclude for each session. frames indexing of one channel

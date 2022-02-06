@@ -1,10 +1,10 @@
 from core.abstract_pipeline import AbstractPipeLine
 from core.processes import AffineTrans, Mask, DFF, HemoSubtraction, HemoCorrect
+from Imaging.utils.interactive_bandpass_selector import InteractiveBandPassSelector
 
 import random
 import cupy as cp
 import numpy as np
-from skimage.transform import AffineTransform, warp_coords
 
 
 class TrainingPipe(AbstractPipeLine):
@@ -106,6 +106,7 @@ class TrainingPipe(AbstractPipeLine):
                 self.regression_buffer[:, :, :, 0],
                 self.regression_buffer[:, :, :, 1]
             )
+            self.fix_regression_coefficients()
             self.save_regression_buffers()
             del self.regression_buffer
 
@@ -180,6 +181,17 @@ class TrainingPipe(AbstractPipeLine):
             self.cue = 1
 
         return self.cue
+
+    def fix_regression_coefficients(self):
+        ibp = InteractiveBandPassSelector(self.processes_list_ch2[3].regression_coeff[0].get())
+        reg_map0_fft = np.fft.fftshift((np.fft.fft2(self.processes_list_ch2[3].regression_coeff[0].get())))
+        reg_map1_fft = np.fft.fftshift((np.fft.fft2(self.processes_list_ch2[3].regression_coeff[0].get())))
+        for bbox in ibp.bbox_list:
+            reg_map0_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
+            reg_map1_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
+
+        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(abs(np.fft.ifft2(reg_map0_fft)))
+        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(abs(np.fft.ifft2(reg_map1_fft)))
 
     def save_regression_buffers(self):
         with open(self.save_path + "regression_coeff_map.npy", "wb") as f:

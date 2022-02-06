@@ -9,7 +9,7 @@ from devices.serial_port import SerialControler
 
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.memmap_process import MemoryHandler
-from Imaging.utils.adaptive_staircase_procedure import fixed_step_staircase_procedure
+from Imaging.utils.adaptive_staircase_procedure import binary_fixed_step_staircase_procedure
 from Imaging.visualization.live_video_and_metric import LiveVideoMetric
 from Imaging.visualization.live_video import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
@@ -52,6 +52,8 @@ class NeuroFeedbackSession(AbstractSession):
         self.mouse_id = config["mouse_id"]
         self.session_name = config["session_name"]
         self.session_path = f"{self.base_path}/{self.mouse_id}/{self.session_name}/"
+        if not os.path.exists(self.session_path):
+            os.mkdir(self.session_path)
 
         self.camera_config = config["camera_config"]
         self.serial_config = config["serial_port_config"]
@@ -170,7 +172,8 @@ class NeuroFeedbackSession(AbstractSession):
         elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
             self.analysis_pipeline = TrainingPipe(
                 self.camera, self.session_path,
-                self.analysis_pipeline_config["args"]["min_frame_count"], self.analysis_pipeline_config["args"]["max_frame_count"],
+                self.analysis_pipeline_config["args"]["min_frame_count"],
+                self.analysis_pipeline_config["args"]["max_frame_count"],
                 self.cortex_mask, self.cortex_map,
                 affine_matrix,
                 regression_map,
@@ -245,7 +248,7 @@ class NeuroFeedbackSession(AbstractSession):
             # update threshold using adaptive staircase procedure
             if frame_counter > update_frames[0] and frame_counter < update_frames[1]:
                 results_seq.append(result)
-                feedback_threshold = fixed_step_staircase_procedure(
+                feedback_threshold = binary_fixed_step_staircase_procedure(
                     feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
 
             # save Wide Filed data
