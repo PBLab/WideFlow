@@ -8,14 +8,12 @@ from devices.mock_devices.mock_serial_controller import MockSerialControler
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
 from Imaging.utils.create_matching_points import MatchingPointSelector
 
-from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
 from utils.load_matching_points import load_matching_points
 from utils.matplotlib_rectangle_selector_events import *
-from utils.find_2d_max_correlation_coordinates import find_2d_max_correlation_coordinates
-from utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_rois_data import load_rois_data
 
-from analysis.utils import load_session_metadata
+from analysis.utils.load_session_metadata import load_session_metadata
 
 import numpy as np
 import cupy as cp
@@ -47,8 +45,8 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         self.mouse_id = config["mouse_id"]
         self.session_name = config["session_name"]
         self.session_path = f"{self.base_path}/{self.mouse_id}/{self.session_name}/"
-        # this correction is used since imaging and analyzed data is done at different computers
-        self.session_path = '/data/Rotem/WideFlow prj' + self.session_path[21:]
+
+        self.regression_map_path = self.session_path + 'regression_coeff_map.npy'
 
         self.camera_config = config["camera_config"]
 
@@ -58,10 +56,6 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         self.feedback_config = config["feedback_config"]
         self.registration_config = config["registration_config"]
         self.supplementary_data_config = config["supplementary_data_config"]
-        # this correction is used since imaging and analyzed data is done at different computers
-        self.supplementary_data_config["mask_path"] = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
-        self.supplementary_data_config["rois_dict_path"] = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex_rois_extended.h5'
-
         self.analysis_pipeline_config = config["analysis_pipeline_config"]
 
         self.camera = self.set_imaging_camera()
@@ -73,7 +67,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
         self.analysis_pipeline = None
 
-        self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_dataset.h5'
+        self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_dataset_new.h5'
 
     def set_imaging_camera(self):
         cam = MockPVCamera(self.camera_config, self.session_path, self.crop_sensor)
@@ -93,43 +87,22 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
     def session_preparation(self):
         # select roi
-        regression_map = None
-        if self.crop_sensor:
-            self.camera.binning = (1, 1)  # set no binning for ROI selection
-            frame = self.camera.get_frame()
-            if self.registration_config["automatic_cropping"]:
-                ref_image = load_tiff(self.registration_config["reference_image_path"])
-                ref_bbox = load_bbox(self.config["cropping_bbox_path"])
-                ref_image_roi = ref_image[ref_bbox[2]: ref_bbox[3], ref_bbox[0]: ref_bbox[1]]
-                xi, yi = find_2d_max_correlation_coordinates(frame, ref_image_roi)
-                ref_bbox = self.select_camera_sensor_roi(frame)
-                bbox = (int(xi), int(xi + (ref_bbox[1] - ref_bbox[0])), int(yi), int(yi + (ref_bbox[3] - ref_bbox[2])))
-                self.camera.roi = bbox
-                if os.path.exists(self.registration_config["matching_point_path"]):
-                    match_p_src, match_p_dst = load_matching_points(self.config["matching_point_path"])
-                if os.path.exists(self.analysis_pipeline_config["args"]["regression_map_path"]):
-                    regression_map = self.load_regression_map()
-
-            else:
-                bbox = self.select_camera_sensor_roi(frame)
-                self.camera.roi = bbox
-
-            self.camera.binning = tuple(self.camera_config["core_attr"]["binning"])  # restore configuration binning
+        regression_map = self.load_regression_map()
 
         frame = self.camera.get_frame()
         if not os.path.exists(self.registration_config["matching_point_path"]):
-            match_p_src, match_p_dst = self.find_affine_mapping_coordinates(frame)
-
-        self.analysis_pipeline_config['args']["match_p_src"] = match_p_src
-        self.analysis_pipeline_config['args']["match_p_dst"] = match_p_dst
+            match_p_src = None
+        else:
+            match_p_src, match_p_dst = load_matching_points(self.registration_config["matching_point_path"])
+        affine_matrix, match_p_src, match_p_dst = self.find_affine_mapping_coordinates(frame, match_p_src)
 
         # initialzie analysis pipeline
         if self.analysis_pipeline_config["pipeline"] == "HemoDynamicsDFF":
             self.analysis_pipeline = HemoDynamicsDFF(
                 self.camera, self.session_path,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
-                match_p_src, match_p_dst,
-                regression_map, self.analysis_pipeline_config["args"]["diff_delta_frames"],
+                affine_matrix, self.analysis_pipeline_config["args"]["hemispheres"],
+                regression_map, self.analysis_pipeline_config["args"]["diff_metric_delta"],
                 self.analysis_pipeline_config["args"]["capacity"],  self.analysis_pipeline_config["args"]["rois_names"]
             )
         elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
@@ -138,7 +111,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                 self.analysis_pipeline_config["args"]["min_frame_count"],
                 self.analysis_pipeline_config["args"]["max_frame_count"],
                 self.cortex_mask, self.cortex_map,
-                match_p_src, match_p_dst,
+                affine_matrix,
                 regression_map,
                 self.analysis_pipeline_config["args"]["capacity"],
             )
@@ -148,7 +121,8 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         frame_counter = 0
         frame_counter_ch = 0
         self.analysis_pipeline.fill_buffers()
-        self.analysis_pipeline.camera.start_live()
+        self.analysis_pipeline.camera.frame_idx = -1  # back to first frame to compensate for frames used to fill the buffers
+        self.analysis_pipeline.camera.total_cap_frames = 0
         rois_traces_ch1 = {}
         rois_traces_ch2 = {}
         for roi_key in self.cortex_rois_dict:
@@ -159,12 +133,14 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                 (int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),)
                 , dtype=np.float32)
 
+        metric_result = np.zeros((self.acquisition_config["num_of_frames"], ))
         print(f'starting session at {datetime.now()}')
         # start session
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         while self.camera.total_cap_frames < self.acquisition_config["num_of_frames"]:
             self.analysis_pipeline.process()
+            metric_result[frame_counter] = self.analysis_pipeline.evaluate()
 
             if not self.analysis_pipeline.ptr_2c % 2:
                 for roi_key in rois_traces_ch1:
@@ -188,10 +164,10 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # end session
-        self.session_termination(rois_traces_ch1, rois_traces_ch2)
+        self.session_termination(rois_traces_ch1, rois_traces_ch2, metric_result)
         print(f'session endded at {datetime.now()}')
 
-    def session_termination(self, rois_traces_ch1, rois_traces_ch2):
+    def session_termination(self, rois_traces_ch1, rois_traces_ch2, metric_result):
         self.analysis_pipeline.clear_buffers()
         with h5py.File(self.results_dataset_path, 'a') as f:
             main_group = f[self.mouse_id]
@@ -204,6 +180,8 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
             for roi_key, roi_trace in rois_traces_ch2.items():
                 ch1_grp.create_dataset(roi_key, data=roi_trace)
+
+            session_group.create_dataset('metric_results', data=metric_result)
 
     def select_camera_sensor_roi(self, frame):
         fig, ax = plt.subplots()
@@ -220,12 +198,13 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
         return bbox
 
-    def find_affine_mapping_coordinates(self, frame):
-        iat = InteractiveAffineTransform(frame, self.cortex_map)
-        return iat.trans_points_pos, iat.fixed_points_pos
+    def find_affine_mapping_coordinates(self, frame, match_p_src=None):
+        iat = InteractiveAffineTransform(frame, self.cortex_map, match_p_src)
+        return iat.tform._inv_matrix, iat.trans_points_pos, iat.fixed_points_pos
 
     def find_piecewise_affine_mapping_coordinates(self, frame, match_p_src, match_p_dst):
         if match_p_src is not None:
+
             match_p_src = np.array(match_p_src)
         if match_p_dst is not None:
             match_p_dst = np.array(match_p_dst)
@@ -242,14 +221,14 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             map = np.transpose(f["map"][()])
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
-        rois_dict = load_extended_rois_list(self.supplementary_data_config["rois_dict_path"])
-        # add unreval_index property to each roi
-        for roi_key, roi_dict in rois_dict.items():
-            rois_dict[roi_key]['unravel_index'] = np.unravel_index(roi_dict['PixelIdxList'], (map.shape[1], map.shape[0]))
+        rois_dict = load_rois_data(self.supplementary_data_config["rois_dict_path"])
 
         return mask, map, rois_dict
 
     def load_regression_map(self):
         print("\nLoading regression coefficients for hemodynamics correction...")
-        reg_map = np.load(self.regression_map_path)
-        return reg_map
+        if os.path.exists(self.regression_map_path):
+            reg_map = np.load(self.regression_map_path)
+            return reg_map
+        else:
+            return None

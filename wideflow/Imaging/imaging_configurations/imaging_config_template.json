@@ -13,7 +13,7 @@
             "clear_mode": 0
         },
         "attr": {
-            "channels": 1
+            "channels": 2
         },
         "splice_plugins_enable": false,
         "splice_plugin_setting": [
@@ -79,12 +79,17 @@
 
     "feedback_config": {
         "metric_threshold": 0.1,
-        "inter_feedback_delay": 10e3,
+        "inter_feedback_delay": 1e3,
+        "update_frames": [1000, 8000],
+        "update_every": 100,
+        "percentile": 99.5,
+        "nbins": 1000,
+
         "typical_n": 1000,
         "typical_count": 2,
         "count_band": 1,
-        "step": 0.002,
-        "update_frames": 8000
+        "step": 0.002
+
 
     },
 

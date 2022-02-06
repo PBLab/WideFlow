@@ -9,7 +9,7 @@ from devices.serial_port import SerialControler
 
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.memmap_process import MemoryHandler
-from Imaging.utils.adaptive_staircase_procedure import fixed_step_staircase_procedure
+from Imaging.utils.adaptive_staircase_procedure import binary_fixed_step_staircase_procedure, percentile_update_procedure
 from Imaging.visualization.live_video_and_metric import LiveVideoMetric
 from Imaging.visualization.live_video import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
@@ -22,7 +22,7 @@ from utils.load_matching_points import load_matching_points
 from utils.matplotlib_rectangle_selector_events import *
 from utils.find_2d_max_correlation_coordinates import find_2d_max_correlation_coordinates
 from utils.convert_dat_to_tif import convert_dat_to_tif
-from utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_rois_data import load_rois_data
 from utils.write_bbox_file import write_bbox_file
 from utils.write_matching_point_file import write_matching_point_file
 
@@ -52,6 +52,8 @@ class NeuroFeedbackSession(AbstractSession):
         self.mouse_id = config["mouse_id"]
         self.session_name = config["session_name"]
         self.session_path = f"{self.base_path}/{self.mouse_id}/{self.session_name}/"
+        if not os.path.exists(self.session_path):
+            os.mkdir(self.session_path)
 
         self.camera_config = config["camera_config"]
         self.serial_config = config["serial_port_config"]
@@ -170,7 +172,8 @@ class NeuroFeedbackSession(AbstractSession):
         elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
             self.analysis_pipeline = TrainingPipe(
                 self.camera, self.session_path,
-                self.analysis_pipeline_config["args"]["min_frame_count"], self.analysis_pipeline_config["args"]["max_frame_count"],
+                self.analysis_pipeline_config["args"]["min_frame_count"],
+                self.analysis_pipeline_config["args"]["max_frame_count"],
                 self.cortex_mask, self.cortex_map,
                 affine_matrix,
                 regression_map,
@@ -204,11 +207,14 @@ class NeuroFeedbackSession(AbstractSession):
         # set feedback properties
         feedback_threshold = self.feedback_config["metric_threshold"]
         inter_feedback_delay = self.feedback_config["inter_feedback_delay"]
-        typical_n = self.feedback_config["typical_n"]
-        typical_count = self.feedback_config["typical_count"]
-        count_band = self.feedback_config["count_band"]
-        step = self.feedback_config["step"]
         update_frames = self.feedback_config["update_frames"]
+        update_every = self.feedback_config["update_every"]
+        threshold_percentile = self.feedback_config["percentile"]
+        threshold_nbins = self.feedback_config["nbins"]
+        # typical_n = self.feedback_config["typical_n"]
+        # typical_count = self.feedback_config["typical_count"]
+        # count_band = self.feedback_config["count_band"]
+        # step = self.feedback_config["step"]
 
         results_seq = []  # initialize cues_seq with 1 to avoid ".index" failure
         frame_counter = 0
@@ -243,10 +249,14 @@ class NeuroFeedbackSession(AbstractSession):
                       '___________________________________________________________________________')
 
             # update threshold using adaptive staircase procedure
-            if frame_counter > update_frames[0] and frame_counter < update_frames[1]:
-                results_seq.append(result)
-                feedback_threshold = fixed_step_staircase_procedure(
-                    feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
+            results_seq.append(result)
+            if not frame_counter % update_every and frame_counter > update_frames[0] and frame_counter < update_frames[1]:
+                feedback_threshold = percentile_update_procedure(
+                    feedback_threshold, results_seq[::self.camera_config["attr"]["channels"]],
+                    threshold_percentile, threshold_nbins)
+                # results_seq.append(result)
+                # feedback_threshold = binary_fixed_step_staircase_procedure(
+                #     feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
 
             # save Wide Filed data
             self.frame_shm[:] = self.analysis_pipeline.frame
@@ -441,7 +451,8 @@ class NeuroFeedbackSession(AbstractSession):
             map = np.transpose(f["map"][()])
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
-        rois_dict = load_extended_rois_list(self.supplementary_data_config["rois_dict_path"])
+        print(self.supplementary_data_config["rois_dict_path"])
+        rois_dict = load_rois_data(self.supplementary_data_config["rois_dict_path"])
 
         return mask, map, rois_dict
 

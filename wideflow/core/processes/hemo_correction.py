@@ -18,13 +18,15 @@ class HemoCorrect(AbstractProcess):
 
         self.ptr = self.capacity - 1
 
-    def initialize_buffers(self, data, hemo_data):
+    def initialize_buffers(self,data, hemo_data):
         """
 
         :param data: 2D numpy array (pixels, time)
         :param hemo_data: 2D numpy array (pixels, time)
         :return: m, b regression coefficients
         """
+        regression_coeff0 = np.zeros(self.shape[-2:])
+        regression_coeff1 = np.zeros(self.shape[-2:])
         n_samples = np.size(data, 0)
         for i in range(self.shape[1]):
             for j in range(self.shape[2]):
@@ -32,9 +34,11 @@ class HemoCorrect(AbstractProcess):
                     np.stack((hemo_data[:, i, j], np.ones((n_samples,))), axis=1),
                     data[:, i, j],
                     rcond=None)
-                self.regression_coeff[0][i, j] = theta[0]
-                self.regression_coeff[1][i, j] = theta[1]
+                regression_coeff0[i, j] = theta[0]
+                regression_coeff1[i, j] = theta[1]
 
+        self.regression_coeff[0][:] = cp.asanyarray(regression_coeff0)
+        self.regression_coeff[1][:] = cp.asanyarray(regression_coeff1)
         self.ptr = self.capacity - 1
 
     def process(self):

@@ -70,13 +70,13 @@ class TimeGraph():
 
 
 import pathlib
-from utils.load_matlab_vector_field import load_extended_rois_list
+from utils.load_rois_data import load_rois_data
 from utils.load_matlab_vector_field import load_matlab_OF
 flow_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'OFAMM' / 'ofamm_results.mat')
 roi_path = str(pathlib.Path('C:/') / 'Users' / 'motar' / 'PycharmProjects' / 'WideFlow' / 'data' / 'mock_data' / 'mock_rois_extended_2.h5')
 
 flow = load_matlab_OF(flow_path)
-roi_list = load_extended_rois_list(roi_path)
+roi_list = load_rois_data(roi_path)
 # left_roi_list = {}
 # for key, val in roi_list.items():
 #     if int(key.split('_')[1]) <= 28:

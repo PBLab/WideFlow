@@ -4,6 +4,7 @@ from core.processes import AffineTrans, Mask, DFF, HemoSubtraction, HemoCorrect
 
 import cupy as cp
 import numpy as np
+from Imaging.utils.interactive_bandpass_selector import InteractiveBandPassSelector
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
@@ -36,6 +37,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.map = map[:, int(self.map.shape[1] / 2):]
         elif self.hemispheres == 'both':
             self.cortex_roi = [0, self.camera.shape[1], 0, self.camera.shape[0]]
+        else:
+            raise NameError('pipeline hemisphere keyword unrecognized')
 
         self.new_shape = self.map.shape
         self.frame_shape = (self.camera.shape[1], self.camera.shape[0])
@@ -116,7 +119,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 self.regression_buffer[:, :, :, 0],
                 self.regression_buffer[:, :, :, 1]
             )
-            self.save_regression_buffers()
+            self.fix_regression_coefficients()
+            self.save_regression_coefficients()
             del self.regression_buffer
 
         else:
@@ -182,7 +186,18 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.metric.evaluate()
         return self.metric.result
 
-    def save_regression_buffers(self):
+    def fix_regression_coefficients(self):
+        ibp = InteractiveBandPassSelector(self.processes_list_ch2[3].regression_coeff[0].get())
+        reg_map0_fft = np.fft.fftshift((np.fft.fft2(self.processes_list_ch2[3].regression_coeff[0].get())))
+        reg_map1_fft = np.fft.fftshift((np.fft.fft2(self.processes_list_ch2[3].regression_coeff[0].get())))
+        for bbox in ibp.bbox_list:
+            reg_map0_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
+            reg_map1_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
+
+        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(abs(np.fft.ifft2(reg_map0_fft)))
+        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(abs(np.fft.ifft2(reg_map1_fft)))
+
+    def save_regression_coefficients(self):
         with open(self.save_path + "regression_coeff_map.npy", "wb") as f:
             np.save(f, np.stack((
                 self.processes_list_ch2[3].regression_coeff[0].get(),

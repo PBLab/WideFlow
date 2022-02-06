@@ -3,8 +3,8 @@ from tifffile import TiffWriter
 from skimage.transform import resize
 
 
-def traces_to_video(traces, rois_dict, shape, path, mark_frame_list=None):
-    n = len(traces['roi_1'])
+def traces_to_video(traces, rois_dict, shape, path, mark_frame_list=None, mark_frame_val=None):
+    n = len(traces['roi_01'])
     video = np.zeros((n, shape[0], shape[1]), dtype=np.float32)
     for roi_key, roi_trace in traces.items():
         roi_pixels_list = rois_dict[roi_key]["PixelIdxList"]
@@ -24,6 +24,12 @@ def traces_to_video(traces, rois_dict, shape, path, mark_frame_list=None):
                 frame = video_rs[i]
                 frame[bbox[0]: bbox[1], bbox[2]: bbox[3]] = 1
                 video_rs[i] = frame
+    if mark_frame_val is not None:
+        bbox = [1, 10, video_rs.shape[2]-11, video_rs.shape[2]-1]
+        for i in range(n):
+            frame = video_rs[i]
+            frame[bbox[0]: bbox[1], bbox[2]: bbox[3]] = mark_frame_val[i]
+            video_rs[i] = frame
 
     with TiffWriter(path) as tif:
         tif.write(video_rs, contiguous=True)
