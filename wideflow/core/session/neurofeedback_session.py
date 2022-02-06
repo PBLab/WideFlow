@@ -9,7 +9,7 @@ from devices.serial_port import SerialControler
 
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.memmap_process import MemoryHandler
-from Imaging.utils.adaptive_staircase_procedure import binary_fixed_step_staircase_procedure
+from Imaging.utils.adaptive_staircase_procedure import binary_fixed_step_staircase_procedure, percentile_update_procedure
 from Imaging.visualization.live_video_and_metric import LiveVideoMetric
 from Imaging.visualization.live_video import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
@@ -207,11 +207,14 @@ class NeuroFeedbackSession(AbstractSession):
         # set feedback properties
         feedback_threshold = self.feedback_config["metric_threshold"]
         inter_feedback_delay = self.feedback_config["inter_feedback_delay"]
-        typical_n = self.feedback_config["typical_n"]
-        typical_count = self.feedback_config["typical_count"]
-        count_band = self.feedback_config["count_band"]
-        step = self.feedback_config["step"]
         update_frames = self.feedback_config["update_frames"]
+        update_every = self.feedback_config["update_every"]
+        threshold_percentile = self.feedback_config["percentile"]
+        threshold_nbins = self.feedback_config["nbins"]
+        # typical_n = self.feedback_config["typical_n"]
+        # typical_count = self.feedback_config["typical_count"]
+        # count_band = self.feedback_config["count_band"]
+        # step = self.feedback_config["step"]
 
         results_seq = []  # initialize cues_seq with 1 to avoid ".index" failure
         frame_counter = 0
@@ -246,10 +249,12 @@ class NeuroFeedbackSession(AbstractSession):
                       '___________________________________________________________________________')
 
             # update threshold using adaptive staircase procedure
-            if frame_counter > update_frames[0] and frame_counter < update_frames[1]:
-                results_seq.append(result)
-                feedback_threshold = binary_fixed_step_staircase_procedure(
-                    feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
+            results_seq.append(result)
+            if not frame_counter % update_every and frame_counter > update_frames[0] and frame_counter < update_frames[1]:
+                feedback_threshold = percentile_update_procedure(feedback_threshold, results_seq, threshold_percentile, threshold_nbins)
+                # results_seq.append(result)
+                # feedback_threshold = binary_fixed_step_staircase_procedure(
+                #     feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
 
             # save Wide Filed data
             self.frame_shm[:] = self.analysis_pipeline.frame
