@@ -64,6 +64,9 @@ class InteractiveBandPassSelector:
     def update_band_pass_image(self, bbox):
         self.src_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
         self.src_bp = abs(np.fft.ifft2(self.src_fft))
+        self.draw()
+
+    def draw(self):
         self.ax_src.imshow(rgb2gray(np.log(abs(self.src_fft))), cmap='gray')
         self.ax_dst.imshow(self.src_bp)
         self.fig_dst.canvas.draw()
@@ -77,10 +80,12 @@ class InteractiveBandPassSelector:
         self.src_bp = self.src_img.copy()
         self.src_fft = np.fft.fftshift((np.fft.fft2(self.src_img)))
         self.bbox_list = []
+        self.draw()
 
 
-# path = '/data/Rotem/WideFlow prj/2680/20220130_CueRewardCoupling/regression_coeff_map.npy'
-# regression_map = np.load(path)
-# ibp = InteractiveBandPassSelector(regression_map[0])
-# for bbox in ibp.bbox_list:
-#     print(bbox)
+
+path = '/data/Rotem/WideFlow prj/2683/20220206_neurofeedback/regression_coeff_map.npy'
+regression_map = np.load(path)
+ibp = InteractiveBandPassSelector(regression_map[0])
+for bbox in ibp.bbox_list:
+    print(bbox)

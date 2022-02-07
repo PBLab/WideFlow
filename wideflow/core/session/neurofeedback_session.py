@@ -211,7 +211,7 @@ class NeuroFeedbackSession(AbstractSession):
         update_every = self.feedback_config["update_every"]
         threshold_percentile = self.feedback_config["percentile"]
         threshold_nbins = self.feedback_config["nbins"]
-        # typical_n = self.feedback_config["typical_n"]
+        typical_n = self.feedback_config["typical_n"]
         # typical_count = self.feedback_config["typical_count"]
         # count_band = self.feedback_config["count_band"]
         # step = self.feedback_config["step"]
