@@ -209,7 +209,7 @@ class NeuroFeedbackSession(AbstractSession):
         update_every = self.feedback_config["update_every"]
         threshold_percentile = self.feedback_config["percentile"]
         threshold_nbins = self.feedback_config["nbins"]
-        typical_n = self.feedback_config["typical_n"]
+        threshold_eval_frames = self.feedback_config["eval_frames"]
 
         results_seq = []
         frame_counter = 0
@@ -236,7 +236,8 @@ class NeuroFeedbackSession(AbstractSession):
             result = self.analysis_pipeline.evaluate()
             self.serial_controller.sendToArduino(f'{(1 + np.clip(result / feedback_threshold, -1, 1)) / 2:3f}')  # map result to [0, 1]
             if int(cp.asnumpy(result) > feedback_threshold) and \
-                    (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
+                    (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay and \
+                    frame_counter > update_frames[0]:
                 self.serial_controller.sendFeedback()
                 feedback_time = perf_counter()
                 cue = 1
@@ -246,9 +247,9 @@ class NeuroFeedbackSession(AbstractSession):
             # update threshold
             results_seq.append(result)
             if not frame_counter % update_every and frame_counter > update_frames[0] and frame_counter < update_frames[1]:
-                feedback_threshold = percentile_update_procedure(
-                    feedback_threshold, results_seq[::self.camera_config["attr"]["channels"]],
-                    threshold_percentile, threshold_nbins)
+                feedback_threshold = percentile_update_procedure(feedback_threshold,
+                        results_seq[-threshold_eval_frames:: self.camera_config["attr"]["channels"]],
+                        threshold_percentile, threshold_nbins)
 
             # save Wide Filed data
             self.frame_shm[:] = self.analysis_pipeline.frame
