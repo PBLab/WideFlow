@@ -46,9 +46,5 @@ def percentile_update_procedure(threshold, samples, percentile, nbins):
         return bins[percentile_inds[0]] * (nbins/100)
 
 
-def std_contrast_one_update():
-    pass
-
-
 def bayesian_update():
     pass
