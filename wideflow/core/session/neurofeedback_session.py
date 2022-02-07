@@ -132,6 +132,7 @@ class NeuroFeedbackSession(AbstractSession):
         return metadata
 
     def session_preparation(self):
+        regression_map = None
         # select roi
         self.camera.binning = (1, 1)  # set no binning for ROI selection
         frame = self.camera.get_frame()
@@ -147,13 +148,10 @@ class NeuroFeedbackSession(AbstractSession):
                 match_p_src, match_p_dst = load_matching_points(self.config["matching_point_path"])
             if os.path.exists(self.analysis_pipeline_config["args"]["regression_map_path"]):
                 regression_map = self.load_regression_map()
-            else:
-                regression_map = None
 
         else:
             bbox = self.select_camera_sensor_roi(frame)
             self.camera.roi = bbox
-            regression_map = None
 
         self.camera.binning = tuple(self.camera_config["core_attr"]["binning"])  # restore configuration binning
         frame = self.camera.get_frame()
@@ -180,7 +178,7 @@ class NeuroFeedbackSession(AbstractSession):
                 self.analysis_pipeline_config["args"]["capacity"],
             )
         else:
-            raise NameError()
+            raise NameError(f"{self.analysis_pipeline_config['pipeline']} pipeline class doesn't exist")
 
         # imaging data memory handler
         data_shape = (self.acquisition_config["num_of_frames"], self.camera.shape[1], self.camera.shape[0])
