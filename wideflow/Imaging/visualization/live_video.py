@@ -15,9 +15,10 @@ class LiveVideo(AbstractVis):
 
         self.fig, self.ax = plt.subplots()
         self.ax.set_title('Live Video')
-        plt.show()
+        # plt.show()
 
     def __call__(self, shared_mem_name):
+
         existing_shm = shared_memory.SharedMemory(name=shared_mem_name)
         image = np.ndarray(shape=self.image_shape, dtype=np.float32, buffer=existing_shm.buf)
         plt.imshow(image, vmin=self.vmin, vmax=self.vmax)

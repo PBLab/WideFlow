@@ -240,7 +240,8 @@ class NeuroFeedbackSession(AbstractSession):
             result = self.analysis_pipeline.evaluate()
             self.serial_controller.sendToArduino(f'{(1 + np.clip(result / feedback_threshold, -1, 1)) / 2:3f}')  # map result to [0, 1]
             if int(cp.asnumpy(result) > feedback_threshold) and \
-                    (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay:
+                    (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay and \
+                    frame_counter > update_frames[0]:
                 self.serial_controller.sendFeedback()
                 feedback_time = perf_counter()
                 cue = 1
