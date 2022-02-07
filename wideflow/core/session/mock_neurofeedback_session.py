@@ -176,6 +176,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             ch0_grp = rois_traces_group.create_group('channel_0')
             ch1_grp = rois_traces_group.create_group('channel_1')
             for roi_key, roi_trace in rois_traces_ch1.items():
+
                 ch0_grp.create_dataset(roi_key, data=roi_trace)
 
             for roi_key, roi_trace in rois_traces_ch2.items():
@@ -222,6 +223,14 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
         rois_dict = load_rois_data(self.supplementary_data_config["rois_dict_path"])
+
+        if self.supplementary_data_config["rois_dict_path"].endswith('rois.h5'):
+            shape = (297, 337)
+        else:
+            shape = (297, 168)
+
+        for i, (roi_key, roi_dict) in enumerate(rois_dict.items()):
+            rois_dict[roi_key]['unravel_index'] = np.unravel_index(roi_dict['PixelIdxList'], (shape[0], shape[1]))
 
         return mask, map, rois_dict
 

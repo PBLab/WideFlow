@@ -36,14 +36,26 @@ def percentile_fixed_step_staircase_procedure(threshold, samples, num_frames, pe
 
 
 def percentile_update_procedure(threshold, samples, percentile, nbins):
+    """
+
+    Args:
+        threshold: float: default threshold
+        samples: 1D numpy array
+        percentile: float: samples threshold percentile
+        nbins: int: number of bins to compose the histogram
+
+    Returns: float: samples threshold
+
+    """
     hist, bins = np.histogram(samples, nbins, density=True)
     bins_width = np.diff(bins)
     p_density = hist * bins_width
-    percentile_inds = np.where(bins > np.percentile(p_density, percentile))[0]
-    if not len(percentile_inds):
-        return threshold
+    prob = np.cumsum(p_density)
+    percentile_inds = np.where(prob > np.percentile(prob, percentile))[0]
+    if len(percentile_inds):
+        return bins[percentile_inds[0]]
     else:
-        return bins[percentile_inds[0]] * (nbins/100)
+        return threshold
 
 
 def bayesian_update():
