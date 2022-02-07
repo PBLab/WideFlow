@@ -210,11 +210,8 @@ class NeuroFeedbackSession(AbstractSession):
         threshold_percentile = self.feedback_config["percentile"]
         threshold_nbins = self.feedback_config["nbins"]
         typical_n = self.feedback_config["typical_n"]
-        # typical_count = self.feedback_config["typical_count"]
-        # count_band = self.feedback_config["count_band"]
-        # step = self.feedback_config["step"]
 
-        results_seq = []  # initialize cues_seq with 1 to avoid ".index" failure
+        results_seq = []
         frame_counter = 0
         feedback_time = 0
         self.analysis_pipeline.fill_buffers()
@@ -246,15 +243,12 @@ class NeuroFeedbackSession(AbstractSession):
                 print('_________________________FEEDBACK HAS BEEN SENT____________________________\n'
                       '___________________________________________________________________________')
 
-            # update threshold using adaptive staircase procedure
+            # update threshold
             results_seq.append(result)
             if not frame_counter % update_every and frame_counter > update_frames[0] and frame_counter < update_frames[1]:
                 feedback_threshold = percentile_update_procedure(
                     feedback_threshold, results_seq[::self.camera_config["attr"]["channels"]],
                     threshold_percentile, threshold_nbins)
-                # results_seq.append(result)
-                # feedback_threshold = binary_fixed_step_staircase_procedure(
-                #     feedback_threshold, results_seq, typical_n, typical_count, count_band, step)
 
             # save Wide Filed data
             self.frame_shm[:] = self.analysis_pipeline.frame
