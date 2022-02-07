@@ -83,7 +83,6 @@ class InteractiveBandPassSelector:
         self.draw()
 
 
-
 # path = '/data/Rotem/WideFlow prj/2683/20220206_neurofeedback/regression_coeff_map.npy'
 # regression_map = np.load(path)
 # ibp = InteractiveBandPassSelector(regression_map[0])
