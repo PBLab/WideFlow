@@ -8,9 +8,10 @@ def run_converter(session_path):
     bbox = load_bbox(session_path + '/bbox.txt')
     config = load_config(session_path + '/session_config.json')
 
+    binning = config["camera_config"]["core_attr"]["binning"]
     nframes = config['acquisition_config']['num_of_frames']
     dtype = np.uint16
-    shape = (int((bbox[3] - bbox[2]) / 2), int((bbox[1] - bbox[0]) / 2))
+    shape = (int((bbox[3] - bbox[2]) / binning[1]), int((bbox[1] - bbox[0]) / binning[0]))
     frame = np.zeros(shape, dtype=dtype)
     nbytes = frame.nbytes
 

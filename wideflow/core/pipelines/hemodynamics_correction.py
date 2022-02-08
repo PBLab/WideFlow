@@ -8,13 +8,12 @@ from Imaging.utils.interactive_bandpass_selector import InteractiveBandPassSelec
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
-    def __init__(self, camera, save_path,
+    def __init__(self, camera,
                  mask, map, rois_dict,
                  affine_matrix, hemispheres,
                  regression_map, diff_metric_delta,
                  capacity, rois_names, regression_n_samples=512):
         self.camera = camera
-        self.save_path = save_path
         self.capacity = capacity + capacity % 2  # make sure capacity is an even number
         self.mask = mask
         self.map = map
@@ -53,20 +52,17 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.dff_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.dff_buffer_ch2 = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
 
-        self.regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2),
-                                            dtype=np.float32)
-
         affine_transform = AffineTrans(self.input, self.warped_input, self.affine_matrix, self.new_shape)
         # set processes for channel 1
-        masking = Mask(self.warped_input, self.mask, self.warped_buffer, ptr=self.capacity-1)
-        dff = DFF(self.dff_buffer, self.warped_buffer, ptr=0)
-        hemo_subtract = HemoSubtraction(self.dff_buffer, self.dff_buffer_ch2, ptr=0)
+        masking = Mask(self.warped_input, self.mask, self.warped_buffer)
+        dff = DFF(self.dff_buffer, self.warped_buffer)
+        hemo_subtract = HemoSubtraction(self.dff_buffer, self.dff_buffer_ch2)
         self.processes_list = [affine_transform, masking, dff, hemo_subtract]
 
         # set processes for channel 2
-        masking_ch2 = Mask(self.warped_input, self.mask, self.warped_buffer_ch2, ptr=self.capacity-1)
-        dff_ch2 = DFF(self.dff_buffer_ch2, self.warped_buffer_ch2, ptr=0)
-        hemo_correct = HemoCorrect(self.dff_buffer_ch2, ptr=0)
+        masking_ch2 = Mask(self.warped_input, self.mask, self.warped_buffer_ch2)
+        dff_ch2 = DFF(self.dff_buffer_ch2, self.warped_buffer_ch2)
+        hemo_correct = HemoCorrect(self.dff_buffer_ch2, self.regression_map)
         self.processes_list_ch2 = [affine_transform, masking_ch2, dff_ch2, hemo_correct]
 
         self.metric = ROIDiff(self.dff_buffer, self.rois_dict, self.rois_names, self.diff_metric_delta)
@@ -75,60 +71,10 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.ptr_2c = 2 * self.capacity - 1
 
     def fill_buffers(self):
-        # initialize buffers
+        # fill warped_buffer of both channels
         self.camera.start_live()
-        for i in range(self.capacity * 2):
-            self.get_input()
-            if not i % 2:
-                self.processes_list[0].process()
-                self.processes_list[1].process()
-            else:
-                self.processes_list_ch2[0].process()
-                self.processes_list_ch2[1].process()
-
-        self.processes_list[2].initialize_buffers()
-        self.processes_list_ch2[2].initialize_buffers()
-
-        if self.regression_map is None:
-            # collect data to calculate regression coefficient for the hemodynamic correction
-            print("\nCollecting data to calculate regression coefficients for hemodynamics correction...")
-            ch1i, ch2i = 0, 0
-            for i in range(self.regression_n_samples * 2):
-                if self.ptr == self.capacity - 1:
-                    self.ptr = 0
-                else:
-                    self.ptr += 1
-
-                self.get_input()
-                if not i % 2:
-                    for process in self.processes_list[:3]:
-                        process.process()
-                    self.regression_buffer[ch1i, :, :, 0] = cp.asnumpy(self.dff_buffer[self.ptr, :, :])
-                    ch1i += 1
-
-                else:
-                    for process in self.processes_list_ch2[:3]:
-                        process.process()
-                    self.regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
-                    ch2i += 1
-
-            self.camera.stop_live()
-            print("Done collecting data\n")
-            print("Calculating regression coefficients...", end="\t")
-            self.processes_list_ch2[3].initialize_buffers(
-                self.regression_buffer[:, :, :, 0],
-                self.regression_buffer[:, :, :, 1]
-            )
-            self.fix_regression_coefficients()
-            self.save_regression_coefficients()
-            del self.regression_buffer
-
-        else:
-            self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(self.regression_map[0])
-            self.processes_list_ch2[3].regression_coeff[1] = cp.asanyarray(self.regression_map[1])
-        print("Done")
-
-        self.camera.start_live()
+        self.processes_list[1].initialize_buffers()
+        self.processes_list_ch2[1].initialize_buffers()
         for i in range(self.capacity * 2):
             self.get_input()
             if not i % 2:
@@ -139,12 +85,14 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 self.processes_list_ch2[1].process()
 
         self.camera.stop_live()
-
+        # initialize the following process
         self.processes_list[2].initialize_buffers()
         self.processes_list_ch2[2].initialize_buffers()
+        self.processes_list_ch2[3].initialize_buffers()
         self.processes_list[3].initialize_buffers()
 
         self.metric.initialize_buffers()
+
         self.ptr = self.capacity - 1
         self.ptr_2c = 2 * self.capacity - 1
 
@@ -186,22 +134,59 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.metric.evaluate()
         return self.metric.result
 
-    def fix_regression_coefficients(self):
-        ibp = InteractiveBandPassSelector(self.processes_list_ch2[3].regression_coeff[0].get())
-        reg_map0_fft = np.fft.fftshift((np.fft.fft2(self.processes_list_ch2[3].regression_coeff[0].get())))
-        reg_map1_fft = np.fft.fftshift((np.fft.fft2(self.processes_list_ch2[3].regression_coeff[0].get())))
-        for bbox in ibp.bbox_list:
-            reg_map0_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
-            reg_map1_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
+    def calculate_hemodynamics_regression_map(self):
+        print("\nCollecting data hemodynamics regression maps calculation...")
+        regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2),
+                                       dtype=np.float32)
+        self.camera.start_live()
+        # fill warped_buffer of both channels
+        for i in range(self.capacity * 2):
+            self.get_input()
+            if not i % 2:
+                self.processes_list[0].process()
+                self.processes_list[1].process()
+            else:
+                self.processes_list_ch2[0].process()
+                self.processes_list_ch2[1].process()
 
-        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(abs(np.fft.ifft2(reg_map0_fft)))
-        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(abs(np.fft.ifft2(reg_map1_fft)))
+        self.processes_list[2].initialize_buffers()
+        self.processes_list_ch2[2].initialize_buffers()
 
-    def save_regression_coefficients(self):
-        with open(self.save_path + "regression_coeff_map.npy", "wb") as f:
-            np.save(f, np.stack((
-                self.processes_list_ch2[3].regression_coeff[0].get(),
-                self.processes_list_ch2[3].regression_coeff[1].get()
-                                ))
-                    )
+        ch1i, ch2i = 0, 0
+        for i in range(self.regression_n_samples * 2):
+            if self.ptr == self.capacity - 1:
+                self.ptr = 0
+            else:
+                self.ptr += 1
 
+            self.get_input()
+            if not i % 2:
+                for process in self.processes_list[:3]:
+                    process.process()
+                regression_buffer[ch1i, :, :, 0] = cp.asnumpy(self.dff_buffer[self.ptr, :, :])
+                ch1i += 1
+
+            else:
+                for process in self.processes_list_ch2[:3]:
+                    process.process()
+                regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
+                ch2i += 1
+
+        self.camera.stop_live()
+        print("Done collecting data\n")
+        print("Calculating regression coefficients...", end="\t")
+
+        regression_coeff0 = np.zeros(self.shape[-2:])
+        regression_coeff1 = np.zeros(self.shape[-2:])
+        for i in range(self.shape[1]):
+            for j in range(self.shape[2]):
+                [theta, _, _, _] = np.linalg.lstsq(
+                    np.stack((regression_buffer[ch1i, i, j, 1], np.ones((self.regression_n_samples,))), axis=1),
+                    regression_buffer[ch1i, i, j, 0],
+                    rcond=None)
+                regression_coeff0[i, j] = theta[0]
+                regression_coeff1[i, j] = theta[1]
+
+        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(regression_coeff0)
+        self.processes_list_ch2[3].regression_coeff[1] = cp.asanyarray(regression_coeff1)
+        self.regression_map = [regression_coeff0, regression_coeff1]

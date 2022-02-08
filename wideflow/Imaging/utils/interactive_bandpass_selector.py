@@ -9,6 +9,7 @@ from utils.matplotlib_rectangle_selector_events import *
 
 class InteractiveBandPassSelector:
     def __init__(self, src_img):
+        # plt.ioff()
         self.src_img = src_img
         self.src_fft = np.fft.fftshift((np.fft.fft2(self.src_img)))
         self.src_bp = self.src_img.copy()
@@ -41,6 +42,8 @@ class InteractiveBandPassSelector:
         self.cidrelease = self.fig_src.canvas.mpl_connect('button_release_event', self.on_release)
         self.cidclick = self.fig_src.canvas.mpl_connect('button_press_event', self.on_click)
 
+        # self.fig_src.show()
+        # self.fig_dst.show()
         plt.show()
 
     def on_click(self, event):
@@ -75,6 +78,7 @@ class InteractiveBandPassSelector:
     def accept(self, event):
         plt.close(self.fig_src)
         plt.close(self.fig_dst)
+        # plt.ion()
 
     def reset(self, event):
         self.src_bp = self.src_img.copy()

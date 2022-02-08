@@ -9,10 +9,11 @@ from devices.serial_port import SerialControler
 
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.memmap_process import MemoryHandler
-from Imaging.utils.adaptive_staircase_procedure import binary_fixed_step_staircase_procedure, percentile_update_procedure
+from Imaging.utils.adaptive_staircase_procedure import percentile_update_procedure
 from Imaging.visualization.live_video_and_metric import LiveVideoMetric
 from Imaging.visualization.live_video import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
+from Imaging.utils.interactive_bandpass_selector import InteractiveBandPassSelector
 from Imaging.utils.create_matching_points import MatchingPointSelector
 # from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
 
@@ -161,7 +162,7 @@ class NeuroFeedbackSession(AbstractSession):
         # instantiate analysis pipeline
         if self.analysis_pipeline_config["pipeline"] == "HemoDynamicsDFF":
             self.analysis_pipeline = HemoDynamicsDFF(
-                self.camera, self.session_path,
+                self.camera,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
                 affine_matrix, self.analysis_pipeline_config["args"]["hemispheres"],
                 regression_map, self.analysis_pipeline_config["args"]["diff_metric_delta"],
@@ -169,7 +170,7 @@ class NeuroFeedbackSession(AbstractSession):
             )
         elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
             self.analysis_pipeline = TrainingPipe(
-                self.camera, self.session_path,
+                self.camera,
                 self.analysis_pipeline_config["args"]["min_frame_count"],
                 self.analysis_pipeline_config["args"]["max_frame_count"],
                 self.cortex_mask, self.cortex_map,
@@ -179,6 +180,13 @@ class NeuroFeedbackSession(AbstractSession):
             )
         else:
             raise NameError(f"{self.analysis_pipeline_config['pipeline']} pipeline class doesn't exist")
+
+        if regression_map is None:
+            self.analysis_pipeline.calculate_hemodynamics_regression_map()
+            regression_coeff0, regression_coeff1 = self.fix_regression_coefficients()
+            self.analysis_pipeline.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(regression_coeff0)
+            self.analysis_pipeline.processes_list_ch2[3].regression_coeff[1] = cp.asanyarray(regression_coeff1)
+            self.save_regression_coefficients(regression_coeff0, regression_coeff1)
 
         # imaging data memory handler
         data_shape = (self.acquisition_config["num_of_frames"], self.camera.shape[1], self.camera.shape[0])
@@ -453,6 +461,22 @@ class NeuroFeedbackSession(AbstractSession):
         print("\nLoading regression coefficients for hemodynamics correction...")
         reg_map = np.load(self.regression_map_path)
         return reg_map
+
+    def fix_regression_coefficients(self, regression_coeff0, regression_coeff1):
+        ibp = InteractiveBandPassSelector(regression_coeff0)
+        reg_map0_fft = np.fft.fftshift((np.fft.fft2(regression_coeff0)))
+        reg_map1_fft = np.fft.fftshift((np.fft.fft2(regression_coeff1)))
+        for bbox in ibp.bbox_list:
+            reg_map0_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
+            reg_map1_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
+
+        regression_coeff0 = abs(np.fft.ifft2(reg_map0_fft))
+        regression_coeff1 = abs(np.fft.ifft2(reg_map1_fft))
+        return regression_coeff0, regression_coeff1
+
+    def save_regression_coefficients(self, regression_coeff0, regression_coeff1):
+        with open(self.session_path + "regression_coeff_map.npy", "wb") as f:
+            np.save(f, np.stack((regression_coeff0, regression_coeff1)))
 
     def update_config(self, bbox, match_p_src, match_p_dst, affine_matrix):
         self.config["registration_config"]["cropping_bbox_path"] = self.session_path + 'bbox.txt'
