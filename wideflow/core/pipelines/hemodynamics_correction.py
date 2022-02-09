@@ -86,6 +86,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
         self.camera.stop_live()
         # initialize the following process
+        self.processes_list[1].initialize_buffers()
+        self.processes_list_ch2[1].initialize_buffers()
         self.processes_list[2].initialize_buffers()
         self.processes_list_ch2[2].initialize_buffers()
         self.processes_list_ch2[3].initialize_buffers()
