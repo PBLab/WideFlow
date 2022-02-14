@@ -176,7 +176,7 @@ class NeuroFeedbackSession(AbstractSession):
                 self.cortex_mask, self.cortex_map,
                 affine_matrix,
                 regression_map,
-                self.analysis_pipeline_config["args"]["capacity"],
+                self.analysis_pipeline_config["args"]["capacity"]
             )
         else:
             raise NameError(f"{self.analysis_pipeline_config['pipeline']} pipeline class doesn't exist")
