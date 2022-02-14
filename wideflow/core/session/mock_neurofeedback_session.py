@@ -17,9 +17,11 @@ from analysis.utils.load_session_metadata import load_session_metadata
 
 import numpy as np
 import cupy as cp
+from skimage.transform import resize
 
 import os
 import h5py
+from tifffile import TiffWriter
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
@@ -134,14 +136,19 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                 , dtype=np.float32)
 
         metric_result = np.zeros((self.acquisition_config["num_of_frames"], ))
+        dff_movie = np.zeros((int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),
+                              int(self.analysis_pipeline.new_shape[0]/4), int(self.analysis_pipeline.new_shape[1]/4)), dtype=np.float32)
         print(f'starting session at {datetime.now()}')
         # start session
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         while self.camera.total_cap_frames < self.acquisition_config["num_of_frames"]:
             self.analysis_pipeline.process()
+
+            # metric results
             metric_result[frame_counter] = self.analysis_pipeline.evaluate()
 
+            # rois traces
             if not self.analysis_pipeline.ptr_2c % 2:
                 for roi_key in rois_traces_ch1:
                     rois_traces_ch1[roi_key][frame_counter_ch] = cp.asnumpy(
@@ -158,16 +165,22 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                     )
                 frame_counter_ch += 1
 
+            # dff movie
+            if not self.analysis_pipeline.ptr_2c % 2:
+                dff_movie[frame_counter_ch] = resize(
+                    cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.ptr]),
+                    output_shape=dff_movie.shape[-2:])
+
             frame_counter += 1
             print(f'frame: {frame_counter:06d}', end='\r')
 
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # end session
-        self.session_termination(rois_traces_ch1, rois_traces_ch2, metric_result)
+        self.session_termination(rois_traces_ch1, rois_traces_ch2, metric_result, dff_movie)
         print(f'session endded at {datetime.now()}')
 
-    def session_termination(self, rois_traces_ch1, rois_traces_ch2, metric_result):
+    def session_termination(self, rois_traces_ch1, rois_traces_ch2, metric_result, dff_movie):
         self.analysis_pipeline.clear_buffers()
         with h5py.File(self.results_dataset_path, 'a') as f:
             main_group = f[self.mouse_id]
@@ -183,6 +196,12 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                 ch1_grp.create_dataset(roi_key, data=roi_trace)
 
             session_group.create_dataset('metric_results', data=metric_result)
+
+        if not os.path.exists(self.session_path + 'post_analysis_results'):
+            os.mkdir(self.session_path + 'post_analysis_results')
+
+        with TiffWriter(self.session_path + 'post_analysis_results/dff_blue.tif') as tif:
+            tif.write(dff_movie, contiguous=True)
 
     def select_camera_sensor_roi(self, frame):
         fig, ax = plt.subplots()

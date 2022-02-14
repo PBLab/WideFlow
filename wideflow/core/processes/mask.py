@@ -3,7 +3,7 @@ import cupy as cp
 
 
 class Mask(AbstractProcess):
-    def __init__(self, x, mask, masked_buffer, ptr):
+    def __init__(self, x, mask, masked_buffer, ptr=0):
         self.x = x
         self.mask = mask
         self.masked_buffer = masked_buffer

@@ -39,6 +39,3 @@ class HemoSubtraction(AbstractProcess):
     def update_mean(self):
         self.sub_mean[:] = self.sub_mean - \
                          (self.old_sample - self.new_sample) / self.capacity
-
-
-

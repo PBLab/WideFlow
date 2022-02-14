@@ -133,7 +133,8 @@ def calc_adjusted_reward_pstr(traces, n_samp, height, threshold, min_dst, promin
     return pstr_mat_avg
 
 
-rois_dict_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex_rois.h5'
+# rois_dict_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex_rois.h5'
+rois_dict_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex_rois_left_hemi.h5'
 cortex_map_path = '/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5'
 rois_dict = load_rois_data(rois_dict_path)
 rois_dict = collections.OrderedDict(sorted(rois_dict.items()))
@@ -143,39 +144,43 @@ with h5py.File(cortex_map_path, 'r') as f:
     cortex_map = np.transpose(f["map"][()])
 
 base_path = '/data/Rotem/WideFlow prj/'
-dataset_path = base_path + 'results/sessions_dataset.h5'
-statistics_path = base_path + 'results/sessions_statistics.h5'
+dataset_path = base_path + 'results/sessions_dataset_new.h5'
+statistics_path = base_path + 'results/sessions_statistics_new.h5'
 
-mouse_id = '2680'
+mouse_id = '2604'
 sessions_list = [
     # '20211125_neurofeedback',
-    '20211130_neurofeedback',
+    # '20211130_neurofeedback',
     # '20211206_neurofeedback',
     # '20211208_neurofeedback',
-    # '20211219_neurofeedback'
+    # '20211219_neurofeedback',
+    '20220206_neurofeedback',
+    '20220207_neurofeedback'
 ]
 
 # frames to exclude for each session. frames indexing of one channel
 # for mouse ID 2680
-sessions_exclution_list = {
-    '20211125_neurofeedback': [],
-    '20211130_neurofeedback': [],
-    '20211206_neurofeedback': np.arange(400).tolist(),
-    '20211208_neurofeedback': np.arange(11700, 11850).tolist() + np.arange(13800, 14720).tolist() + np.arange(21500, 21600).tolist(),
-    '20211219_neurofeedback': np.arange(200).tolist() +
-                              np.arange(13500, 14000).tolist() +
-                              np.arange(24200, 25000).tolist() +
-                              np.arange(28200, 30000).tolist()
-}
+# sessions_exclution_list = {
+#     '20211125_neurofeedback': [],
+#     '20211130_neurofeedback': [],
+#     '20211206_neurofeedback': np.arange(400).tolist(),
+#     '20211208_neurofeedback': np.arange(11700, 11850).tolist() + np.arange(13800, 14720).tolist() + np.arange(21500, 21600).tolist(),
+#     '20211219_neurofeedback': np.arange(200).tolist() +
+#                               np.arange(13500, 14000).tolist() +
+#                               np.arange(24200, 25000).tolist() +
+#                               np.arange(28200, 30000).tolist()
+# }
 
 # for mouse ID 2683
-# sessions_exclution_list = {
-#     '20211125_neurofeedback': np.arange(11950, 12050).tolist(),
-#     '20211130_neurofeedback': [],
-#     '20211206_neurofeedback':  np.arange(29900, 30000).tolist(),
-#     '20211208_neurofeedback': [],
-#     '20211219_neurofeedback': []
-# }
+sessions_exclution_list = {
+    '20211125_neurofeedback': np.arange(11950, 12050).tolist(),
+    '20211130_neurofeedback': [],
+    '20211206_neurofeedback':  np.arange(29900, 30000).tolist(),
+    '20211208_neurofeedback': [],
+    '20211219_neurofeedback': [],
+    '20220206_neurofeedback': [],
+    '20220207_neurofeedback': []
+}
 
 
 # load data
@@ -189,8 +194,8 @@ for session_name in sessions_list:
     sessions_config[session_name] = {}
     with h5py.File(dataset_path, 'r') as f:
         decompose_h5_groups_to_dict(f, sessions_data[session_name], f'/{mouse_id}/{session_name}/')
-        if len(sessions_data[session_name]) > 1:
-            del sessions_data[session_name]['channel_1']
+        if len(sessions_data[session_name]['rois_traces']) > 1:
+            del sessions_data[session_name]['rois_traces']['channel_1']
         sessions_metadata[session_name], sessions_config[session_name] = load_session_metadata(f'{base_path}{mouse_id}/{session_name}/')
 
 print(f"running analysis for mouse {mouse_id}")
@@ -213,7 +218,7 @@ for session_name in sessions_list:
         for i in range(1, n_channels):
             reward = np.maximum(reward, np.array(sessions_metadata[session_name]["cue"])[i::n_channels])
 
-    traces = np.array(list(sessions_data[session_name]["channel_0"].values()))
+    traces = np.array(list(sessions_data[session_name]['rois_traces']["channel_0"].values()))
     # exclude corrupted frames
     ex_list = sessions_exclution_list[session_name]
     ex_bo = np.array([False if i in ex_list else True for i in range(traces.shape[1])])
