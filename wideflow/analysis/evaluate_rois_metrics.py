@@ -147,15 +147,13 @@ base_path = '/data/Rotem/WideFlow prj/'
 dataset_path = base_path + 'results/sessions_dataset_new.h5'
 statistics_path = base_path + 'results/sessions_statistics_new.h5'
 
-mouse_id = '2604'
+mouse_id = '2601'
 sessions_list = [
-    # '20211125_neurofeedback',
-    # '20211130_neurofeedback',
-    # '20211206_neurofeedback',
-    # '20211208_neurofeedback',
-    # '20211219_neurofeedback',
-    '20220206_neurofeedback',
-    '20220207_neurofeedback'
+    # '20220206_neurofeedback',
+    # '20220207_neurofeedback',
+    # '20220208_neurofeedback',
+    # '20220209_neurofeedback'
+    '20220210_neurofeedback'
 ]
 
 # frames to exclude for each session. frames indexing of one channel
@@ -172,15 +170,15 @@ sessions_list = [
 # }
 
 # for mouse ID 2683
-sessions_exclution_list = {
-    '20211125_neurofeedback': np.arange(11950, 12050).tolist(),
-    '20211130_neurofeedback': [],
-    '20211206_neurofeedback':  np.arange(29900, 30000).tolist(),
-    '20211208_neurofeedback': [],
-    '20211219_neurofeedback': [],
-    '20220206_neurofeedback': [],
-    '20220207_neurofeedback': []
-}
+# sessions_exclution_list = {
+#     '20211125_neurofeedback': np.arange(11950, 12050).tolist(),
+#     '20211130_neurofeedback': [],
+#     '20211206_neurofeedback':  np.arange(29900, 30000).tolist(),
+#     '20211208_neurofeedback': [],
+#     '20211219_neurofeedback': [],
+#     '20220206_neurofeedback': [],
+#     '20220207_neurofeedback': []
+# }
 
 
 # load data
@@ -220,10 +218,10 @@ for session_name in sessions_list:
 
     traces = np.array(list(sessions_data[session_name]['rois_traces']["channel_0"].values()))
     # exclude corrupted frames
-    ex_list = sessions_exclution_list[session_name]
-    ex_bo = np.array([False if i in ex_list else True for i in range(traces.shape[1])])
-    traces = traces[:, ex_bo]
-    reward = reward[ex_bo]
+    # ex_list = sessions_exclution_list[session_name]
+    # ex_bo = np.array([False if i in ex_list else True for i in range(traces.shape[1])])
+    # traces = traces[:, ex_bo]
+    # reward = reward[ex_bo]
 
     n_vars, n_samples = traces.shape[0], traces.shape[1]
 
@@ -277,33 +275,26 @@ for session_name in sessions_list:
     diff5 = calc_diff(traces, 5)
     # delta_t difference Z-score
     diff1_zscore = calc_z_score(diff1)
-    diff2_zscore = calc_z_score(diff2)
     diff3_zscore = calc_z_score(diff3)
     diff5_zscore = calc_z_score(diff5)
     # pstr
     diff1_pstr = np.zeros((n_vars, samples_window * 2 + 1))
-    diff2_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     diff3_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     diff5_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     diff1_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
-    diff2_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     diff3_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     diff5_zscore_pstr = np.zeros((n_vars, samples_window * 2 + 1))
     for i in range(n_vars):
         diff1_pstr[i] = np.mean(calc_pstr(reward, diff1[i], samples_window), axis=0)
-        diff2_pstr[i] = np.mean(calc_pstr(reward, diff2[i], samples_window), axis=0)
         diff3_pstr[i] = np.mean(calc_pstr(reward, diff3[i], samples_window), axis=0)
         diff5_pstr[i] = np.mean(calc_pstr(reward, diff5[i], samples_window), axis=0)
         diff1_zscore_pstr[i] = np.mean(calc_pstr(reward, diff1_zscore[i], samples_window), axis=0)
-        diff2_zscore_pstr[i] = np.mean(calc_pstr(reward, diff2_zscore[i], samples_window), axis=0)
         diff3_zscore_pstr[i] = np.mean(calc_pstr(reward, diff3_zscore[i], samples_window), axis=0)
         diff5_zscore_pstr[i] = np.mean(calc_pstr(reward, diff5_zscore[i], samples_window), axis=0)
     # rewards
     diff1_zscore_rewards = np.mean(diff1_zscore_pstr > threshold, axis=1)
     diff1_zscore_rewards_fixed_th = np.mean(diff1_zscore_pstr > fixed_threshold, axis=1)
-    diff2_zscore_rewards = np.mean(diff2_zscore_pstr > threshold, axis=1)
 
-    diff2_zscore_rewards_fixed_th = np.mean(diff2_zscore_pstr > fixed_threshold, axis=1)
     diff3_zscore_rewards = np.mean(diff3_zscore_pstr > threshold, axis=1)
     diff3_zscore_rewards_fixed_th = np.mean(diff3_zscore_pstr > fixed_threshold, axis=1)
     diff5_zscore_rewards = np.mean(diff5_zscore_pstr > threshold, axis=1)
@@ -346,31 +337,30 @@ for session_name in sessions_list:
         time_to_peak_grp.create_dataset('time_to_peak_delta', data=peaks_delta)
         time_to_peak_grp.create_dataset('time_to_peak_peaks', data=peaks)
 
-        delta_f_diff_grp = session_grp.create_group("delta_frames_diff")
-        delta_1_grp = delta_f_diff_grp.create_group("delta_frames_1")
+        delta_1_grp = session_grp.create_group("delta_frames_1")
         delta_1_grp.create_dataset('diff', data=diff1)
         delta_1_grp.create_dataset('diff_zscore', data=diff1_zscore)
-        delta_1_grp.create_dataset('diff_pstr', data=diff1_pstr)
+        delta_1_grp.create_dataset('pstr', data=diff1_pstr)
         delta_1_grp.create_dataset('zscore_pstr', data=diff1_zscore_pstr)
         delta_1_grp.create_dataset(f'zscore_th{threshold}sd', data=diff1_zscore_rewards)
         delta_1_grp.create_dataset(f'zscore_reward_th{fixed_threshold}sd', data=diff1_zscore_rewards_fixed_th)
         delta_1_grp.create_dataset(f'pstr_sim_reward', data=diff1_sim_pstr_mat)
         delta_1_grp.create_dataset(f'pstr_zscore_sim_reward', data=diff1_zscore_sim_pstr_mat)
 
-        delta_3_grp = delta_f_diff_grp.create_group("delta_frames_3")
+        delta_3_grp = session_grp.create_group("delta_frames_3")
         delta_3_grp.create_dataset('diff', data=diff3)
         delta_3_grp.create_dataset('diff_zscore', data=diff3_zscore)
-        delta_3_grp.create_dataset('diff_pstr', data=diff3_pstr)
+        delta_3_grp.create_dataset('pstr', data=diff3_pstr)
         delta_3_grp.create_dataset('zscore_pstr', data=diff3_zscore_pstr)
         delta_3_grp.create_dataset(f'zscore_th{threshold}sd', data=diff3_zscore_rewards)
         delta_3_grp.create_dataset(f'zscore_reward_th{fixed_threshold}sd', data=diff3_zscore_rewards_fixed_th)
         delta_3_grp.create_dataset(f'pstr_sim_reward', data=diff3_sim_pstr_mat)
         delta_3_grp.create_dataset(f'pstr_zscore_sim_reward', data=diff3_zscore_sim_pstr_mat)
 
-        delta_5_grp = delta_f_diff_grp.create_group("delta_frames_5")
+        delta_5_grp = session_grp.create_group("delta_frames_5")
         delta_5_grp.create_dataset('diff', data=diff5)
         delta_5_grp.create_dataset('diff_zscore', data=diff5_zscore)
-        delta_5_grp.create_dataset('diff_pstr', data=diff5_pstr)
+        delta_5_grp.create_dataset('pstr', data=diff5_pstr)
         delta_5_grp.create_dataset('zscore_pstr', data=diff5_zscore_pstr)
         delta_5_grp.create_dataset(f'zscore_th{threshold}sd', data=diff5_zscore_rewards)
         delta_5_grp.create_dataset(f'zscore_reward_th{fixed_threshold}sd', data=diff5_zscore_rewards_fixed_th)
@@ -382,5 +372,5 @@ for session_name in sessions_list:
         stats_grp.create_dataset("smoo_kernel_size", data=smoo_kernel_size)
         stats_grp.create_dataset("max_f_to_peak", data=max_f_to_peak)
         stats_grp.create_dataset("fixed_threshold", data=fixed_threshold)
-        stats_grp.create_dataset("excluded_frames", data=sessions_exclution_list[session_name])
+        # stats_grp.create_dataset("excluded_frames", data=sessions_exclution_list[session_name])
 
