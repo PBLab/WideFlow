@@ -6,14 +6,11 @@ from devices.mock_devices.mock_PVCam import MockPVCamera
 from devices.mock_devices.mock_serial_controller import MockSerialControler
 
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
-from Imaging.utils.create_matching_points import MatchingPointSelector
 
-from utils.load_bbox import load_bbox
-from utils.load_matching_points import load_matching_points
-from utils.matplotlib_rectangle_selector_events import *
 from utils.load_rois_data import load_rois_data
 
 from analysis.utils.load_session_metadata import load_session_metadata
+from analysis.utils.vid_pstr import vid_pstr
 
 import numpy as np
 import cupy as cp
@@ -22,9 +19,6 @@ from skimage.transform import resize
 import os
 import h5py
 from tifffile import TiffWriter
-
-import matplotlib.pyplot as plt
-from matplotlib.widgets import RectangleSelector
 
 from datetime import datetime
 
@@ -61,6 +55,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         self.analysis_pipeline_config = config["analysis_pipeline_config"]
 
         self.camera = self.set_imaging_camera()
+        self.metadata = self.set_metadata_writer()
         self.serial_controller = self.set_serial_controler()
         self.metadata = self.set_metadata_writer()
 
@@ -79,29 +74,22 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         pass
 
     def set_serial_controler(self):
-        metadata, config = load_session_metadata(self.session_path)
-        serial_controller = MockSerialControler(metadata["serial_readout"])
+        serial_controller = MockSerialControler(self.metadata["serial_readout"])
 
         return serial_controller
 
     def set_metadata_writer(self):
-        pass
+        metadata, _ = load_session_metadata(self.session_path)
+        return metadata
 
     def session_preparation(self):
-        # select roi
         regression_map = self.load_regression_map()
-
-        frame = self.camera.get_frame()
-        if not os.path.exists(self.registration_config["matching_point_path"]):
-            match_p_src = None
-        else:
-            match_p_src, match_p_dst = load_matching_points(self.registration_config["matching_point_path"])
-        affine_matrix, match_p_src, match_p_dst = self.find_affine_mapping_coordinates(frame, match_p_src)
+        affine_matrix = np.loadtxt(self.session_path + 'affine_matrix.txt')
 
         # initialzie analysis pipeline
         if self.analysis_pipeline_config["pipeline"] == "HemoDynamicsDFF":
             self.analysis_pipeline = HemoDynamicsDFF(
-                self.camera, self.session_path,
+                self.camera,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
                 affine_matrix, self.analysis_pipeline_config["args"]["hemispheres"],
                 regression_map, self.analysis_pipeline_config["args"]["diff_metric_delta"],
@@ -119,7 +107,6 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             )
 
     def run_session_pipeline(self):
-
         frame_counter = 0
         frame_counter_ch = 0
         self.analysis_pipeline.fill_buffers()
@@ -199,41 +186,18 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
         if not os.path.exists(self.session_path + 'post_analysis_results'):
             os.mkdir(self.session_path + 'post_analysis_results')
-
+        cue = self.metadata['cue'].copy()
+        reward = cue[::2]
+        reward = np.maximum(reward, np.array(cue)[1::2])
+        dff_movie_pstr = vid_pstr(dff_movie, reward)
         with TiffWriter(self.session_path + 'post_analysis_results/dff_blue.tif') as tif:
             tif.write(dff_movie, contiguous=True)
-
-    def select_camera_sensor_roi(self, frame):
-        fig, ax = plt.subplots()
-        ax.imshow(cp.asnumpy(frame))
-        toggle_selector = RectangleSelector(ax, onselect, drawtype='box')
-        fig.canvas.mpl_connect('key_press_event', toggle_selector)
-        plt.show()
-        bbox = toggle_selector._rect_bbox
-        if np.sum(bbox) > 1:
-            # convert to PyVcam format
-            #  camera ROI is defined as: (x_min, x_max, y_min, y_max)
-            #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
-            bbox = (int(bbox[0]), int(bbox[0] + bbox[2]), int(bbox[1]), int(bbox[1] + bbox[3]))
-
-        return bbox
+        with TiffWriter(self.session_path + 'post_analysis_results/dff_blue_pstr.tif') as tif:
+            tif.write(dff_movie_pstr, contiguous=True)
 
     def find_affine_mapping_coordinates(self, frame, match_p_src=None):
         iat = InteractiveAffineTransform(frame, self.cortex_map, match_p_src)
         return iat.tform._inv_matrix, iat.trans_points_pos, iat.fixed_points_pos
-
-    def find_piecewise_affine_mapping_coordinates(self, frame, match_p_src, match_p_dst):
-        if match_p_src is not None:
-
-            match_p_src = np.array(match_p_src)
-        if match_p_dst is not None:
-            match_p_dst = np.array(match_p_dst)
-        mps = MatchingPointSelector(frame, self.cortex_map * np.random.random(self.cortex_map.shape),
-                                    match_p_src,
-                                    match_p_dst,
-                                    25)
-
-        return mps.match_p_src, mps.match_p_dst
 
     def load_datasets(self):
         with h5py.File(self.supplementary_data_config["mask_path"], 'r') as f:

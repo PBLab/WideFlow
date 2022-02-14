@@ -11,13 +11,15 @@ class HemoCorrect(AbstractProcess):
         self.capacity = hemo_dff.shape[0]
         self.dtype = self.hemo_dff.dtype
 
-        self.regression_coeff = regression_coeff
-        if self.regression_coeff is None:
+        if regression_coeff is None:
             self.regression_coeff = [
                 cp.ones((self.shape[-2:]), dtype=self.dtype),
                 cp.zeros((self.shape[-2:]), dtype=self.dtype)
             ]
-
+        else:
+            self.regression_coeff = [None, None]
+            self.regression_coeff[0] = cp.asanyarray(regression_coeff[0])
+            self.regression_coeff[1] = cp.asanyarray(regression_coeff[1])
         self.ptr = ptr
 
     def initialize_buffers(self):

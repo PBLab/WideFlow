@@ -183,8 +183,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         for i in range(self.shape[1]):
             for j in range(self.shape[2]):
                 [theta, _, _, _] = np.linalg.lstsq(
-                    np.stack((regression_buffer[ch1i, i, j, 1], np.ones((self.regression_n_samples,))), axis=1),
-                    regression_buffer[ch1i, i, j, 0],
+                    np.stack((regression_buffer[:, i, j, 1], np.ones((self.regression_n_samples,))), axis=1),
+                    regression_buffer[:, i, j, 0],
                     rcond=None)
                 regression_coeff0[i, j] = theta[0]
                 regression_coeff1[i, j] = theta[1]
