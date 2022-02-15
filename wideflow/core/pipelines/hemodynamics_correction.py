@@ -1,5 +1,6 @@
 from core.abstract_pipeline import AbstractPipeLine
 from core.metrics.ROI_Diff import ROIDiff
+from core.metrics.training_metric import Training
 from core.processes import AffineTrans, Mask, DFF, HemoSubtraction, HemoCorrect
 
 import cupy as cp
@@ -11,19 +12,18 @@ class HemoDynamicsDFF(AbstractPipeLine):
     def __init__(self, camera,
                  mask, map, rois_dict,
                  affine_matrix, hemispheres,
-                 regression_map, diff_metric_delta,
-                 capacity, rois_names, regression_n_samples=512):
+                 regression_map,
+                 capacity, metric_args, regression_n_samples=512):
         self.camera = camera
         self.capacity = capacity + capacity % 2  # make sure capacity is an even number
         self.mask = mask
         self.map = map
         self.rois_dict = rois_dict  # metric rois name
-        self.rois_names = rois_names
+        self.metric_args = metric_args
         self.affine_matrix = affine_matrix
         self.hemispheres = hemispheres
         self.regression_map = regression_map
         self.regression_n_samples = int(np.floor(regression_n_samples / (capacity * 2)) * (capacity * 2))
-        self.diff_metric_delta = diff_metric_delta
 
         # crop captured frame
         if self.hemispheres == 'left':
@@ -65,7 +65,11 @@ class HemoDynamicsDFF(AbstractPipeLine):
         hemo_correct = HemoCorrect(self.dff_buffer_ch2, self.regression_map)
         self.processes_list_ch2 = [affine_transform, masking_ch2, dff_ch2, hemo_correct]
 
-        self.metric = ROIDiff(self.dff_buffer, self.rois_dict, self.rois_names, self.diff_metric_delta)
+        if metric_args[0] == 'ROIDiff':
+            self.metric = ROIDiff(self.dff_buffer, self.rois_dict,
+                                  self.metric_args[1], self.metric_args[2])
+        elif metric_args[0] == 'Training':
+            self.metric = Training(self.metric_args[1], self.metric_args[2])
 
         self.ptr = self.capacity - 1
         self.ptr_2c = 2 * self.capacity - 1

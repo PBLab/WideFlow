@@ -134,17 +134,6 @@ class TrainingPipe(AbstractPipeLine):
 
         return self.cue
 
-    def fix_regression_coefficients(self):
-        ibp = InteractiveBandPassSelector(self.processes_list_ch2[3].regression_coeff[0].get())
-        reg_map0_fft = np.fft.fftshift((np.fft.fft2(self.processes_list_ch2[3].regression_coeff[0].get())))
-        reg_map1_fft = np.fft.fftshift((np.fft.fft2(self.processes_list_ch2[3].regression_coeff[0].get())))
-        for bbox in ibp.bbox_list:
-            reg_map0_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
-            reg_map1_fft[bbox[2]: bbox[3], bbox[0]: bbox[1]] = 1
-
-        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(abs(np.fft.ifft2(reg_map0_fft)))
-        self.processes_list_ch2[3].regression_coeff[0] = cp.asanyarray(abs(np.fft.ifft2(reg_map1_fft)))
-
     def calculate_hemodynamics_regression_map(self):
         print("\nCollecting data hemodynamics regression maps calculation...")
         regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2),

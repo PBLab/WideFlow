@@ -52,7 +52,7 @@ unsigned long ledClock = 0;
 unsigned long speakerClock = 0;
 unsigned long speakerActivationClock = 0;
 int valveActivationTime = 14;
-int ledActivationTime = 1500;
+int ledActivationTime = 3000;
 int speakerActivationTime = 500;
 int speakerDelayTime = 5000;
 
@@ -106,7 +106,7 @@ void process() {
       
       else if (isDigit(msg) && (globalClock > (ledClock + ledActivationTime))){
         // input buffer float should be between zero and 1
-        ledAnalogVal = pow(atof(inputBuffer), 4) * adjLedAnalogValMax;
+        ledAnalogVal = pow(atof(inputBuffer), 8) * adjLedAnalogValMax;
         analogWrite(ledPin, ledAnalogVal);
         //Serial.println(ledAnalogVal);
       }

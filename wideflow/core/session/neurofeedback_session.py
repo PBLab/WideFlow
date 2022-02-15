@@ -165,18 +165,9 @@ class NeuroFeedbackSession(AbstractSession):
                 self.camera,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
                 affine_matrix, self.analysis_pipeline_config["args"]["hemispheres"],
-                regression_map, self.analysis_pipeline_config["args"]["diff_metric_delta"],
-                self.analysis_pipeline_config["args"]["capacity"],  self.analysis_pipeline_config["args"]["rois_names"]
-            )
-        elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
-            self.analysis_pipeline = TrainingPipe(
-                self.camera,
-                self.analysis_pipeline_config["args"]["min_frame_count"],
-                self.analysis_pipeline_config["args"]["max_frame_count"],
-                self.cortex_mask, self.cortex_map,
-                affine_matrix,
                 regression_map,
-                self.analysis_pipeline_config["args"]["capacity"]
+                self.analysis_pipeline_config["args"]["capacity"],
+                self.analysis_pipeline_config["args"]["metric_args"]
             )
         else:
             raise NameError(f"{self.analysis_pipeline_config['pipeline']} pipeline class doesn't exist")

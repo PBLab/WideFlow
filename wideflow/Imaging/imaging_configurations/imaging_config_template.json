@@ -109,9 +109,8 @@
         "pipeline": "HemoDynamicsDFF",
         "args": {
             "capacity": 32,
-            "rois_names": ["roi_17"],
             "hemispheres": "left",
-            "diff_metric_delta": 5
+            "metric_args": ["ROIDiff", ["roi_17"], 5]
         }
     },
 
