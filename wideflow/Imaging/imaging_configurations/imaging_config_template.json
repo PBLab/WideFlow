@@ -46,19 +46,13 @@
                                  ]
     },
 
-    "behavioral_camera_config": {
-        "exp_time": 20,
-        "avi_type": "MJPG",
-        "saving_path": "/home/pb/PycharmProjects/WideFlow/session_results/bvid.MJPG"
-    },
-
     "serial_port_config": {
         "port_id": "/dev/ttyACM0",
         "baudrate": 9600,
         "timeout": 0.0
     },
 
-        "behavioral_camera_config": {
+    "behavioral_camera_config": {
         "process": "",
         "script":"/home/pb/PycharmProjects/WideFlow/wideflow/devices/spinnaker_flir_cam/bin/FLIRcam_main",
         "file_name": "behavioral_vid.avi",

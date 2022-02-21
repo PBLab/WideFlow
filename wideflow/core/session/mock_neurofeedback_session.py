@@ -64,7 +64,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
         self.analysis_pipeline = None
 
-        self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_dataset_new.h5'
+        self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_20220220.h5'
 
     def set_imaging_camera(self):
         cam = MockPVCamera(self.camera_config, self.session_path, self.crop_sensor)
@@ -92,19 +92,11 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                 self.camera,
                 self.cortex_mask, self.cortex_map, self.cortex_rois_dict,
                 affine_matrix, self.analysis_pipeline_config["args"]["hemispheres"],
-                regression_map, self.analysis_pipeline_config["args"]["diff_metric_delta"],
-                self.analysis_pipeline_config["args"]["capacity"],  self.analysis_pipeline_config["args"]["rois_names"]
+                regression_map, self.analysis_pipeline_config["args"]["capacity"],
+                self.analysis_pipeline_config["args"]["metric_args"]
             )
-        elif self.analysis_pipeline_config["pipeline"] == "TrainingPipe":
-            self.analysis_pipeline = TrainingPipe(
-                self.camera, self.session_path,
-                self.analysis_pipeline_config["args"]["min_frame_count"],
-                self.analysis_pipeline_config["args"]["max_frame_count"],
-                self.cortex_mask, self.cortex_map,
-                affine_matrix,
-                regression_map,
-                self.analysis_pipeline_config["args"]["capacity"],
-            )
+        else:
+            raise NameError(f"{self.analysis_pipeline_config['pipeline']} pipeline class doesn't exist")
 
     def run_session_pipeline(self):
         frame_counter = 0
@@ -116,15 +108,16 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         rois_traces_ch2 = {}
         for roi_key in self.cortex_rois_dict:
             rois_traces_ch1[roi_key] = np.zeros(
-                (int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']), )
+                (int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),)
                 , dtype=np.float32)
             rois_traces_ch2[roi_key] = np.zeros(
                 (int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),)
                 , dtype=np.float32)
 
-        metric_result = np.zeros((self.acquisition_config["num_of_frames"], ))
+        metric_result = np.zeros((self.acquisition_config["num_of_frames"],))
         dff_movie = np.zeros((int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),
-                              int(self.analysis_pipeline.new_shape[0]/4), int(self.analysis_pipeline.new_shape[1]/4)), dtype=np.float32)
+                              int(self.analysis_pipeline.new_shape[0] / 4), int(self.analysis_pipeline.new_shape[1] / 4)),
+                             dtype=np.float32)
         print(f'starting session at {datetime.now()}')
         # start session
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -147,8 +140,8 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                 for roi_key in rois_traces_ch2:
                     rois_traces_ch2[roi_key][frame_counter_ch] = cp.asnumpy(
                         cp.mean(self.analysis_pipeline.dff_buffer_ch2[self.analysis_pipeline.ptr,
-                                                                  self.cortex_rois_dict[roi_key]['unravel_index'][1],
-                                                                  self.cortex_rois_dict[roi_key]['unravel_index'][0]])
+                                                                      self.cortex_rois_dict[roi_key]['unravel_index'][1],
+                                                                      self.cortex_rois_dict[roi_key]['unravel_index'][0]])
                     )
                 frame_counter_ch += 1
 
@@ -176,7 +169,6 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             ch0_grp = rois_traces_group.create_group('channel_0')
             ch1_grp = rois_traces_group.create_group('channel_1')
             for roi_key, roi_trace in rois_traces_ch1.items():
-
                 ch0_grp.create_dataset(roi_key, data=roi_trace)
 
             for roi_key, roi_trace in rois_traces_ch2.items():
@@ -189,7 +181,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         cue = self.metadata['cue'].copy()
         reward = cue[::2]
         reward = np.maximum(reward, np.array(cue)[1::2])
-        dff_movie_pstr = vid_pstr(dff_movie, reward)
+        dff_movie_pstr = vid_pstr(dff_movie, reward, 20)
         with TiffWriter(self.session_path + 'post_analysis_results/dff_blue.tif') as tif:
             tif.write(dff_movie, contiguous=True)
         with TiffWriter(self.session_path + 'post_analysis_results/dff_blue_pstr.tif') as tif:
