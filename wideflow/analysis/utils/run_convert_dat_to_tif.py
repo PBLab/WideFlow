@@ -11,7 +11,8 @@ def run_converter(session_path):
     binning = config["camera_config"]["core_attr"]["binning"]
     nframes = config['acquisition_config']['num_of_frames']
     dtype = np.uint16
-    shape = (int((bbox[3] - bbox[2]) / binning[1]), int((bbox[1] - bbox[0]) / binning[0]))
+    # shape = (int((bbox[3] - bbox[2]) / binning[1]), int((bbox[1] - bbox[0]) / binning[0]))  # when bbox was [xmin, xmax, ymin, ymax]
+    shape = (int(bbox[3] / binning[1]), int((bbox[2]) / binning[0]))  # now bbox is [x_min, y_min, x_width, y_height]
     frame = np.zeros(shape, dtype=dtype)
     nbytes = frame.nbytes
 

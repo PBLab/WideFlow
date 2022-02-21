@@ -16,6 +16,7 @@ class PVCamera(Camera):
         self.circ_buffer_count = circ_buffer_count
         self.sensor_roi = sensor_roi
 
+
     @classmethod
     def detect_camera(cls, **kwargs):
         """Detects and creates a new Camera object.
@@ -39,7 +40,7 @@ class PVCamera(Camera):
         self.set_param(const.PARAM_CLEAR_CYCLES, 2)
         self.exp_out_mode = "All Rows"
         self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
-        self.set_roi(self.sensor_roi[0], self.sensor_roi[2], self.sensor_roi[1], self.sensor_roi[3])
+        self.set_roi(self.sensor_roi[0], self.sensor_roi[1], self.sensor_roi[2], self.sensor_roi[3])
 
     def set_splice_post_processing_attributes(self, plugin_name, plugin_parameters_list):
         # search for plugin index in pp_table

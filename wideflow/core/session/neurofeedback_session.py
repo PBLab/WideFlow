@@ -140,10 +140,10 @@ class NeuroFeedbackSession(AbstractSession):
         if self.registration_config["automatic_cropping"]:
             ref_image = load_tiff(self.registration_config["reference_image_path"])
             ref_bbox = load_bbox(self.config["cropping_bbox_path"])
-            ref_image_roi = ref_image[ref_bbox[1]: ref_bbox[3], ref_bbox[0]: ref_bbox[2]]
+            ref_image_roi = ref_image[ref_bbox[1]: ref_bbox[1] + ref_bbox[3], ref_bbox[0]: ref_bbox[0] + ref_bbox[2]]
             xi, yi = find_2d_max_correlation_coordinates(frame, ref_image_roi)
-            bbox = (int(xi), int(yi), ref_bbox[2], ref_bbox[3])
-            self.camera.set_roi(bbox[0], bbox[1], bbox[2], bbox[3])
+            bbox = (int(xi), int(yi), int(ref_bbox[2]), int(ref_bbox[3]))
+            self.camera.set_roi(bbox[0], bbox[2], bbox[2], bbox[3])
             if os.path.exists(self.registration_config["matching_point_path"]):
                 match_p_src, match_p_dst = load_matching_points(self.config["matching_point_path"])
             if os.path.exists(self.analysis_pipeline_config["args"]["regression_map_path"]):
@@ -201,7 +201,7 @@ class NeuroFeedbackSession(AbstractSession):
 
         self.initialize_visualization()
 
-        self.update_config(self.camera.sensor_roi, match_p_src, match_p_dst, affine_matrix)
+        self.update_config(bbox, match_p_src, match_p_dst, affine_matrix)
 
     def run_session_pipeline(self):
         # set feedback properties

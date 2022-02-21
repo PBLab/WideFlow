@@ -9,12 +9,12 @@
         "core_attr": {
             "exp_time": 20,
             "binning": [2, 2],
-            "roi": [0, 2048, 0, 2048],
             "clear_mode": 0
         },
         "attr": {
             "channels": 2,
-            "circ_buffer_count": 32
+            "circ_buffer_count": 32,
+            "sensor_roi": [0, 0, 2048, 2048]
         },
         "splice_plugins_enable": false,
         "splice_plugin_setting": [
