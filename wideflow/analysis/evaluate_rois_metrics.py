@@ -147,13 +147,13 @@ base_path = '/data/Rotem/WideFlow prj/'
 dataset_path = base_path + 'results/sessions_dataset_new.h5'
 statistics_path = base_path + 'results/sessions_statistics_new.h5'
 
-mouse_id = '2601'
+mouse_id = '2683'
 sessions_list = [
-    # '20220206_neurofeedback',
+    '20220206_neurofeedback',
     # '20220207_neurofeedback',
     # '20220208_neurofeedback',
-    # '20220209_neurofeedback'
-    '20220210_neurofeedback'
+    '20220209_neurofeedback'
+    # '20220210_neurofeedback'
 ]
 
 # frames to exclude for each session. frames indexing of one channel

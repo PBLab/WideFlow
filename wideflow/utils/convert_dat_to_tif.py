@@ -1,9 +1,12 @@
 from tifffile import TiffWriter
 import h5py
 import numpy as np
+import os
 
 
 def convert_dat_to_tif(path, nbytes, tiff_shape, type, nframes):
+    if not os.path.isfile(path):
+        raise FileExistsError(f"{path}\ndat file doesn't exist")
     frames_offset = nbytes * tiff_shape[0]
     last_tif_shape = (nframes % tiff_shape[0], tiff_shape[1], tiff_shape[2])
     for i in range(int(np.floor(nframes / tiff_shape[0]))):
