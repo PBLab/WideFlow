@@ -23,8 +23,9 @@ class ROIDiff(AbstractMetric):
         self.metric_list = [True if key in self.eval_rois_names else False for key in self.rois_dict]
         self.non_metric_list = [False if key in self.eval_rois_names else True for key in self.rois_dict]
 
-        self.diff = np.zeros((self.n_rois, ), dtype=cp.float32())
-        self.rois_mean = cp.zeros((self.n_rois, self.capacity), dtype=cp.float32())
+        self.diff = np.zeros((self.shape[1], self.shape[2]), dtype=cp.float32())
+
+        self.rois_mean = np.zeros((self.n_rois, ), dtype=cp.float32())
         self.metric_rois_mean = np.zeros((self.capacity, ), dtype=np.float32())
 
         self.eps = 1e-16
@@ -42,9 +43,9 @@ class ROIDiff(AbstractMetric):
             self.ptr += 1
         self.delta_ptr = self.ptr_list[self.ptr - self.delta]
 
+        self.diff[:] = cp.asnumpy(self.x[self.ptr] - self.x[self.delta_ptr])
         for i, (roi_key, roi_dict) in enumerate(self.rois_dict.items()):
-            self.rois_mean[i, self.ptr] = cp.mean(self.x[self.ptr, roi_dict['unravel_index'][1], roi_dict['unravel_index'][0]])
+            self.rois_mean[i] = np.mean(self.diff[roi_dict['unravel_index'][1], roi_dict['unravel_index'][0]])
 
-        self.diff[:] = cp.asnumpy(self.rois_mean[:, self.ptr] - self.rois_mean[:, self.delta_ptr])
-        std = np.std(self.diff)
-        self.result = (np.mean(self.diff[self.metric_list]) - np.mean(self.diff)) / (std + self.eps)
+        std = np.std(self.rois_mean)
+        self.result = (np.mean(self.rois_mean[self.metric_list]) - np.mean(self.rois_mean)) / (std + self.eps)

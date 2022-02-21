@@ -8,11 +8,13 @@ import ctypes
 
 
 class PVCamera(Camera):
-    def __init__(self, name, exp_time=10, binning=(2, 2), channels=2):
+    def __init__(self, name, exp_time=10, binning=(2, 2), channels=2, circ_buffer_count=16, sensor_roi=[0, 2048, 0, 2048]):
         super().__init__(name)
         self.__exp_time = exp_time
         self.__binning = binning
         self.channels = channels
+        self.circ_buffer_count = circ_buffer_count
+        self.sensor_roi = sensor_roi
 
     @classmethod
     def detect_camera(cls, **kwargs):
@@ -37,6 +39,7 @@ class PVCamera(Camera):
         self.set_param(const.PARAM_CLEAR_CYCLES, 2)
         self.exp_out_mode = "All Rows"
         self.set_param(const.PARAM_LAST_MUXED_SIGNAL, self.channels)
+        self.set_roi(self.sensor_roi[0], self.sensor_roi[2], self.sensor_roi[1], self.sensor_roi[3])
 
     def set_splice_post_processing_attributes(self, plugin_name, plugin_parameters_list):
         # search for plugin index in pp_table

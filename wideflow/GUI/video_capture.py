@@ -60,7 +60,7 @@ class VideoCapture(wx.Frame):
     def NextFrame(self, event):
         # frame = self.cam.get_frame()
         # self.frame = np.stack((frame, frame, frame), axis=2)
-        self.frame = np.array(self.cam.get_live_frame(), dtype=np.float32)
+        self.frame = np.array(self.cam.poll_frame()[0]['pixel_data'], dtype=np.float32)
         self.bmp.CopyFromBuffer(self.frame)
         self.staticBit.SetBitmap(self.bmp)
         self.Refresh()

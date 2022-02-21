@@ -140,11 +140,10 @@ class NeuroFeedbackSession(AbstractSession):
         if self.registration_config["automatic_cropping"]:
             ref_image = load_tiff(self.registration_config["reference_image_path"])
             ref_bbox = load_bbox(self.config["cropping_bbox_path"])
-            ref_image_roi = ref_image[ref_bbox[2]: ref_bbox[3], ref_bbox[0]: ref_bbox[1]]
+            ref_image_roi = ref_image[ref_bbox[1]: ref_bbox[3], ref_bbox[0]: ref_bbox[2]]
             xi, yi = find_2d_max_correlation_coordinates(frame, ref_image_roi)
-            ref_bbox = self.select_camera_sensor_roi(frame)
-            bbox = (int(xi), int(xi + (ref_bbox[1] - ref_bbox[0])), int(yi), int(yi + (ref_bbox[3] - ref_bbox[2])))
-            self.camera.roi = bbox
+            bbox = (int(xi), int(yi), ref_bbox[2], ref_bbox[3])
+            self.camera.set_roi(bbox[0], bbox[1], bbox[2], bbox[3])
             if os.path.exists(self.registration_config["matching_point_path"]):
                 match_p_src, match_p_dst = load_matching_points(self.config["matching_point_path"])
             if os.path.exists(self.analysis_pipeline_config["args"]["regression_map_path"]):
@@ -152,7 +151,8 @@ class NeuroFeedbackSession(AbstractSession):
 
         else:
             bbox = self.select_camera_sensor_roi(frame)
-            self.camera.roi = bbox
+            self.camera.set_roi(bbox[0], bbox[1], bbox[2], bbox[3])
+            self.sensor_roi = bbox
 
         self.camera.binning = tuple(self.camera_config["core_attr"]["binning"])  # restore configuration binning
         frame = self.camera.get_frame()
@@ -183,7 +183,7 @@ class NeuroFeedbackSession(AbstractSession):
             self.save_regression_coefficients(regression_coeff0, regression_coeff1)
 
         # imaging data memory handler
-        data_shape = (self.acquisition_config["num_of_frames"], self.camera.shape[1], self.camera.shape[0])
+        data_shape = (self.acquisition_config["num_of_frames"], self.camera.shape()[1], self.camera.shape()[0])
         self.data_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(data_shape[-2:], dtype=frame.dtype).nbytes)
         shm_name = self.data_shm.name
         self.frame_shm = np.ndarray(data_shape[-2:], dtype=frame.dtype, buffer=self.data_shm.buf)
@@ -201,7 +201,7 @@ class NeuroFeedbackSession(AbstractSession):
 
         self.initialize_visualization()
 
-        self.update_config(self.camera.roi, match_p_src, match_p_dst, affine_matrix)
+        self.update_config(self.camera.sensor_roi, match_p_src, match_p_dst, affine_matrix)
 
     def run_session_pipeline(self):
         # set feedback properties
@@ -217,7 +217,7 @@ class NeuroFeedbackSession(AbstractSession):
         frame_counter = 0
         feedback_time = 0
         self.analysis_pipeline.fill_buffers()
-        self.analysis_pipeline.camera.start_live()
+        self.analysis_pipeline.camera.start_live(buffer_frame_count=self.analysis_pipeline.camera.circ_buffer_count)
 
         print(f'starting session at {datetime.now()}')
         # start session
@@ -282,7 +282,7 @@ class NeuroFeedbackSession(AbstractSession):
         print(f'session endded at {datetime.now()}')
         self.metadata.save_file()
 
-        self.analysis_pipeline.camera.stop_live()
+        self.analysis_pipeline.camera.finish()
         self.analysis_pipeline.camera.close()
         self.analysis_pipeline.clear_buffers()
 
@@ -310,7 +310,7 @@ class NeuroFeedbackSession(AbstractSession):
         if self.acquisition_config["convert_to_tiff"]:
             try:
                 print("converting imaging dat file into tiff, this might take few minutes")
-                data_shape = (self.acquisition_config["num_of_frames"], self.camera.shape[1], self.camera.shape[0])
+                data_shape = (self.acquisition_config["num_of_frames"], self.camera.shape()[1], self.camera.shape()[0])
                 frame_offset = self.analysis_pipeline.frame.nbytes
                 frame_shape = data_shape[-2:]
 
@@ -418,9 +418,9 @@ class NeuroFeedbackSession(AbstractSession):
         bbox = toggle_selector._rect_bbox
         if np.sum(bbox) > 1:
             # convert to PyVcam format
-            #  camera ROI is defined as: (x_min, x_max, y_min, y_max)
+            #  PyVCAM: camera ROI is defined as: (x_min, y_min, x_width, y_height)
             #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
-            bbox = (int(bbox[0]), int(bbox[0] + bbox[2]), int(bbox[1]), int(bbox[1] + bbox[3]))
+            bbox = (int(bbox[0]), int(bbox[2]), int(bbox[1]), int(bbox[3]))
 
         return bbox
 

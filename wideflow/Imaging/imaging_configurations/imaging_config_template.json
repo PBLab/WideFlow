@@ -13,7 +13,8 @@
             "clear_mode": 0
         },
         "attr": {
-            "channels": 2
+            "channels": 2,
+            "circ_buffer_count": 32
         },
         "splice_plugins_enable": false,
         "splice_plugin_setting": [

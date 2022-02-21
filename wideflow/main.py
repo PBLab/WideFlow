@@ -2,9 +2,12 @@
 
 from utils.imaging_utils import load_config
 import argparse
+import os
 
 
 if __name__ == "__main__":
+    # nice_val = os.nice(0)
+    # os.nice(nice_val-10)
     parser = argparse.ArgumentParser(description='Wide Field Real-Time Analysis and Neurofeedback')
 
     parser.add_argument('-c', '--config_path', type=str, help='full path to session configuration JSON file')

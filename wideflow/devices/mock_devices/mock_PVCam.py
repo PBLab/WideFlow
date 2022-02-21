@@ -54,7 +54,7 @@ class MockPVCamera:
         else:
             return self.video[self.frame_idx]
 
-    def get_live_frame(self):
+    def poll_frame(self):
         return self.get_frame()
 
     def start_live(self):

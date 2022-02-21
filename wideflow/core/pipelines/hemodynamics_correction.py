@@ -27,20 +27,20 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
         # crop captured frame
         if self.hemispheres == 'left':
-            self.cortex_roi = [0, self.camera.shape[1], 0, int(self.camera.shape[0] / 2)]
+            self.cortex_roi = [0, self.camera.shape()[1], 0, int(self.camera.shape()[0] / 2)]
             self.mask = self.mask[:, :int(self.mask.shape[1] / 2)]
             self.map = map[:, :int(self.map.shape[1] / 2)]
         elif self.hemispheres == 'right':
-            self.cortex_roi = [0, self.camera.shape[1], int(self.camera.shape[0] / 2), self.camera.shape[0]]
+            self.cortex_roi = [0, self.camera.shape()[1], int(self.camera.shape()[0] / 2), self.camera.shape()[0]]
             self.mask = self.mask[:, int(self.mask.shape[1] / 2):]
             self.map = map[:, int(self.map.shape[1] / 2):]
         elif self.hemispheres == 'both':
-            self.cortex_roi = [0, self.camera.shape[1], 0, self.camera.shape[0]]
+            self.cortex_roi = [0, self.camera.shape()[1], 0, self.camera.shape()[0]]
         else:
             raise NameError('pipeline hemisphere keyword unrecognized')
 
         self.new_shape = self.map.shape
-        self.frame_shape = (self.camera.shape[1], self.camera.shape[0])
+        self.frame_shape = (self.camera.shape()[1], self.camera.shape()[0])
         self.input_shape = (self.cortex_roi[1] - self.cortex_roi[0], self.cortex_roi[3] - self.cortex_roi[2])
 
         # allocate memory
@@ -76,7 +76,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
 
     def fill_buffers(self):
         # fill warped_buffer of both channels
-        self.camera.start_live()
+        self.camera.start_live(buffer_frame_count=self.camera.circ_buffer_count)
         self.processes_list[1].initialize_buffers()
         self.processes_list_ch2[1].initialize_buffers()
         for i in range(self.capacity * 2):
@@ -88,7 +88,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 self.processes_list_ch2[0].process()
                 self.processes_list_ch2[1].process()
 
-        self.camera.stop_live()
+        self.camera.finish()
         # initialize the following process
         self.processes_list[1].initialize_buffers()
         self.processes_list_ch2[1].initialize_buffers()
@@ -116,7 +116,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         pinned_mempool.free_all_blocks()
 
     def get_input(self):
-        self.frame[:] = self.camera.get_live_frame()
+        self.frame[:] = self.camera.poll_frame()[0]['pixel_data']
         self.input[:] = cp.asanyarray(self.frame[self.cortex_roi[0]: self.cortex_roi[1], self.cortex_roi[2]: self.cortex_roi[3]])
 
     def process(self):
@@ -144,7 +144,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
         print("\nCollecting data hemodynamics regression maps calculation...")
         regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2),
                                        dtype=np.float32)
-        self.camera.start_live()
+        self.camera.start_live(buffer_frame_count=self.camera.circ_buffer_count)
         # fill warped_buffer of both channels
         for i in range(self.capacity * 2):
             self.get_input()
@@ -178,7 +178,7 @@ class HemoDynamicsDFF(AbstractPipeLine):
                 regression_buffer[ch2i, :, :, 1] = cp.asnumpy(self.dff_buffer_ch2[self.ptr, :, :])
                 ch2i += 1
 
-        self.camera.stop_live()
+        self.camera.finish()
         print("Done collecting data\n")
         print("Calculating regression coefficients...", end="\t")
 

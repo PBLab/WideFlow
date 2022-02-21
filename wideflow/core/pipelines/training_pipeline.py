@@ -62,7 +62,7 @@ class TrainingPipe(AbstractPipeLine):
 
     def fill_buffers(self):
         # fill warped_buffer of both channels
-        self.camera.start_live()
+        self.camera.start_live(buffer_frame_count=self.camera.circ_buffer_count)
         self.processes_list[1].initialize_buffers()
         self.processes_list_ch2[1].initialize_buffers()
         for i in range(self.capacity * 2):
@@ -100,7 +100,7 @@ class TrainingPipe(AbstractPipeLine):
         pinned_mempool.free_all_blocks()
 
     def get_input(self):
-        self.frame[:] = self.camera.get_live_frame()
+        self.frame[:] = self.camera.poll_frame()[0]['pixel_data']
         self.input[:] = cp.asanyarray(self.frame)
 
     def process(self):
@@ -138,7 +138,7 @@ class TrainingPipe(AbstractPipeLine):
         print("\nCollecting data hemodynamics regression maps calculation...")
         regression_buffer = np.ndarray((self.regression_n_samples, self.new_shape[0], self.new_shape[1], 2),
                                        dtype=np.float32)
-        self.camera.start_live()
+        self.camera.start_live(buffer_frame_count=self.camera.circ_buffer_count)
         # fill warped_buffer of both channels
         for i in range(self.capacity * 2):
             self.get_input()

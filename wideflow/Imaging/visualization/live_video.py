@@ -6,7 +6,7 @@ import numpy as np
 
 
 class LiveVideo(AbstractVis):
-    def __init__(self, query, image_shape, frame_rate=50, vmin=-0.05, vmax=0.08):
+    def __init__(self, query, image_shape, frame_rate=50, vmin=-0.05, vmax=0.06):
         self.query = query
         self.image_shape = image_shape
         self.frame_rate = frame_rate

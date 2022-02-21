@@ -54,7 +54,7 @@ unsigned long speakerActivationClock = 0;
 int valveActivationTime = 14;
 int ledActivationTime = 3000;
 int speakerActivationTime = 500;
-int speakerDelayTime = 5000;
+int speakerDelayTime = 7000;
 
 
 //==========================================================
