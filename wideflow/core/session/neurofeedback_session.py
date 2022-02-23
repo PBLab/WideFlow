@@ -419,8 +419,8 @@ class NeuroFeedbackSession(AbstractSession):
         if np.sum(bbox) > 1:
             # convert to PyVcam format
             #  PyVCAM: camera ROI is defined as: (x_min, y_min, x_width, y_height)
-            #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
-            bbox = (int(bbox[0]), int(bbox[2]), int(bbox[1]), int(bbox[3]))
+            #  bbox is defined (before conversion) as: (x_min, y_min, x_width, y_width)
+            bbox = (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
 
         return bbox
 
