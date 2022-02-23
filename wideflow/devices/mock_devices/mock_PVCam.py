@@ -20,9 +20,12 @@ class MockPVCamera:
 
         self.exp_time = self.camera_configs["core_attr"]["exp_time"]
         self.binning = self.camera_configs["core_attr"]["binning"]
-        self.roi = self.camera_configs["core_attr"]["roi"]
+        self.roi = self.camera_configs["attr"]["sensor_roi"]
         self.clear_mode = self.camera_configs["core_attr"]["clear_mode"]
         self.crop_sensor = crop_sensor  # return raw loaded frame or crop frame according to roi
+        self.circ_buffer_count = 16
+
+        self.frame = [{'pixel_data': 0}]
 
         self.num_of_frames = None
         self.video = None
@@ -30,10 +33,9 @@ class MockPVCamera:
         self.frame_idx = -1  # for first call to get_frame method
         self.total_cap_frames = 0
         if self.crop_sensor:
-            self.shape = (self.roi[3]-self.roi[2], self.roi[1]-self.roi[0])
+            self.shp = (self.roi[3], self.roi[2])
         else:
-
-            self.shape = (self.video.shape[2], self.video.shape[1])
+            self.shp = (self.video.shape[2], self.video.shape[1])
 
     def start_up(self):
         pass
@@ -55,12 +57,16 @@ class MockPVCamera:
             return self.video[self.frame_idx]
 
     def poll_frame(self):
-        return self.get_frame()
+        self.frame[0]['pixel_data'] = self.get_frame()
+        return self.frame
 
-    def start_live(self):
+    def start_live(self, buffer_frame_count=16):
         pass
 
     def stop_live(self):
+        pass
+
+    def finish(self):
         pass
 
     def set_param(self, a, b):
@@ -71,3 +77,6 @@ class MockPVCamera:
         self.videos_files_list.pop(0)
         self.num_of_frames = self.video.shape[0]
         self.frame_idx = 0
+
+    def shape(self):
+        return self.shp

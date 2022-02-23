@@ -205,15 +205,15 @@ class NeuroFeedbackSession(AbstractSession):
 
     def run_session_pipeline(self):
         # set feedback properties
-        feedback_threshold = self.feedback_config["metric_threshold"]
+        feedback_threshold = np.float32(self.feedback_config["metric_threshold"])
         inter_feedback_delay = self.feedback_config["inter_feedback_delay"]
         update_frames = self.feedback_config["update_frames"]
         update_every = self.feedback_config["update_every"]
-        threshold_percentile = self.feedback_config["percentile"]
-        threshold_nbins = self.feedback_config["nbins"]
+        threshold_percentile = np.float32(self.feedback_config["percentile"])
+        threshold_nbins = np.int32(self.feedback_config["nbins"])
         threshold_eval_frames = self.feedback_config["eval_frames"]
 
-        results_seq = []
+        results_seq = np.zeros((self.acquisition_config["num_of_frames"], ), dtype=np.float32)
         frame_counter = 0
         feedback_time = 0
         self.analysis_pipeline.fill_buffers()
@@ -248,9 +248,10 @@ class NeuroFeedbackSession(AbstractSession):
 
             # update threshold
             results_seq.append(result)
+            results_seq[frame_counter] = result
             if not frame_counter % update_every and frame_counter > update_frames[0] and frame_counter < update_frames[1]:
                 feedback_threshold = percentile_update_procedure(feedback_threshold,
-                        results_seq[-threshold_eval_frames:: self.camera_config["attr"]["channels"]],
+                        results_seq[np.min((0, frame_counter - threshold_eval_frames)):frame_counter: self.camera_config["attr"]["channels"]],
                         threshold_percentile, threshold_nbins)
 
             # save Wide Filed data

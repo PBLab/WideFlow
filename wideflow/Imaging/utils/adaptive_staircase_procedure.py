@@ -1,4 +1,6 @@
 from itertools import groupby
+
+from Imaging.utils.numba_histogram import numba_histogram
 import numpy as np
 
 
@@ -39,15 +41,15 @@ def percentile_update_procedure(threshold, samples, percentile, nbins):
     """
 
     Args:
-        threshold: float: default threshold
-        samples: 1D numpy array
-        percentile: float: samples threshold percentile
+        threshold: float32: default threshold
+        samples: 1D numpy array of float32
+        percentile: float32: samples threshold percentile
         nbins: int: number of bins to compose the histogram
 
     Returns: float: samples threshold
 
     """
-    hist, bins = np.histogram(samples, nbins, density=True)
+    hist, bins = numba_histogram(samples, nbins, density=True)
     bins_width = np.diff(bins)
     p_density = hist * bins_width
     prob = np.cumsum(p_density)
