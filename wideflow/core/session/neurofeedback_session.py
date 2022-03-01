@@ -5,6 +5,7 @@ from core.pipelines.training_pipeline import TrainingPipe
 from pyvcam import pvc
 from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
 from devices.PVCam import PVCamera
+from devices.FLIRCam import FLIRCam
 from devices.serial_port import SerialControler
 
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
@@ -15,7 +16,7 @@ from Imaging.visualization.live_video import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
 from Imaging.utils.interactive_bandpass_selector import InteractiveBandPassSelector
 from Imaging.utils.create_matching_points import MatchingPointSelector
-# from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
+from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
 
 from utils.load_tiff import load_tiff
 from utils.load_bbox import load_bbox
