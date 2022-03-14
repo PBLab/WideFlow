@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
-from analysis.utils.peristimulus_time_response import calc_pstr
+from analysis.utils.generate_color_list import generate_gradient_color_list
 
 
 def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1):
@@ -26,36 +25,64 @@ def plot_session(ax, metric, rewards, responses, threshold, dt):
     ax.set_xlabel('Time [minutes]')
 
 
-def plot_pstr(ax, rois_pstr_dict, dt, bold_list=[]):
-    nargs = len(rois_pstr_dict)
-    hsv_tuples = [(x * 1.0 / nargs, 0.5, 0.5) for x in range(nargs)]
-
+def plot_pstr(ax, rois_pstr_dict, dt, bold_list=[], proximity_dict={}):
     delta_t2 = len(rois_pstr_dict[list(rois_pstr_dict.keys())[0]])
     delta_t = np.floor(delta_t2/2)
     dt = dt * 1000  # convert to milliseconds
     t = np.linspace(-delta_t * dt, (delta_t + 1) * dt, delta_t2)
 
-    legend = []
+    plot_traces(ax, rois_pstr_dict, t, bold_list, proximity_dict)
     rois_pstr_mat = np.array(list(rois_pstr_dict.values()))
-    pstrs_mean = np.mean(rois_pstr_mat, axis=0)
-    pstrs_std = np.std(rois_pstr_mat, axis=0)
-    for i, (key, pstr) in enumerate(rois_pstr_dict.items()):
-        legend.append(key)
-        if key in bold_list:
-            # ax.plot(t, pstr, color=hsv_tuples[i], linewidth=2)
-            ax.plot(t, pstr, color='red', linewidth=2)
-        else:
-            # ax.plot(t, pstr, color=hsv_tuples[i], linewidth=0.5)
-            ax.plot(t, pstr, color='blue', linewidth=0.5)
-
-    ax.plot(t, pstrs_mean, linestyle='dashed', color='black')
-    ax.fill_between(t, pstrs_mean - pstrs_std, pstrs_mean + pstrs_std, color='gray', alpha=0.2)
     ax.axvline(x=0, ymin=0, ymax=np.max(rois_pstr_mat), color='k')
 
     ax.set_title('Peristimulus Time Response')
-    ax.set_ylabel("pstr")
+    ax.set_ylabel("PSTR")
     ax.set_xlabel("Time [ms]")
     # ax.legend(legend, ncol=np.max((int(nargs/10), 1)))
+
+
+def plot_traces(ax, rois_traces_dict, dt, bold_list=[], proximity_dict={}):
+    nargs = len(rois_traces_dict)
+    n_samples = len(rois_traces_dict[list(rois_traces_dict.keys())[0]])
+
+    color_list = generate_gradient_color_list(nargs, "red", "green")
+
+    if len(proximity_dict) == 0:
+        for key in rois_traces_dict:
+            if key in bold_list:
+                proximity_dict[key] = 0
+            else:
+                proximity_dict[key] = nargs - 1
+    else:
+        proximity_vals = np.array(list(proximity_dict.values()))
+        proximity_max, proximity_min = np.max(proximity_vals), np.min(proximity_vals)
+        for key, val in proximity_dict.items():
+            val = int(((val - proximity_min) / proximity_max) * (nargs-1))
+            proximity_dict[key] = val
+
+    if type(dt) is not type(np.array([])):
+        t = np.linspace(0, n_samples * dt, n_samples)
+    else:
+        t = dt
+
+    legend = []
+    rois_traces_mat = np.array(list(rois_traces_dict.values()))
+    traces_mean = np.mean(rois_traces_mat, axis=0)
+    traces_std = np.std(rois_traces_mat, axis=0)
+    traces_median = np.median(rois_traces_mat, axis=0)
+    for i, (key, trace) in enumerate(rois_traces_dict.items()):
+        if key not in bold_list:
+            ax.plot(t, trace, color=color_list[proximity_dict[key]], linewidth=0.5)
+            legend.append(key)
+
+    for i, (key, trace) in enumerate(rois_traces_dict.items()):  # plot bold_list traces last
+        if key in bold_list:
+            ax.plot(t, trace, color=color_list[proximity_dict[key]], linewidth=2)
+            legend.append(key)
+
+    ax.plot(t, traces_mean, linestyle='dashed', color='black')
+    ax.plot(t, traces_median, linestyle='dotted', color='black')
+    ax.fill_between(t, traces_mean - traces_std, traces_mean + traces_std, color='gray', alpha=0.2)
 
 
 def plot_box_plot(ax, *args, **kwargs):

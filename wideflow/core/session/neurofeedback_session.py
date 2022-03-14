@@ -28,6 +28,8 @@ from utils.load_rois_data import load_rois_data
 from utils.write_bbox_file import write_bbox_file
 from utils.write_matching_point_file import write_matching_point_file
 
+from DeepLabCut.DLCLProcess import BehavioralMonitoring
+
 import numpy as np
 import cupy as cp
 
@@ -66,6 +68,7 @@ class NeuroFeedbackSession(AbstractSession):
         self.supplementary_data_config = config["supplementary_data_config"]
         self.analysis_pipeline_config = config["analysis_pipeline_config"]
         self.visualization_config = config["visualization_config"]
+        self.deep_lab_cut_config = config["deep_lab_cut_config"]
 
         self.camera = self.set_imaging_camera()
         self.serial_controller = self.set_serial_controler()
@@ -84,8 +87,9 @@ class NeuroFeedbackSession(AbstractSession):
         self.vis_shm_obj, self.vis_shm, self.vis_query, self.vis_processes = {}, {}, {}, {}
 
         # set behavioral camera process
-        self.behavioral_camera_process, self.behavioral_camera_q = None, None
-        # self.set_behavioral_camera()
+        # self.behavioral_camera_process, self.behavioral_camera_q = None, None
+        self.behavioral_monitoring_process, self.behavioral_monitoring_q = None, None
+        self.set_behavioral_monitoring()
 
     def set_imaging_camera(self):
         pvc.init_pvcam()
@@ -117,10 +121,32 @@ class NeuroFeedbackSession(AbstractSession):
 
     def set_behavioral_camera(self):
         if self.behavioral_camera_config["process"] == "python":
+            if self.deep_lab_cut_config["activate"]:
+                sensor_roi = self.behavioral_camera_config["attr"]["roi"]
+                shape = (sensor_roi[1] - sensor_roi[0], sensor_roi[3] - sensor_roi[2])
+                bcam_frame_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(shape, dtype=np.float64).nbytes)  # TODO: dtype
+                self.bcam_frame_shm_name = bcam_frame_shm.name
+            else:
+                self.bcam_frame_shm_name = None
+
             self.behavioral_camera_q = Queue(3)
             self.behavioral_camera_process = mp.Process(target=run_triggered_behavioral_camera,
-                                                   args=(self.behavioral_camera_q, self.session_path + self.behavioral_camera_config["vid_file_name"]),
-                                                   kwargs=self.behavioral_camera_config["attr"])
+                                   args=(self.behavioral_camera_q, self.session_path + self.behavioral_camera_config["vid_file_name"],
+                                         self.bcam_frame_shm_name),
+                                   kwargs=self.behavioral_camera_config["attr"])
+
+    def set_behavioral_monitoring(self):
+        self.behavioral_monitoring_q = Queue(3)
+        target = BehavioralMonitoring(self.behavioral_monitoring_q,
+            self.deep_lab_cut_config["model_path"], self.deep_lab_cut_config["model_config"],
+            self.deep_lab_cut_config["processor_config"], self.deep_lab_cut_config["camera_config"])
+
+        pose_shape = self.deep_lab_cut_config["processor_config"]["pose_shape"]
+        pose_dtype = self.deep_lab_cut_config["processor_config"]["pose_dtype"]
+        pose_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(pose_shape, dtype=pose_dtype).nbytes)
+
+        self.behavioral_monitoring_pose_shm = np.ndarray(pose_shape, dtype=pose_dtype, buffer=pose_shm.buf)
+        self.behavioral_monitoring_process = mp.Process(target=target, args=(pose_shm.name, self.bcam_frame_shm_name))
 
     def set_serial_controler(self):
         serial_controller = SerialControler(port=self.serial_config["port_id"],
@@ -201,6 +227,7 @@ class NeuroFeedbackSession(AbstractSession):
             subprocess.Popen([self.behavioral_camera_config["script"]])
 
         self.initialize_visualization()
+        self.behavioral_monitoring_process.start()
 
         self.update_config(bbox, match_p_src, match_p_dst, affine_matrix)
 
@@ -229,10 +256,13 @@ class NeuroFeedbackSession(AbstractSession):
             # run analysis pipline processing loop
             self.analysis_pipeline.process()
 
-            # grab frame with behavioral camera
-            if self.behavioral_camera_config["process"] == "python":
-                if not self.behavioral_camera_q.full():
+            # get behavioral state
+            if self.behavioral_camera_config["status"]:
+                if not self.behavioral_camera_q.full:
                     self.behavioral_camera_q.put('grab')
+                if self.deep_lab_cut_config["status"]:
+                    if not self.behavioral_monitoring_q.full:
+                        self.behavioral_monitoring_q.put('estimate')
 
             # evaluate metric and give reward if metric above threshold
             cue = 0
