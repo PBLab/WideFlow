@@ -39,6 +39,7 @@ const int speakerPin = 44; // the pin that the speaker is attached to
 
 unsigned long ledAnalogValMax = 100; // control the LED illumination intensity
 unsigned long adjLedAnalogValMax = 15;
+float ledBaseline = 0.0; // minimal led illumination intensity
 float ledAnalogVal = 0;
 int speakerAnalogVal = 8;
 
@@ -106,7 +107,7 @@ void process() {
       
       else if (isDigit(msg) && (globalClock > (ledClock + ledActivationTime))){
         // input buffer float should be between zero and 1
-        ledAnalogVal = pow(atof(inputBuffer), 8) * adjLedAnalogValMax;
+        ledAnalogVal = (pow(atof(inputBuffer), 8) + ledBaseline) * adjLedAnalogValMax;
         analogWrite(ledPin, ledAnalogVal);
         //Serial.println(ledAnalogVal);
       }

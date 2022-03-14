@@ -18,7 +18,8 @@ def binary_fixed_step_staircase_procedure(threshold, results_seq, num_frames, ty
     Returns: threshold: float - updated threshold
 
     """
-    n = sum(1 for k, _ in groupby(np.array(results_seq[-num_frames:]) > threshold) if k)
+    n = sum(1 for k, _ in groupby(np.array(results_seq) > threshold) if k)
+    n = n * (num_frames / len(results_seq))  # a fix for when the function is provided with less frames then num_frames
     if n < typical_count - count_band:
         return threshold - step
     elif n > typical_count + count_band:
