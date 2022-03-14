@@ -5,7 +5,7 @@ from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 
 def load_session_metadata(dir_path):
     for file in os.listdir(dir_path):
-        if file.endswith(".txt"):
+        if file.endswith("metadata.txt"):
             metadata_path = os.path.join(dir_path, file)
         if file.endswith(".json"):
             config = load_config(os.path.join(dir_path, file))
