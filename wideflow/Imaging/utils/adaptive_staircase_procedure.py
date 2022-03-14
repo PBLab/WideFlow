@@ -19,10 +19,20 @@ def binary_fixed_step_staircase_procedure(threshold, results_seq, num_frames, ty
 
     """
     n = sum(1 for k, _ in groupby(np.array(results_seq) > threshold) if k)
-    n = n * (num_frames / len(results_seq))  # a fix for when function provided with less samples than expected
+    n = n * (num_frames / len(results_seq))  # a fix for when the function is provided with less frames then num_frames
     if n < typical_count - count_band:
         return threshold - step
     elif n > typical_count + count_band:
+        return threshold + step
+    else:
+        return threshold
+
+
+def percentile_fixed_step_staircase_procedure(threshold, samples, num_frames, percent, perc_band, step):
+    p = np.mean(samples[-num_frames:] > threshold)
+    if p < percent - perc_band:
+        return threshold - step
+    elif p > percent + perc_band:
         return threshold + step
     else:
         return threshold
@@ -47,16 +57,6 @@ def percentile_update_procedure(threshold, samples, percentile, nbins):
     percentile_inds = np.where(prob > np.percentile(prob, percentile))[0]
     if len(percentile_inds):
         return bins[percentile_inds[0]]
-    else:
-        return threshold
-
-
-def percentile_fixed_step_staircase_procedure(threshold, samples, num_frames, percent, perc_band, step):
-    p = np.mean(samples[-num_frames:] > threshold)
-    if p < percent - perc_band:
-        return threshold - step
-    elif p > percent + perc_band:
-        return threshold + step
     else:
         return threshold
 

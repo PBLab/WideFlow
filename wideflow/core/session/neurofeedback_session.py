@@ -10,7 +10,7 @@ from devices.serial_port import SerialControler
 
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.memmap_process import MemoryHandler
-from Imaging.utils.adaptive_staircase_procedure import binary_fixed_step_staircase_procedure
+from Imaging.utils.adaptive_staircase_procedure import percentile_update_procedure, binary_fixed_step_staircase_procedure
 from Imaging.visualization.live_video_and_metric import LiveVideoMetric
 from Imaging.visualization.live_video import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
@@ -239,10 +239,15 @@ class NeuroFeedbackSession(AbstractSession):
         feedback_threshold = np.float32(self.feedback_config["metric_threshold"])
         inter_feedback_delay = self.feedback_config["inter_feedback_delay"]
         update_frames = self.feedback_config["update_frames"]
-        update_every = self.feedback_config["update_every"]
-        threshold_percentile = np.float32(self.feedback_config["percentile"])
-        threshold_nbins = np.int32(self.feedback_config["nbins"])
         threshold_eval_frames = self.feedback_config["eval_frames"]
+        update_every = self.feedback_config["update_every"]
+
+        typical_count = self.feedback_config["typical_count"]
+        count_band = self.feedback_config["count_band"]
+        step = self.feedback_config["step"]
+
+        # threshold_percentile = np.float32(self.feedback_config["percentile"])
+        # threshold_nbins = np.int32(self.feedback_config["nbins"])
 
         results_seq = np.zeros((self.acquisition_config["num_of_frames"], ), dtype=np.float32)
         frame_counter = 0
@@ -283,9 +288,12 @@ class NeuroFeedbackSession(AbstractSession):
             # update threshold
             results_seq[frame_counter] = result
             if not frame_counter % update_every and frame_counter > update_frames[0] and frame_counter < update_frames[1]:
+                # feedback_threshold = percentile_update_procedure(feedback_threshold,
+                #         results_seq[np.min((0, frame_counter - threshold_eval_frames)):frame_counter: self.camera_config["attr"]["channels"]],
+                #         threshold_percentile, threshold_nbins)
                 feedback_threshold = binary_fixed_step_staircase_procedure(feedback_threshold,
-                        results_seq[np.min((0, frame_counter - threshold_eval_frames)):frame_counter: self.camera_config["attr"]["channels"]],
-                        threshold_percentile, threshold_nbins)
+                               results_seq[np.max((0, frame_counter - threshold_eval_frames)):frame_counter: self.camera_config["attr"]["channels"]],
+                               threshold_eval_frames, typical_count, count_band, step)
 
             # save Wide Filed data
             self.frame_shm[:] = self.analysis_pipeline.frame
@@ -450,12 +458,12 @@ class NeuroFeedbackSession(AbstractSession):
         fig.canvas.mpl_connect('key_press_event', toggle_selector)
         plt.show()
         bbox = toggle_selector._rect_bbox
-        # if np.sum(bbox) > 1:
-        #     # convert to PyVcam format
-        #     #  PyVCAM: camera ROI is defined as: (x_min, y_min, x_width, y_height)
-        #     #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
-        #     print(bbox)
-        #     bbox = (int(bbox[0]), int(bbox[2]), int(bbox[1]), int(bbox[3]))
+        if np.sum(bbox) > 1:
+            # convert to PyVcam format
+            #  PyVCAM: camera ROI is defined as: (x_min, y_min, x_width, y_height)
+            #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
+            print(bbox)
+            bbox = (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
 
         return bbox
 
