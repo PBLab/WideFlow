@@ -16,8 +16,7 @@ def run_triggered_behavioral_camera(query, saving_path, shm_name, **camera_confi
 
     if shm_name is not None:
         existing_shm = shared_memory.SharedMemory(name=shm_name)
-        frame_shm = np.ndarray(shape=frame.shape,
-                           dtype=frame.dtype, buffer=existing_shm.buf)
+        frame_shm = np.ndarray(shape=frame.shape, dtype=frame.dtype, buffer=existing_shm.buf)
     else:
         frame_shm = frame
 

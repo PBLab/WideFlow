@@ -54,15 +54,24 @@
     },
 
     "behavioral_camera_config": {
+        "activate": true,
         "process": "",
         "script":"/home/pb/PycharmProjects/WideFlow/wideflow/devices/spinnaker_flir_cam/bin/FLIRcam_main",
         "file_name": "behavioral_vid.avi",
         "attr": {
             "exp_time": 5,
+            "roi_bbox": [500, 348, 512, 512],
             "avi_type": "MJPG",
             "acquisition_mode": "TRIGGER",
             "chosen_trigger": "HARDWARE"
         }
+    },
+
+    "deep_lab_cut_config": {
+        "activate": true,
+        "model_path": "/home/pb/DLC_Wide Flow_resnet_50_iteration-0_shuffle-1",
+        "model_config": {"pose_shape":  [3, 3], "pose_dtype": "float32"}
+
     },
 
     "acquisition_config": {
@@ -132,6 +141,10 @@
             "status": false,
             "size": [297, 337], "dtype": "float32", "buffer": "dff_buffer",
             "class": "ROIsTracePlot", "params": {"image_shape": [297, 337], "frame_rate": 50}
+        },
+        "show_behavioral_monitoring": {
+            "status": false,
+            "class": "LiveVideo", "params": {"image_shape": [512, 512], "frame_rate": 50}
         }
      }
 }

@@ -10,7 +10,7 @@ from devices.serial_port import SerialControler
 
 from Imaging.utils.acquisition_metadata import AcquisitionMetaData
 from Imaging.utils.memmap_process import MemoryHandler
-from Imaging.utils.adaptive_staircase_procedure import percentile_update_procedure
+from Imaging.utils.adaptive_staircase_procedure import binary_fixed_step_staircase_procedure
 from Imaging.visualization.live_video_and_metric import LiveVideoMetric
 from Imaging.visualization.live_video import LiveVideo
 from Imaging.utils.interactive_affine_transform import InteractiveAffineTransform
@@ -87,9 +87,13 @@ class NeuroFeedbackSession(AbstractSession):
         self.vis_shm_obj, self.vis_shm, self.vis_query, self.vis_processes = {}, {}, {}, {}
 
         # set behavioral camera process
-        # self.behavioral_camera_process, self.behavioral_camera_q = None, None
+        self.behavioral_camera_process, self.behavioral_camera_q, self.bcam_frame_shm_name = None, None, None
+        if self.behavioral_camera_config["activate"]:
+            self.set_behavioral_camera()
+
         self.behavioral_monitoring_process, self.behavioral_monitoring_q = None, None
-        self.set_behavioral_monitoring()
+        if self.deep_lab_cut_config["activate"]:
+            self.set_behavioral_monitoring()
 
     def set_imaging_camera(self):
         pvc.init_pvcam()
@@ -120,26 +124,25 @@ class NeuroFeedbackSession(AbstractSession):
         return cam
 
     def set_behavioral_camera(self):
-        if self.behavioral_camera_config["process"] == "python":
-            if self.deep_lab_cut_config["activate"]:
-                sensor_roi = self.behavioral_camera_config["attr"]["roi"]
-                shape = (sensor_roi[1] - sensor_roi[0], sensor_roi[3] - sensor_roi[2])
-                bcam_frame_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(shape, dtype=np.float64).nbytes)  # TODO: dtype
-                self.bcam_frame_shm_name = bcam_frame_shm.name
-            else:
-                self.bcam_frame_shm_name = None
+        if self.deep_lab_cut_config["activate"]:
+            sensor_roi = self.behavioral_camera_config["attr"]["roi"]
+            shape = (sensor_roi[2], sensor_roi[3])
+            bcam_frame_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(shape, dtype=np.float64).nbytes)  # TODO: dtype
+            self.bcam_frame_shm_name = bcam_frame_shm.name
+        else:
+            self.bcam_frame_shm_name = None
 
-            self.behavioral_camera_q = Queue(3)
-            self.behavioral_camera_process = mp.Process(target=run_triggered_behavioral_camera,
-                                   args=(self.behavioral_camera_q, self.session_path + self.behavioral_camera_config["vid_file_name"],
-                                         self.bcam_frame_shm_name),
-                                   kwargs=self.behavioral_camera_config["attr"])
+        self.behavioral_camera_q = Queue(3)
+        self.behavioral_camera_process = mp.Process(target=run_triggered_behavioral_camera,
+                               args=(self.behavioral_camera_q, self.session_path + self.behavioral_camera_config["vid_file_name"],
+                                     self.bcam_frame_shm_name),
+                               kwargs=self.behavioral_camera_config["attr"])
 
     def set_behavioral_monitoring(self):
         self.behavioral_monitoring_q = Queue(3)
         target = BehavioralMonitoring(self.behavioral_monitoring_q,
             self.deep_lab_cut_config["model_path"], self.deep_lab_cut_config["model_config"],
-            self.deep_lab_cut_config["processor_config"], self.deep_lab_cut_config["camera_config"])
+            self.deep_lab_cut_config["processor_config"])
 
         pose_shape = self.deep_lab_cut_config["processor_config"]["pose_shape"]
         pose_dtype = self.deep_lab_cut_config["processor_config"]["pose_dtype"]
@@ -178,6 +181,7 @@ class NeuroFeedbackSession(AbstractSession):
 
         else:
             bbox = self.select_camera_sensor_roi(frame)
+            print(bbox)
             self.camera.set_roi(bbox[0], bbox[1], bbox[2], bbox[3])
             self.sensor_roi = bbox
 
@@ -220,14 +224,13 @@ class NeuroFeedbackSession(AbstractSession):
         self.mem_process = mp.Process(target=memory_handler, args=(shm_name,))
         self.mem_process.start()
 
-        # initialzie behavioral camera
-        if self.behavioral_camera_config["process"] == "python":
+        # initialzie behavioral monitoring
+        if self.behavioral_camera_config["activate"]:
             self.behavioral_camera_process.start()
-        elif self.behavioral_camera_config["process"] == "cpp":
-            subprocess.Popen([self.behavioral_camera_config["script"]])
+        if self.deep_lab_cut_config["activate"]:
+            self.behavioral_monitoring_process.start()
 
         self.initialize_visualization()
-        self.behavioral_monitoring_process.start()
 
         self.update_config(bbox, match_p_src, match_p_dst, affine_matrix)
 
@@ -257,10 +260,10 @@ class NeuroFeedbackSession(AbstractSession):
             self.analysis_pipeline.process()
 
             # get behavioral state
-            if self.behavioral_camera_config["status"]:
+            if self.behavioral_camera_config["activate"]:
                 if not self.behavioral_camera_q.full:
                     self.behavioral_camera_q.put('grab')
-                if self.deep_lab_cut_config["status"]:
+                if self.deep_lab_cut_config["activate"]:
                     if not self.behavioral_monitoring_q.full:
                         self.behavioral_monitoring_q.put('estimate')
 
@@ -278,10 +281,9 @@ class NeuroFeedbackSession(AbstractSession):
                       '___________________________________________________________________________')
 
             # update threshold
-            results_seq.append(result)
             results_seq[frame_counter] = result
             if not frame_counter % update_every and frame_counter > update_frames[0] and frame_counter < update_frames[1]:
-                feedback_threshold = percentile_update_procedure(feedback_threshold,
+                feedback_threshold = binary_fixed_step_staircase_procedure(feedback_threshold,
                         results_seq[np.min((0, frame_counter - threshold_eval_frames)):frame_counter: self.camera_config["attr"]["channels"]],
                         threshold_percentile, threshold_nbins)
 
@@ -448,11 +450,12 @@ class NeuroFeedbackSession(AbstractSession):
         fig.canvas.mpl_connect('key_press_event', toggle_selector)
         plt.show()
         bbox = toggle_selector._rect_bbox
-        if np.sum(bbox) > 1:
-            # convert to PyVcam format
-            #  PyVCAM: camera ROI is defined as: (x_min, y_min, x_width, y_height)
-            #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
-            bbox = (int(bbox[0]), int(bbox[2]), int(bbox[1]), int(bbox[3]))
+        # if np.sum(bbox) > 1:
+        #     # convert to PyVcam format
+        #     #  PyVCAM: camera ROI is defined as: (x_min, y_min, x_width, y_height)
+        #     #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
+        #     print(bbox)
+        #     bbox = (int(bbox[0]), int(bbox[2]), int(bbox[1]), int(bbox[3]))
 
         return bbox
 

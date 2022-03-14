@@ -16,7 +16,6 @@ class PVCamera(Camera):
         self.circ_buffer_count = circ_buffer_count
         self.sensor_roi = sensor_roi
 
-
     @classmethod
     def detect_camera(cls, **kwargs):
         """Detects and creates a new Camera object.

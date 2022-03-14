@@ -1,8 +1,12 @@
 import numpy as np
-from dlclive import Processor
+import sys
+sys.path.insert(1, '/home/pb/PycharmProjects/DeepLabCut-live/dlclive')
+
+# from dlclive.processor import Processor
 
 
-class WFProcessor(Processor):
+# class WFProcessor(Processor):
+class WFProcessor:
     """
     deep lab cut live processor.
     must implement two methods -
