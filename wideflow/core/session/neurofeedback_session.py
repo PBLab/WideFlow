@@ -87,7 +87,7 @@ class NeuroFeedbackSession(AbstractSession):
         self.vis_shm_obj, self.vis_shm, self.vis_query, self.vis_processes = {}, {}, {}, {}
 
         # set behavioral camera process
-        self.behavioral_camera_process, self.behavioral_camera_q, self.bcam_frame_shm_name = None, None, None
+        self.behavioral_camera_process, self.behavioral_camera_q, self.bcam_frame_shm_name, self.bcam_frame_shm, self.bcam_frame = None, None, None, None, None
         if self.behavioral_camera_config["activate"]:
             self.set_behavioral_camera()
 
@@ -124,17 +124,15 @@ class NeuroFeedbackSession(AbstractSession):
         return cam
 
     def set_behavioral_camera(self):
-        if self.deep_lab_cut_config["activate"]:
-            sensor_roi = self.behavioral_camera_config["attr"]["roi"]
-            shape = (sensor_roi[2], sensor_roi[3])
-            bcam_frame_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(shape, dtype=np.float64).nbytes)  # TODO: dtype
-            self.bcam_frame_shm_name = bcam_frame_shm.name
-        else:
-            self.bcam_frame_shm_name = None
+        sensor_roi = self.behavioral_camera_config["attr"]["roi_bbox"]
+        shape = (sensor_roi[2], sensor_roi[3])
+        self.bcam_frame_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(shape, dtype=np.uint8).nbytes)  # dtype is compatible to FLIRcam output
+        self.bcam_frame_shm_name = self.bcam_frame_shm.name
+        self.bcam_frame = np.ndarray(shape, dtype=np.uint8, buffer=self.bcam_frame_shm.buf)
 
         self.behavioral_camera_q = Queue(3)
         self.behavioral_camera_process = mp.Process(target=run_triggered_behavioral_camera,
-                               args=(self.behavioral_camera_q, self.session_path + self.behavioral_camera_config["vid_file_name"],
+                               args=(self.behavioral_camera_q, self.session_path + self.behavioral_camera_config["file_name"],
                                      self.bcam_frame_shm_name),
                                kwargs=self.behavioral_camera_config["attr"])
 
@@ -198,7 +196,8 @@ class NeuroFeedbackSession(AbstractSession):
                 affine_matrix, self.analysis_pipeline_config["args"]["hemispheres"],
                 regression_map,
                 self.analysis_pipeline_config["args"]["capacity"],
-                self.analysis_pipeline_config["args"]["metric_args"]
+                self.analysis_pipeline_config["args"]["metric_args"],
+                self.analysis_pipeline_config["args"]["regression_n_samples"]
             )
         else:
             raise NameError(f"{self.analysis_pipeline_config['pipeline']} pipeline class doesn't exist")
@@ -227,8 +226,10 @@ class NeuroFeedbackSession(AbstractSession):
         # initialzie behavioral monitoring
         if self.behavioral_camera_config["activate"]:
             self.behavioral_camera_process.start()
+            self.behavioral_camera_q.put("start")
         if self.deep_lab_cut_config["activate"]:
             self.behavioral_monitoring_process.start()
+
 
         self.initialize_visualization()
 
@@ -266,10 +267,10 @@ class NeuroFeedbackSession(AbstractSession):
 
             # get behavioral state
             if self.behavioral_camera_config["activate"]:
-                if not self.behavioral_camera_q.full:
+                if not self.behavioral_camera_q.full():
                     self.behavioral_camera_q.put('grab')
                 if self.deep_lab_cut_config["activate"]:
-                    if not self.behavioral_monitoring_q.full:
+                    if not self.behavioral_monitoring_q.full():
                         self.behavioral_monitoring_q.put('estimate')
 
             # evaluate metric and give reward if metric above threshold
@@ -331,14 +332,28 @@ class NeuroFeedbackSession(AbstractSession):
         self.serial_controller.sendToArduino('0.0')  # make sure cueig LED is off
         self.serial_controller.close()
 
-        now = datetime.now()
-        with open(self.session_path + "session_config.json", 'w') as fp:
-            json.dump(self.config, fp)
-
         try:
             self.terminate_visualiztion()
         except RuntimeError:
             print("something went wrong while terminating visualization processes")
+
+        if self.behavioral_camera_config["activate"]:
+            self.behavioral_camera_q.put('finish')
+            self.behavioral_camera_process.join()
+            self.behavioral_camera_process.terminate()
+
+        if self.deep_lab_cut_config["activate"]:
+            self.behavioral_monitoring_q.put('finish')
+            self.behavioral_monitoring_process.join()
+            self.behavioral_monitoring_process.terminate()
+
+        if self.bcam_frame_shm is not None:
+            self.bcam_frame_shm.close()
+            self.bcam_frame_shm.unlink()
+
+        with open(self.session_path + "session_config.json", 'w') as fp:
+            json.dump(self.config, fp)
+
 
         try:
             self.memq.put("terminate")
@@ -358,7 +373,7 @@ class NeuroFeedbackSession(AbstractSession):
 
                 convert_dat_to_tif(self.session_path + self.acquisition_config["vid_file_name"], frame_offset,
                                    (2000, frame_shape[0], frame_shape[1]),
-                                   # ~2000 frames is the maximum amount of frames readable using Fiji imagej
+                                   # ~2000 frames is the maximum amount of frames readable using Fiji imagej using standard image size
                                    self.data_dtype, self.acquisition_config["num_of_frames"])
                 os.remove(self.session_path + self.acquisition_config["vid_file_name"])
             except RuntimeError:
@@ -372,34 +387,6 @@ class NeuroFeedbackSession(AbstractSession):
         print(f"ready for another?")
 
     def initialize_visualization(self):
-        # live stream with metric
-        config = self.visualization_config["show_live_stream_and_metric"]
-        if config["status"]:
-            image = np.ndarray(config["size"], dtype=np.dtype(config["dtype"]))
-            vshm = shared_memory.SharedMemory(create=True, size=image.nbytes)
-            image_shm = np.ndarray(image.shape, dtype=image.dtype, buffer=vshm.buf)
-            image_shm_name = vshm.name
-
-            metric = np.ndarray((1, ), dtype=np.float32)
-            mshm = shared_memory.SharedMemory(create=True, size=metric.nbytes)
-            metric_shm = np.ndarray(metric.shape, dtype=metric.dtype, buffer=mshm.buf)
-            metric_shm_name = mshm.name
-
-            threshold = np.ndarray((1, ), dtype=np.float32)
-            tshm = shared_memory.SharedMemory(create=True, size=threshold.nbytes)
-            threshold_shm = np.ndarray(threshold.shape, dtype=threshold.dtype, buffer=tshm.buf)
-            threshold_shm_name = tshm.name
-
-            live_stream_que = Queue(5)
-            target = LiveVideoMetric(live_stream_que, config["params"]["image_shape"])
-            live_stream_process = mp.Process(target=target, args=(image_shm_name, metric_shm_name, threshold_shm_name))
-            live_stream_process.start()
-
-            self.vis_shm_obj["live_stream_metric"] = {"image": vshm, "metric": mshm, "threshold": tshm}
-            self.vis_shm["live_stream_metric"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
-            self.vis_query["live_stream_metric"] = live_stream_que
-            self.vis_processes["live_stream_metric"] = live_stream_process
-
         config = self.visualization_config["show_live_stream"]
         if config["status"]:
             image = np.ndarray(config["size"], dtype=np.dtype(config["dtype"]))
@@ -408,8 +395,8 @@ class NeuroFeedbackSession(AbstractSession):
             image_shm_name = vshm.name
 
             live_stream_que = Queue(5)
-            target = LiveVideo(live_stream_que, config["params"]["image_shape"])
-            live_stream_process = mp.Process(target=target, args=(image_shm_name,))
+            target = LiveVideo(live_stream_que, config["params"]["image_shape"], config["params"]["image_dtype"])
+            live_stream_process = mp.Process(target=target, args=(image_shm_name, ))
             live_stream_process.start()
 
             self.vis_shm_obj["live_stream"] = {"image": vshm}
@@ -417,31 +404,62 @@ class NeuroFeedbackSession(AbstractSession):
             self.vis_query["live_stream"] = live_stream_que
             self.vis_processes["live_stream"] = live_stream_process
 
-    def update_visualiztion(self, feedback_threshold, metric):
-        if self.visualization_config["show_live_stream_and_metric"]["status"]:
-            self.vis_shm["live_stream_metric"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr, :, :])
-            self.vis_shm["live_stream_metric"]["metric"][:] = metric or np.nan_to_num(0, metric)
-            self.vis_shm["live_stream_metric"]["threshold"][:] = feedback_threshold or np.nan_to_num(0, feedback_threshold)
-            if not self.vis_query["live_stream_metric"].full():
-                self.vis_query["live_stream_metric"].put("draw")
+        config = self.visualization_config["show_behavioral_monitoring"]
+        if config["status"]:
+            live_stream_queb = Queue(5)
+            target = LiveVideo(live_stream_queb, config["params"]["image_shape"], config["params"]["image_dtype"], vmin=config["params"]["vmin"], vmax=config["params"]["vmax"])
+            live_stream_processb = mp.Process(target=target, args=(self.bcam_frame_shm_name, ))
+            live_stream_processb.start()
 
+            self.vis_query["behavioral_monitoring"] = live_stream_queb
+            self.vis_processes["behavioral_monitoring"] = live_stream_processb
+
+        # # live stream with metric
+        # config = self.visualization_config["show_live_stream_and_metric"]
+        # if config["status"]:
+        #     image = np.ndarray(config["size"], dtype=np.dtype(config["dtype"]))
+        #     vshm = shared_memory.SharedMemory(create=True, size=image.nbytes)
+        #     image_shm = np.ndarray(image.shape, dtype=image.dtype, buffer=vshm.buf)
+        #     image_shm_name = vshm.name
+        #
+        #     metric = np.ndarray((1, ), dtype=np.float32)
+        #     mshm = shared_memory.SharedMemory(create=True, size=metric.nbytes)
+        #     metric_shm = np.ndarray(metric.shape, dtype=metric.dtype, buffer=mshm.buf)
+        #     metric_shm_name = mshm.name
+        #
+        #     threshold = np.ndarray((1, ), dtype=np.float32)
+        #     tshm = shared_memory.SharedMemory(create=True, size=threshold.nbytes)
+        #     threshold_shm = np.ndarray(threshold.shape, dtype=threshold.dtype, buffer=tshm.buf)
+        #     threshold_shm_name = tshm.name
+        #
+        #     live_stream_que = Queue(5)
+        #     target = LiveVideoMetric(live_stream_que, config["params"]["image_shape"])
+        #     live_stream_process = mp.Process(target=target, args=(image_shm_name, metric_shm_name, threshold_shm_name))
+        #     live_stream_process.start()
+        #
+        #     self.vis_shm_obj["live_stream_metric"] = {"image": vshm, "metric": mshm, "threshold": tshm}
+        #     self.vis_shm["live_stream_metric"] = {"image": image_shm, "metric": metric_shm, "threshold": threshold_shm}
+        #     self.vis_query["live_stream_metric"] = live_stream_que
+        #     self.vis_processes["live_stream_metric"] = live_stream_process
+
+    def update_visualiztion(self, feedback_threshold, metric):
         if self.visualization_config["show_live_stream"]["status"]:
             self.vis_shm["live_stream"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr, :, :])
             if not self.vis_query["live_stream"].full():
                 self.vis_query["live_stream"].put("draw")
 
-    def terminate_visualiztion(self):
-        if self.visualization_config["show_live_stream_and_metric"]["status"]:
-            if self.vis_query["live_stream_metric"].full():
-                self.vis_query["live_stream_metric"].get()
-            self.vis_query["live_stream_metric"].put("terminate")
-            self.vis_processes["live_stream_metric"].join()
-            self.vis_processes["live_stream_metric"].terminate()
-            for key in self.vis_shm_obj["live_stream_metric"]:
-                del self.vis_shm["live_stream_metric"][key]
-                self.vis_shm_obj["live_stream_metric"][key].close()
-                self.vis_shm_obj["live_stream_metric"][key].unlink()
+        if self.visualization_config["show_behavioral_monitoring"]["status"]:
+            if not self.vis_query["behavioral_monitoring"].full():
+                self.vis_query["behavioral_monitoring"].put("draw")
 
+        # if self.visualization_config["show_live_stream_and_metric"]["status"]:
+        #     self.vis_shm["live_stream_metric"]["image"][:] = cp.asnumpy(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.processes_list[2].ptr, :, :])
+        #     self.vis_shm["live_stream_metric"]["metric"][:] = metric or np.nan_to_num(0, metric)
+        #     self.vis_shm["live_stream_metric"]["threshold"][:] = feedback_threshold or np.nan_to_num(0, feedback_threshold)
+        #     if not self.vis_query["live_stream_metric"].full():
+        #         self.vis_query["live_stream_metric"].put("draw")
+
+    def terminate_visualiztion(self):
         if self.visualization_config["show_live_stream"]["status"]:
             if self.vis_query["live_stream"].full():
                 self.vis_query["live_stream"].get()
@@ -450,6 +468,24 @@ class NeuroFeedbackSession(AbstractSession):
             self.vis_processes["live_stream"].terminate()
             del self.vis_shm["live_stream"]["image"]
             self.vis_shm_obj["live_stream"]["image"].close()
+
+        if self.visualization_config["show_behavioral_monitoring"]["status"]:
+            if self.vis_query["behavioral_monitoring"].full():
+                self.vis_query["behavioral_monitoring"].get()
+            self.vis_query["behavioral_monitoring"].put("terminate")
+            self.vis_processes["behavioral_monitoring"].join()
+            self.vis_processes["behavioral_monitoring"].terminate()
+
+        # if self.visualization_config["show_live_stream_and_metric"]["status"]:
+        #     if self.vis_query["live_stream_metric"].full():
+        #         self.vis_query["live_stream_metric"].get()
+        #     self.vis_query["live_stream_metric"].put("terminate")
+        #     self.vis_processes["live_stream_metric"].join()
+        #     self.vis_processes["live_stream_metric"].terminate()
+        #     for key in self.vis_shm_obj["live_stream_metric"]:
+        #         del self.vis_shm["live_stream_metric"][key]
+        #         self.vis_shm_obj["live_stream_metric"][key].close()
+        #         self.vis_shm_obj["live_stream_metric"][key].unlink()
 
     def select_camera_sensor_roi(self, frame):
         fig, ax = plt.subplots()
@@ -462,7 +498,6 @@ class NeuroFeedbackSession(AbstractSession):
             # convert to PyVcam format
             #  PyVCAM: camera ROI is defined as: (x_min, y_min, x_width, y_height)
             #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
-            print(bbox)
             bbox = (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
 
         return bbox

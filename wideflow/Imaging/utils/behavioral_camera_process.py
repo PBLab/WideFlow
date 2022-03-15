@@ -15,11 +15,13 @@ def run_triggered_behavioral_camera(query, saving_path, shm_name, **camera_confi
         cap, frame = bcam.grab_frame()
 
     if shm_name is not None:
+        frame_arr = frame.GetNDArray()
         existing_shm = shared_memory.SharedMemory(name=shm_name)
-        frame_shm = np.ndarray(shape=frame.shape, dtype=frame.dtype, buffer=existing_shm.buf)
+        frame_shm = np.ndarray(shape=frame_arr.shape, dtype=frame_arr.dtype, buffer=existing_shm.buf)
     else:
-        frame_shm = frame
+        frame_shm = np.ndarray(frame.GetNDArray().shape, dtype=frame.GetNDArray().dtype)
 
+    prev_frame = frame
     while True:
         if not query.empty():
             q = query.get()
@@ -41,13 +43,14 @@ def run_triggered_behavioral_camera(query, saving_path, shm_name, **camera_confi
                 cap, frame = bcam.grab_frame()
                 if cap:
                     bcam.save_to_avi(frame)
-                    frame_shm[:] = frame
+                    prev_frame = frame
+                    frame_shm[:] = frame.GetNDArray()
                 else:
-                    # query.put('grab')
-                    bcam.save_to_avi(frame_shm[:])
+                    bcam.save_to_avi(prev_frame)
             elif q == 'finish':
                 break
 
     print('ending behavioral camera acquisition')
     bcam.stop_acquisition()
     bcam.close()
+

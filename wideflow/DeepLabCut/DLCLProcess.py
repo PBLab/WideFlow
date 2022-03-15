@@ -1,10 +1,11 @@
 from devices.FLIRCam import FLIRCam
 import PySpin
 
-# from dlclive import DLClive
 import sys
 sys.path.insert(1, '/home/pb/PycharmProjects/DeepLabCut-live/dlclive')
 import dlclive
+# from dlclive import DLClive
+
 from DeepLabCut.DLCLProcessor import WFProcessor
 
 import numpy as np
