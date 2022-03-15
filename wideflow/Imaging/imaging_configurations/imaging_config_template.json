@@ -82,19 +82,19 @@
     },
 
     "feedback_config": {
-        "metric_threshold": 0.1,
         "inter_feedback_delay": 1e3,
-        "update_frames": [1000, 8000],
-        "update_every": 100,
-        "percentile": 99.5,
-        "nbins": 1000,
+        "update_frames": [1000, 70000],
+        "eval_frames": 20000,
+        "update_every": 10,
 
-        "typical_n": 1000,
-        "typical_count": 2,
-        "count_band": 1,
-        "step": 0.002
+        "metric_threshold": 2.8,
 
+        "typical_count": 10,
+        "count_band": 2,
+        "step": 0.02,
 
+        "percentile": 95,
+        "nbins": 100
     },
 
     "registration_config": {
@@ -114,7 +114,8 @@
         "args": {
             "capacity": 32,
             "hemispheres": "left",
-            "metric_args": ["ROIDiff", ["roi_17"], 5]
+            "metric_args": ["ROIDiff", ["roi_17"], 5],
+            "regression_n_samples": 100
         }
     },
 
