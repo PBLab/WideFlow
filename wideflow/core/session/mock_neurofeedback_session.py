@@ -64,7 +64,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
         self.analysis_pipeline = None
 
-        self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_20220220.h5'
+        self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_20220320.h5'
 
     def set_imaging_camera(self):
         cam = MockPVCamera(self.camera_config, self.session_path, self.crop_sensor)

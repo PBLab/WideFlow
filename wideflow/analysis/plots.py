@@ -15,7 +15,7 @@ def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1):
 
 def plot_session(ax, metric, rewards, responses, threshold, dt):
 
-    t = np.arange(0, dt * len(metric), dt) / 60  # convert to minutes
+    t = np.arange(0, dt * len(metric), dt)  # convert to minutes
     ax.plot(metric, color='g', linewidth=0.5, alpha=0.5)
     ax.plot(threshold, color='r', linewidth=0.2)
     plot_reward_response(ax, rewards, responses, ymin=np.min(metric), ymax=np.max(metric))
@@ -41,24 +41,25 @@ def plot_pstr(ax, rois_pstr_dict, dt, bold_list=[], proximity_dict={}):
     # ax.legend(legend, ncol=np.max((int(nargs/10), 1)))
 
 
-def plot_traces(ax, rois_traces_dict, dt, bold_list=[], proximity_dict={}):
+def plot_traces(ax, rois_traces_dict, dt, bold_list=[], proximity_dict={}, **kwargs):
     nargs = len(rois_traces_dict)
     n_samples = len(rois_traces_dict[list(rois_traces_dict.keys())[0]])
 
     color_list = generate_gradient_color_list(nargs, "red", "green")
 
-    if len(proximity_dict) == 0:
+    proximity_dict_cp = proximity_dict.copy()
+    if len(proximity_dict_cp) == 0:
         for key in rois_traces_dict:
             if key in bold_list:
-                proximity_dict[key] = 0
+                proximity_dict_cp[key] = 0
             else:
-                proximity_dict[key] = nargs - 1
+                proximity_dict_cp[key] = nargs - 1
     else:
-        proximity_vals = np.array(list(proximity_dict.values()))
+        proximity_vals = np.array(list(proximity_dict_cp.values()))
         proximity_max, proximity_min = np.max(proximity_vals), np.min(proximity_vals)
-        for key, val in proximity_dict.items():
+        for key, val in proximity_dict_cp.items():
             val = int(((val - proximity_min) / proximity_max) * (nargs-1))
-            proximity_dict[key] = val
+            proximity_dict_cp[key] = val
 
     if type(dt) is not type(np.array([])):
         t = np.linspace(0, n_samples * dt, n_samples)
@@ -72,17 +73,25 @@ def plot_traces(ax, rois_traces_dict, dt, bold_list=[], proximity_dict={}):
     traces_median = np.median(rois_traces_mat, axis=0)
     for i, (key, trace) in enumerate(rois_traces_dict.items()):
         if key not in bold_list:
-            ax.plot(t, trace, color=color_list[proximity_dict[key]], linewidth=0.5)
+            ax.plot(t, trace, color=color_list[proximity_dict_cp[key]], linewidth=0.5)
             legend.append(key)
 
     for i, (key, trace) in enumerate(rois_traces_dict.items()):  # plot bold_list traces last
         if key in bold_list:
-            ax.plot(t, trace, color=color_list[proximity_dict[key]], linewidth=2)
+            ax.plot(t, trace, color=color_list[proximity_dict_cp[key]], linewidth=2)
             legend.append(key)
 
     ax.plot(t, traces_mean, linestyle='dashed', color='black')
     ax.plot(t, traces_median, linestyle='dotted', color='black')
     ax.fill_between(t, traces_mean - traces_std, traces_mean + traces_std, color='gray', alpha=0.2)
+
+    # add axis attributes
+    for key, val in kwargs.items():
+        attr = getattr(ax, key)
+        if isinstance(val, dict):
+            attr(**val)
+        else:
+            attr(val)
 
 
 def plot_box_plot(ax, *args, **kwargs):
