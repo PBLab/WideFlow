@@ -141,10 +141,14 @@ def smoo_rewards(inds_list, shape):
 base_path = '/data/Rotem/WideFlow prj/'
 dataset_path = base_path + 'results/sessions_20220320.h5'
 
-mouse_id = '2601'
+mouse_id = '2604'
 sessions_list = [
-    '20220320_neurofeedback',
-    '20220321_neurofeedback'
+    # '20220320_neurofeedback',
+    # '20220321_neurofeedback',
+    # '20220322_neurofeedback',
+    # '20220323_neurofeedback',
+    # '20220324_neurofeedback',
+    '20220210_neurofeedback'
 ]
 
 # load data

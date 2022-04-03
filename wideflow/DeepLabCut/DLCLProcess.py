@@ -1,10 +1,10 @@
 from devices.FLIRCam import FLIRCam
 import PySpin
 
-import sys
-sys.path.insert(1, '/home/pb/PycharmProjects/DeepLabCut-live/dlclive')
+# import sys
+# sys.path.insert(1, '/home/pb/PycharmProjects/DeepLabCut-live/dlclive')
 import dlclive
-# from dlclive import DLClive
+from dlclive import DLClive
 
 from DeepLabCut.DLCLProcessor import WFProcessor
 
@@ -21,7 +21,7 @@ class BehavioralMonitoring:
 
         self.dlc_processor = WFProcessor(**self.processor_config)
         self.dlc_live = DLClive(self.model_path, processor=self.dlc_processor)
-        self.dlc_live.init_inference()  # TODO: provide frame? should be called for each new frame?
+        self.dlc_live.init_inference()  # TODO: provide frame?
 
         self.result = None
 
@@ -33,6 +33,7 @@ class BehavioralMonitoring:
         existing_shm = shared_memory.SharedMemory(name=pose_mem_name)
         pose = np.ndarray(shape=self.processor_config["pose_shape"],
                            dtype=self.processor_config["pose_shape"], buffer=existing_shm.buf)
+        # pose shape should be the same as DLC processor output pose
 
         while True:
             if not self.query.empty():
