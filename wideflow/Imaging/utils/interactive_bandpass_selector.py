@@ -2,6 +2,7 @@ import numpy as np
 from skimage.color import rgb2gray
 
 import matplotlib.pyplot as plt
+
 from matplotlib.widgets import Button
 from matplotlib.widgets import RectangleSelector
 from utils.matplotlib_rectangle_selector_events import *
@@ -85,10 +86,3 @@ class InteractiveBandPassSelector:
         self.src_fft = np.fft.fftshift((np.fft.fft2(self.src_img)))
         self.bbox_list = []
         self.draw()
-
-
-# path = '/data/Rotem/WideFlow prj/2683/20220206_neurofeedback/regression_coeff_map.npy'
-# regression_map = np.load(path)
-# ibp = InteractiveBandPassSelector(regression_map[0])
-# for bbox in ibp.bbox_list:
-#     print(bbox)

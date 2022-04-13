@@ -78,6 +78,7 @@ class DraggablePoint:
         self.point.figure.canvas.mpl_disconnect(self.cidrelease)
         self.point.figure.canvas.mpl_disconnect(self.cidmotion)
 
+# Example
 # fig = plt.figure()
 # ax = fig.add_subplot(111)
 # drs = []

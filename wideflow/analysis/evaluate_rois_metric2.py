@@ -11,8 +11,9 @@ import h5py
 temporal_window = 1000  # in milliseconds, used to calculate divergence metric and pstr
 smoo_kernel_size = 11
 max_f_to_peak = 5
-fixed_threshold = 2.0
+fixed_threshold = 2.3
 auc_window_length = 5000
+exclude_post_rewards_frames = 30  # exclude from the analysis n frames following rewards due to stimulation artifacts
 
 
 def calc_z_score(x):
@@ -88,19 +89,29 @@ def calc_simulated_rewards(x, th, min_dst, prominence_th=False):
         prominence_sd = np.std(prominence[0])
         prominence_th = prominence[0] > prominence_mean + prominence_sd
         peaks_inds = peaks_inds[prominence_th]
-    peaks = np.zeros(x.shape, dtype=np.bool)
+    peaks = np.zeros(x.shape, dtype=np.bool_)
     peaks[peaks_inds] = 1
     return peaks, peaks_inds
 
 
-def pstr_process(metric, samples_window, th, min_dst, prominence_th=False):
+def pstr_process(metric, samples_window, th, min_dst, prominence_th=False, ex_list=[], ex_n=0):
     pstr_mat = []
     peaks_inds_arr = []
-    for i, trace in enumerate(metric):
+    for trace in metric:
         peaks, peaks_inds = calc_simulated_rewards(trace, th, min_dst, prominence_th)
+        if len(ex_list) > 0 and ex_n > 0:
+            j = 0
+            for index in peaks_inds:
+                if 1 in ex_list[np.max((0, index-ex_n)): index-1]:
+                    peaks_inds = np.delete(peaks_inds, j)
+                    peaks[index] = False
+                    j = j - 1
+                j = j + 1
         pstr = calc_pstr(peaks, trace, samples_window)
         if pstr.ndim > 1:
             pstr = np.mean(pstr, axis=0)
+        if np.isnan(np.sum(pstr)):
+            pstr = np.zeros(pstr.shape)
         pstr_mat.append(pstr)
         peaks_inds_arr.append(peaks_inds)
 
@@ -111,24 +122,33 @@ def pstr_process(metric, samples_window, th, min_dst, prominence_th=False):
 def moving_average_auc(x, window_length):
     n_vars, n_samples = x.shape
     window = np.ones((window_length, )) / window_length
-    auc = np.zeros((n_vars, n_samples))
+    auc = np.zeros((n_vars, n_samples - window_length + 1))
     for i, trace in enumerate(x):
-        auc[i] = np.convolve(trace, window, 'same')
+        auc[i] = np.convolve(trace, window, 'valid')
     return auc
 
 
+def smoo_rewards(inds_list, shape):
+    x = np.zeros([shape[0], shape[1]-10000 + 1])
+    k = np.ones((10000,))
+    for i, inds in enumerate(inds_list):
+        temp = np.zeros((shape[1], ))
+        temp[inds] = 1
+        x[i] = np.convolve(temp, k, 'valid')
+    return x
+
+
 base_path = '/data/Rotem/WideFlow prj/'
-dataset_path = base_path + 'results/sessions_20220220.h5'
+dataset_path = base_path + 'results/sessions_20220320.h5'
 
 mouse_id = '2604'
 sessions_list = [
-    # '20220220_neurofeedback',
-    # '20220221_neurofeedback',
-    '20220222_neurofeedback',
-    '20220223_neurofeedback',
-    '20220224_neurofeedback',
-    '20220227_neurofeedback',
-    '20220228_neurofeedback'
+    # '20220320_neurofeedback',
+    # '20220321_neurofeedback',
+    # '20220322_neurofeedback',
+    # '20220323_neurofeedback',
+    # '20220324_neurofeedback',
+    '20220210_neurofeedback'
 ]
 
 # load data
@@ -148,7 +168,7 @@ print(f"running analysis for mouse {mouse_id}")
 # calculate different knd of metrics
 for session_name in sessions_list:
     print(f"calculating statistics for session {session_name}")
-    threshold = np.max(sessions_metadata[session_name]["threshold"])
+    sess_threshold = np.mean(sessions_metadata[session_name]["threshold"])
 
     n_channels = sessions_config[session_name]['camera_config']['attr']['channels']
     time_stemps = np.array(sessions_metadata[session_name]["timestamp"][::n_channels])
@@ -159,15 +179,26 @@ for session_name in sessions_list:
     min_reward_interval = avg_interval * sessions_config[session_name]['feedback_config']['inter_feedback_delay'] / 1000
 
     reward = np.array(sessions_metadata[session_name]["cue"])
-    if n_channels > 1:
+    if n_channels > 1:  # a fix when examining one channel while two channel acquisition is used
         reward = reward[::n_channels]
         for i in range(1, n_channels):
             reward = np.maximum(reward, np.array(sessions_metadata[session_name]["cue"])[i::n_channels])
 
+
     traces = np.array(list(sessions_data[session_name]['rois_traces']["channel_0"].values()))  # dff values after hemodynamics corrections
+    n_vars, n_samples = traces.shape[0], traces.shape[1]
+    if exclude_post_rewards_frames > 0:
+        exclude_frames = np.ones((n_samples, ))
+        for i in range(n_samples):
+            if 1 in reward[np.max((0, i-exclude_post_rewards_frames)):i]:
+                exclude_frames[i] = 0
+
+        traces_nr = traces[np.ix_(np.arange(traces.shape[0]), np.argwhere(exclude_frames)[:, 0])]
+
+
     rois_key = list(sessions_data[session_name]['rois_traces']["channel_0"].keys())
     # traces = traces - np.expand_dims(np.mean(traces, axis=1), 1)
-    n_vars, n_samples = traces.shape[0], traces.shape[1]
+
 
     # dff Intensity___________________________________________________________________________________________________
     print("     dff stats")
@@ -182,8 +213,11 @@ for session_name in sessions_list:
         traces_zscore_pstr[i] = np.mean(calc_pstr(reward, traces_zscore[i], samples_window), axis=0)
 
     # pstr for simulated rewards timing
-    traces_sim_pstr_mat, dff_peaks_inds_arr = pstr_process(traces, samples_window, None, min_reward_interval, prominence_th=True)
-    traces_zscore_sim_pstr_mat, dff_zscore_peaks_inds_arr = pstr_process(traces_zscore, samples_window, fixed_threshold, min_reward_interval)
+    traces_sim_pstr_mat, dff_peaks_inds_arr = pstr_process(traces, samples_window, None, min_reward_interval, prominence_th=True, ex_list=reward, ex_n=exclude_post_rewards_frames)
+    traces_zscore_sim_pstr_mat_fix_th, dff_zscore_peaks_inds_arr_fix_th = pstr_process(traces_zscore, samples_window, fixed_threshold, min_reward_interval, ex_list=reward, ex_n=exclude_post_rewards_frames)
+    traces_zscore_sim_pstr_mat_session_th, dff_zscore_peaks_inds_arr_session_th = pstr_process(traces_zscore, samples_window, sess_threshold, min_reward_interval, ex_list=reward, ex_n=exclude_post_rewards_frames)
+    dff_zscore_peaks_inds_arr_fix_th_conv_10k = smoo_rewards(dff_zscore_peaks_inds_arr_fix_th, (n_vars, n_samples))
+    dff_zscore_peaks_inds_arr_session_th_conv_10k = smoo_rewards(dff_zscore_peaks_inds_arr_session_th, (n_vars, n_samples))
 
     # area under the curve (AUC) and mooving average AUC
     traces_auc = np.mean(traces, axis=1)
@@ -205,8 +239,11 @@ for session_name in sessions_list:
         diff5_zscore_pstr[i] = np.mean(calc_pstr(reward, diff5_zscore[i], samples_window), axis=0)
 
     # simulated reward pstr
-    diff5_sim_pstr_mat, diff5_peaks_inds_arr = pstr_process(diff5, samples_window, None, min_reward_interval, prominence_th=True)
-    diff5_zscore_sim_pstr_mat, diff5_zscore_peaks_inds_arr = pstr_process(diff5_zscore, samples_window, fixed_threshold, min_reward_interval)
+    diff5_sim_pstr_mat, diff5_peaks_inds_arr = pstr_process(diff5, samples_window, None, min_reward_interval, prominence_th=True, ex_list=reward, ex_n=exclude_post_rewards_frames)
+    diff5_zscore_sim_pstr_mat_fix_th, diff5_zscore_peaks_inds_arr_fix_th = pstr_process(diff5_zscore, samples_window, fixed_threshold, min_reward_interval, ex_list=reward, ex_n=exclude_post_rewards_frames)
+    diff5_zscore_sim_pstr_mat_session_th, diff5_zscore_peaks_inds_arr_session_th = pstr_process(diff5_zscore, samples_window, sess_threshold, min_reward_interval, ex_list=reward, ex_n=exclude_post_rewards_frames)
+    diff5_zscore_peaks_inds_arr_fix_th_conv_10k = smoo_rewards(diff5_zscore_peaks_inds_arr_fix_th, (n_vars, n_samples))
+    diff5_zscore_peaks_inds_arr_session_th_conv_10k = smoo_rewards(diff5_zscore_peaks_inds_arr_session_th, (n_vars, n_samples))
 
     # area under the curve (AUC) and mooving average AUC
     diff5_auc = np.mean(diff5, axis=1)
@@ -214,6 +251,10 @@ for session_name in sessions_list:
     diff5_moving_avg_auc = moving_average_auc(diff5, auc_window_length)
     diff5_zscore_moving_avg_auc = moving_average_auc(diff5_zscore, auc_window_length)
 
+
+#############################################################################################
+#############################################################################################
+#############################################################################################
     print("writing to tiff")
     with h5py.File(dataset_path, 'a') as f:
         mouse_grp = f[mouse_id]
@@ -240,13 +281,21 @@ for session_name in sessions_list:
 
         traces_grp.create_dataset('zscore', data=traces_zscore)
         traces_grp.create_dataset('zscore_pstr', data=traces_zscore_pstr)
-        traces_grp.create_dataset(f'zscore_pstr_sim_reward', data=traces_zscore_sim_pstr_mat)
-        reward_timing_grp = traces_grp.create_group('zscore_sim_reward_timing')
+        traces_grp.create_dataset(f'zscore_pstr_sim_reward_fix_th', data=traces_zscore_sim_pstr_mat_fix_th)
+        reward_timing_grp = traces_grp.create_group('zscore_sim_reward_timing_fix_th')
         for i in range(n_vars):
-            reward_timing_grp.create_dataset(rois_key[i], data=dff_zscore_peaks_inds_arr[i])
+            reward_timing_grp.create_dataset(rois_key[i], data=dff_zscore_peaks_inds_arr_fix_th[i])
+
+        traces_grp.create_dataset(f'zscore_pstr_sim_reward_session_th', data=traces_zscore_sim_pstr_mat_session_th)
+        reward_timing_grp = traces_grp.create_group('zscore_sim_reward_timing_session_th')
+        for i in range(n_vars):
+            reward_timing_grp.create_dataset(rois_key[i], data=dff_zscore_peaks_inds_arr_session_th[i])
 
         traces_grp.create_dataset('zscore_auc', data=traces_zscore_auc)
         traces_grp.create_dataset('zscore_moving_avg_auc', data=traces_zscore_moving_avg_auc)
+
+        traces_grp.create_dataset('zscore_convoluted_peaks_kernel_10k_fix_th', data=dff_zscore_peaks_inds_arr_fix_th_conv_10k)
+        traces_grp.create_dataset('zscore_convoluted_peaks_kernel_10k_session_th', data=dff_zscore_peaks_inds_arr_session_th_conv_10k)
 
         #################################################################################
         delta_5_grp = eval_grp.create_group("dff_delta5")
@@ -263,13 +312,21 @@ for session_name in sessions_list:
 
         delta_5_grp.create_dataset('zscore', data=diff5_zscore)
         delta_5_grp.create_dataset('zscore_pstr', data=diff5_zscore_pstr)
-        delta_5_grp.create_dataset(f'zscore_pstr_sim_reward', data=diff5_zscore_sim_pstr_mat)
-        reward_timing_grp = delta_5_grp.create_group('traces_zscore_sim_reward_timing')
+        delta_5_grp.create_dataset(f'zscore_pstr_sim_reward_fix_th', data=diff5_zscore_sim_pstr_mat_fix_th)
+        reward_timing_grp = delta_5_grp.create_group('zscore_sim_reward_timing_fix_th')
         for i in range(n_vars):
-            reward_timing_grp.create_dataset(rois_key[i], data=diff5_zscore_peaks_inds_arr[i])
+            reward_timing_grp.create_dataset(rois_key[i], data=diff5_zscore_peaks_inds_arr_fix_th[i])
+
+        delta_5_grp.create_dataset(f'zscore_pstr_sim_reward_session_th', data=diff5_zscore_sim_pstr_mat_session_th)
+        reward_timing_grp = delta_5_grp.create_group('zscore_sim_reward_timing_session_th')
+        for i in range(n_vars):
+            reward_timing_grp.create_dataset(rois_key[i], data=diff5_zscore_peaks_inds_arr_session_th[i])
 
         delta_5_grp.create_dataset('zscore_auc', data=diff5_zscore_auc)
         delta_5_grp.create_dataset('zscore_moving_avg_auc', data=diff5_zscore_moving_avg_auc)
+
+        delta_5_grp.create_dataset('zscore_convoluted_peaks_kernel_10k_fix_th', data=diff5_zscore_peaks_inds_arr_fix_th_conv_10k)
+        delta_5_grp.create_dataset('zscore_convoluted_peaks_kernel_10k_session_th', data=diff5_zscore_peaks_inds_arr_session_th_conv_10k)
 
         #################################################################################
 

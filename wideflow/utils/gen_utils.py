@@ -51,7 +51,7 @@ def overlapped_blockshaped(arr, nrows, ncols):
 def roi_outline_from_pixels_indices(pixels_indices, shape, order='C'):
     """
 
-    :param pixels_indices: a list of indices in Fortran format
+    :param pixels_indices: a list of indices
     :param shape: shape of the 2d matrix from where pixels_indices where drawn from
     :param order: specify the subscript format
     :return:
@@ -59,7 +59,7 @@ def roi_outline_from_pixels_indices(pixels_indices, shape, order='C'):
 
     pixels_indices = np.array(pixels_indices)
     roi_id = np.unravel_index(pixels_indices, shape=shape, order=order)
-    ((top, left), (down, right)) = roi_top_left_bottom_right(pixels_indices, shape)
+    ((top, left), (down, right)) = roi_top_left_bottom_right(pixels_indices, shape, order)
 
     img = np.zeros(shape=shape)
     img[roi_id[0], roi_id[1]] = 1
@@ -84,14 +84,14 @@ def roi_outline_from_pixels_indices(pixels_indices, shape, order='C'):
     return outline
 
 
-def roi_top_left_bottom_right(pixels_indices, shape):
+def roi_top_left_bottom_right(pixels_indices, shape, order):
     """
     :param pixels_indices: a list of indices in Fortran format
     :param shape: shape of the 2d matrix from where pixels_indices where drawn from
     :return: tuple ((top, left), (down, right))
     """
 
-    roi_id = np.unravel_index(pixels_indices, shape=shape)  #, order='F')
+    roi_id = np.unravel_index(pixels_indices, shape=shape, order=order)
     top = np.amin(roi_id[0])
     down = np.amax(roi_id[0]) + 1
     left = np.amin(roi_id[1])
@@ -101,7 +101,7 @@ def roi_top_left_bottom_right(pixels_indices, shape):
 
 def add_properties_to_roi_list(rois_dict, shape, order='F'):
     for roi_name, roi_dict in rois_dict.items():
-        rois_dict[roi_name]["top_left_bottom_rigth"] = roi_top_left_bottom_right(roi_dict["PixelIdxList"], shape)
+        rois_dict[roi_name]["top_left_bottom_right"] = roi_top_left_bottom_right(roi_dict["PixelIdxList"], shape, order)
         rois_dict[roi_name]["outline"] = roi_outline_from_pixels_indices(rois_dict[roi_name]["PixelIdxList"], shape, order)
     return rois_dict
 
