@@ -28,16 +28,6 @@ def binary_fixed_step_staircase_procedure(threshold, results_seq, num_frames, ty
         return threshold
 
 
-def percentile_fixed_step_staircase_procedure(threshold, samples, num_frames, percent, perc_band, step):
-    p = np.mean(samples[-num_frames:] > threshold)
-    if p < percent - perc_band:
-        return threshold - step
-    elif p > percent + perc_band:
-        return threshold + step
-    else:
-        return threshold
-
-
 def percentile_update_procedure(threshold, samples, percentile, nbins):
     """
 
@@ -60,6 +50,3 @@ def percentile_update_procedure(threshold, samples, percentile, nbins):
     else:
         return threshold
 
-
-def bayesian_update():
-    pass

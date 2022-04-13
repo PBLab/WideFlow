@@ -1,5 +1,5 @@
 {
-    "base_path": "/home/pb/WideFlow_prj",
+    "base_path": "/WideFlow_prj",
 
     "mouse_id": "mouse ID",
 
@@ -69,7 +69,7 @@
 
     "deep_lab_cut_config": {
         "activate": true,
-        "model_path": "/home/pb/DLC_Wide Flow_resnet_50_iteration-0_shuffle-1",
+        "model_path": "DLC_mode_full_path",
         "model_config": {"pose_shape":  [3, 3], "pose_dtype": "float32"}
 
     },
@@ -77,8 +77,8 @@
     "acquisition_config": {
         "vid_file_name": "wf_raw_data.dat",
         "meta_file_name": "session_metadata.txt",
-        "num_of_frames": 10000,
-        "convert_to_tiff": true
+        "num_of_frames": 70000,
+        "convert_to_tiff": false
     },
 
     "feedback_config": {
