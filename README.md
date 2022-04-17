@@ -137,10 +137,11 @@ Supplementary data is saved at ./data
 
 In This work we used both the Allen cortical atlas that parcellates the cortex according to predefined sensory and motor areas, 
 and with a functional map generated per mouse using functional parcellation algorithm - Local Selective Spectral Clustering.
-Algorithm original article
-[1] - Automated cellular structure extraction in biological images with applications to calcium imaging data
-Adjusment for Wide-Field data
+Algorithm original article<br />
+[1] - Automated cellular structure extraction in biological images with applications to calcium imaging data<br />
+Adjusment for Wide-Field data<br />
 [2] - Rapid fluctuations in functional connectivity of cortical networks encode spontaneous behavior
 
 
 ## Hardware Circuitry Schematics:
+![picture](images/descriptive setup.png)
