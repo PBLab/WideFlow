@@ -144,4 +144,4 @@ Adjusment for Wide-Field data<br />
 
 
 ## Hardware Circuitry Schematics:
-![picture](images/descriptive\ setup.png)
+![picture](images/descriptive_setup.png)
