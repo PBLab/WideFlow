@@ -4,7 +4,9 @@ A python package for neurofeedback closed loop pipeline using a Wide-Field micro
 ## Hardware Requirements:
 * Main Microscope Camera - Teledyne Photometrics Prime BSI sCMOS camera
 * Behavioral Camera - Teledyne Photometrics Flir Blackfly S GigE
-* Neurofeedback Controller - Arduino Mega 2560
+* Neurofeedback Controller - Arduino Mega 2560<br />
+
+** Using different hardware is possible by implementing device controller objects with the required attributes and methods.
 
 ## Software Requirements:
 * Tested on Linux Ubuntu 18.04
@@ -15,9 +17,6 @@ A python package for neurofeedback closed loop pipeline using a Wide-Field micro
 ## Recommended Supplementary software:
 * MicroManager - view main camera stream
 * SpinView - view behavioral camera stream
-
-** Using different hardware is possible by implementing device controller objects with the required attributes and methods.
-
 
 ## Installation:
 1. Install Python
@@ -30,12 +29,11 @@ A python package for neurofeedback closed loop pipeline using a Wide-Field micro
 
 ## Usage:
 * Make sure all hardware are operating properly
-* Create a JSON "Session Configuration File" - checkout the next section for detailed description.
+* Create a JSON "Session Configuration File" - checkout bellow for detailed description.
 * Run from terminal the main.py file:<br />
 python main.py -c "full path to session configuration file" -s "NeuroFeedbackSession"
-* To Analyze the acquired data offline, run the post session pipeline:<br />
+* To Analyze the acquired data offline, run the main file with post session pipeline:<br />
 python main.py -c "full path to session configuration file located where all the session data created" -s "PostAnalysisNeuroFeedbackSession"
-
 
 ## Highlights:
 The pipline is composed of three main hierarchical abstraction:
@@ -48,20 +46,21 @@ The pipline is composed of three main hierarchical abstraction:
 * Processing pipeline - 
 	* grabbing frames
 	* handles and initialize image processing stages
-* Processs - 
+* Processes - 
 	* actual image processing
 	* metric evaluation
-
-Wide-Filed data is handled using a subprocess and numpy memory map. The data is saved in dat format which later can be converted to tiff format.
-Visualization such as dff images, behavioral monitoring and metric bar can be initialize as subprocesses.
-Each iteration the computer communicates with the Arduino to monitor licking occurrence and out[ut a reward if needed.
-
+<br /><br />
+* Wide-Filed data is handled and saved using a subprocess and numpy memory map. 
+The data is saved in dat format which later can be converted to tiff format.
+* Visualization such as dff images, behavioral monitoring and metric bar can be initialize as subprocesses.
+* Each iteration the computer communicates with the Arduino to monitor licking occurrence and output a reward if needed.
 
 ## Configuration File Format:
 The configuration file specify all the acquisition parameters and hardware configurations used during the session.
 A template JSON file can be found at:
 ./wideflow/Imaging/imaging_configurations/imaging_config_template.json
-* base_path - string: path to where all sessions data will be saved
+
+* base_path: string - path to where all sessions data will be saved
 * mouse_id: string - mouse unique identification
 * session_name: string - session unique identification<br />
    session data will be saved at base_path/mouse_id/session_name
@@ -71,8 +70,8 @@ A template JSON file can be found at:
 		* binning: list - [X-axis binning factor, Y-axis binning factor]
 		* clear_mode: int - camera sensor clearing mode
 	* attr: dictionary
-		* channels: int - number of of channels for illumination strobbing
-		* circ_buffer_count: int - number of last frames the camera circular buffer is storing while in live mode.
+		* channels: int - number of channels for illumination strobbing
+		* circ_buffer_count: int - number of frames the camera circular buffer is storing holding in live mode.
 		* sensor_roi: list - camera sensor cropping bounds [x0, y0, width, height]
 * serial_port_config: dictionary - configure the serial port to communicate with the Arduino. Check PySerial for more information.
 	* port_id: string - (Linux OS) path to port file
@@ -81,14 +80,14 @@ A template JSON file can be found at:
 * behavioral_camera_config: dictionary - for SPINNAKER SDK. For more information check SPINNAKER SDK documentation.
 	* activate: bool - determine behavioral camera activation
 	* file_name: string - video file name
-	attr: dictionary - 
+	* attr: dictionary - 
 		* exp_time:int - exposure time
 		* roi_bbox: list - define cropping of the image [x0, y0, width, height] 
 		* avi_type: string - video file format (e.g "MJPG")
 		* acquisition_mode: string - determine operation mode of the camera
 		* chosen_trigger: string - camera frame grabbing trigger ("HARDWARE" or "SOFTWARE")
 * deep_lab_cut_config: dictionary - 
-	* activate: bool - use or not deep_lab_cut in the analysis
+	* activate: bool - integrate not deep_lab_cut in the analysis
 	* model_path: string - path to deep lab cut neural network 
 	* model_config: dictionary - 
 		* pose_shape: list - shape of model pose numpy array
@@ -120,8 +119,14 @@ A template JSON file can be found at:
 		* metric_args: arguments for the metric evaluation function
 		* regression_n_samples: int - number of samples to use for the hemodynamic regression model
 * visualization_config: dictionary - what visualization to use during the session
-
-
+	* live_stream: dictionary - configuration for live stream of dff data
+		* status: bool - activation status
+		* size: list - size of image to display
+		* dtype: string - type of data
+		* buffer: string - buffer var name from which to stream
+		* class: string - subprocess object name
+		* params: dictionary - kwargs for the class
+ 
 
 ## ROIs Dictionary and Cortical Map:
 Supplementary data is saved at ./data
@@ -141,7 +146,6 @@ Algorithm original article<br />
 [1] - Automated cellular structure extraction in biological images with applications to calcium imaging data<br />
 Adjusment for Wide-Field data<br />
 [2] - Rapid fluctuations in functional connectivity of cortical networks encode spontaneous behavior
-
 
 ## Hardware Circuitry Schematics:
 ![picture](images/descriptive_setup.png)

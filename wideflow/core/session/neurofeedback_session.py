@@ -43,7 +43,6 @@ from matplotlib.widgets import RectangleSelector
 
 import multiprocessing as mp
 from multiprocessing import shared_memory, Queue
-import subprocess
 
 from time import perf_counter
 from datetime import datetime
@@ -229,7 +228,6 @@ class NeuroFeedbackSession(AbstractSession):
             self.behavioral_camera_q.put("start")
         if self.deep_lab_cut_config["activate"]:
             self.behavioral_monitoring_process.start()
-
 
         self.initialize_visualization()
 
