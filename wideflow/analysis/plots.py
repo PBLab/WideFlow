@@ -194,5 +194,6 @@ def wf_imshow(ax, image, mask=None, map=None, conv_ker=None, show_cb=True, cm_na
         divider = make_axes_locatable(ax)
         cax = divider.append_axes(cb_side, size="10%", pad=0.1)
         plt.colorbar(im, cax=cax)
+        return im, imagec, cax
 
     return im, imagec

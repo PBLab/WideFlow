@@ -50,6 +50,7 @@ The pipline is composed of three main hierarchical abstraction:
 	* actual image processing
 	* metric evaluation
 <br /><br />
+* All image processing utilize GPU and CUDA toolkit
 * Wide-Filed data is handled and saved using a subprocess and numpy memory map. 
 The data is saved in dat format which later can be converted to tiff format.
 * Visualization such as dff images, behavioral monitoring and metric bar can be initialize as subprocesses.
@@ -131,7 +132,7 @@ A template JSON file can be found at:
 ## ROIs Dictionary and Cortical Map:
 Supplementary data is saved at ./data
 * ./data/cortex_map/allen_2d_cortex.h5 contain a boolean map and mask of the Allen cortical atlas
-* ./data/cortex_map/allen_2d_cortex_rois.h5 contain a dictionary of the cortex ROIs with fields:
+* ./data/cortex_map/allen_2d_cortex_rois.h5 contain a dictionary of the Allen cortex ROIs with fields:
 	* Index - numerical indexing of the ROIs
 	* Area - number of pixels belong to ROI
 	* Centroid - X, Y coordinates of the ROI center of mass
@@ -141,7 +142,7 @@ Supplementary data is saved at ./data
 	* name - ROI name
 
 In This work we used both the Allen cortical atlas that parcellates the cortex according to predefined sensory and motor areas, 
-and with a functional map generated per mouse using functional parcellation algorithm - Local Selective Spectral Clustering.
+and a functional map generated per mouse using functional parcellation algorithm - Local Selective Spectral Clustering.
 Algorithm original article<br />
 [1] - Automated cellular structure extraction in biological images with applications to calcium imaging data<br />
 Adjusment for Wide-Field data<br />
