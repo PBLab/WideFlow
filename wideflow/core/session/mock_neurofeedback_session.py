@@ -9,7 +9,7 @@ from Imaging.utils.interactive_affine_transform import InteractiveAffineTransfor
 
 from utils.load_rois_data import load_rois_data
 
-from analysis.utils.load_session_metadata import load_session_metadata
+from ...analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 from analysis.utils.vid_pstr import vid_pstr
 
 import numpy as np
@@ -57,7 +57,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         self.camera = self.set_imaging_camera()
         self.metadata = self.set_metadata_writer()
         self.serial_controller = self.set_serial_controler()
-        self.metadata = self.set_metadata_writer()
+        # self.metadata = self.set_metadata_writer()
 
         # load supplementary data
         self.cortex_mask, self.cortex_map, self.cortex_rois_dict = self.load_datasets()
@@ -79,7 +79,9 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         return serial_controller
 
     def set_metadata_writer(self):
-        metadata, _ = load_session_metadata(self.session_path)
+        timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(self.session_path)
+        metadata = {"timestamp": timestamp, "cue": cue, "metric_result": metric_result, "threshold": threshold,
+                    "serial_readout": serial_readout}
         return metadata
 
     def session_preparation(self):

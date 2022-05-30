@@ -1,6 +1,5 @@
 from core.abstract_process import AbstractProcess
 import cupy as cp
-import numpy as np
 
 
 class HemoCorrect(AbstractProcess):

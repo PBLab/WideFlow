@@ -1,6 +1,6 @@
-from core.abstract_session import AbstractSession
-from core.pipelines.hemodynamics_correction import HemoDynamicsDFF
-from core.pipelines.training_pipeline import TrainingPipe
+from ..abstract_session import AbstractSession
+from ..pipelines.hemodynamics_correction import HemoDynamicsDFF
+from ..pipelines.training_pipeline import TrainingPipe
 
 from pyvcam import pvc
 from pyvcam.constants import PARAM_LAST_MUXED_SIGNAL
@@ -18,15 +18,9 @@ from Imaging.utils.interactive_bandpass_selector import InteractiveBandPassSelec
 from Imaging.utils.create_matching_points import MatchingPointSelector
 from Imaging.utils.behavioral_camera_process import run_triggered_behavioral_camera
 
-from utils.load_tiff import load_tiff
-from utils.load_bbox import load_bbox
-from utils.load_matching_points import load_matching_points
+from utils import load_tiff, load_bbox, load_matching_points, find_2d_max_correlation_coordinates,\
+    convert_dat_to_tif, load_rois_data, write_bbox_file, write_matching_point_file
 from utils.matplotlib_rectangle_selector_events import *
-from utils.find_2d_max_correlation_coordinates import find_2d_max_correlation_coordinates
-from utils.convert_dat_to_tif import convert_dat_to_tif
-from utils.load_rois_data import load_rois_data
-from utils.write_bbox_file import write_bbox_file
-from utils.write_matching_point_file import write_matching_point_file
 
 from DeepLabCut.DLCLProcess import BehavioralMonitoring
 

@@ -2,7 +2,7 @@ def extract_from_metadata_file(path):
     timestamp = []
     cue = []
     metric_result = []
-    threhold = []
+    threshold = []
     serial_readout = []
     sr_prv = 1
     with open(path, "r") as f:
@@ -14,7 +14,7 @@ def extract_from_metadata_file(path):
             timestamp.append(float(line_txt[0].split(':')[1]))
             cue.append(int(line_txt[1].split(':')[1]))
             metric_result.append(float(line_txt[2].split(':')[1]))
-            threhold.append(float(line_txt[3].split(':')[1]))
+            threshold.append(float(line_txt[3].split(':')[1]))
 
             sr = line_txt[4].split(':')[1][0]
             if sr.isnumeric():  # handle readout failure - "?"
@@ -23,4 +23,4 @@ def extract_from_metadata_file(path):
             else:
                 serial_readout.append(sr_prv)
 
-    return timestamp, cue, metric_result, threhold, serial_readout
+    return timestamp, cue, metric_result, threshold, serial_readout

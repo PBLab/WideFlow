@@ -1,5 +1,6 @@
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
-from analysis.utils.load_session_metadata import load_session_metadata
+from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
+from ..utils import load_config
 from analysis.utils.peristimulus_time_response import calc_pstr
 
 import numpy as np
@@ -162,7 +163,10 @@ for session_name in sessions_list:
     sessions_config[session_name] = {}
     with h5py.File(dataset_path, 'r') as f:
         decompose_h5_groups_to_dict(f, sessions_data[session_name], f'/{mouse_id}/{session_name}/')
-        sessions_metadata[session_name], sessions_config[session_name] = load_session_metadata(f'{base_path}{mouse_id}/{session_name}/')
+        timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{base_path}{mouse_id}/{session_name}/')
+        sessions_metadata[session_name] = {"timestamp": timestamp, "cue": cue, "metric_result": metric_result, "threshold": threshold,
+                    "serial_readout": serial_readout}
+        sessions_config[session_name] = load_config(f'{base_path}{mouse_id}/{session_name}/')
 
 print(f"running analysis for mouse {mouse_id}")
 # calculate different knd of metrics

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from utils.imaging_utils import load_config
+from utils.load_config import load_config
 import argparse
 import os
 

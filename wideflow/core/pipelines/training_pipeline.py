@@ -1,6 +1,5 @@
 from core.abstract_pipeline import AbstractPipeLine
 from core.processes import AffineTrans, Mask, DFF, HemoSubtraction, HemoCorrect
-from Imaging.utils.interactive_bandpass_selector import InteractiveBandPassSelector
 
 import random
 import cupy as cp
