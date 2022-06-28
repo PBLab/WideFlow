@@ -89,7 +89,7 @@ def calc_simulated_rewards(x, th, min_dst, prominence_th=False):
         prominence_sd = np.std(prominence[0])
         prominence_th = prominence[0] > prominence_mean + prominence_sd
         peaks_inds = peaks_inds[prominence_th]
-    peaks = np.zeros(x.shape, dtype=np.bool)
+    peaks = np.zeros(x.shape, dtype=np.bool_)
     peaks[peaks_inds] = 1
     return peaks, peaks_inds
 
@@ -139,21 +139,16 @@ def smoo_rewards(inds_list, shape):
 
 
 base_path = '/data/Rotem/WideFlow prj/'
-dataset_path = base_path + 'results/sessions_20220220.h5'
+dataset_path = base_path + 'results/sessions_20220320.h5'
 
-mouse_id = '2680'
+mouse_id = '2604'
 sessions_list = [
-    # '20220220_neurofeedback',
-    # '20220221_neurofeedback',
-    '20220222_neurofeedback',
-    '20220223_neurofeedback',
-    '20220224_neurofeedback',
-    '20220227_neurofeedback',
-    '20220228_neurofeedback',
-    '20220302_neurofeedback',
-    '20220303_neurofeedback',
-    # '20220306_neurofeedback',
-    '20220307_neurofeedback',
+    # '20220320_neurofeedback',
+    # '20220321_neurofeedback',
+    # '20220322_neurofeedback',
+    # '20220323_neurofeedback',
+    # '20220324_neurofeedback',
+    '20220210_neurofeedback'
 ]
 
 # load data

@@ -146,6 +146,14 @@
         "show_behavioral_monitoring": {
             "status": false,
             "class": "LiveVideo", "params": {"image_shape": [512, 512], "frame_rate": 50}
+        },
+        "multi_figures_live_stream": {
+            "status": false,
+            "class": "LiveVideo", "params": {"images_props": [
+                {"image_shape": [297, 168], "image_dtype": "float32"},
+                {"image_shape": [512, 512], "image_dtype": "uint8"}
+                ],
+                "image_shape": [512, 512], "frame_rate": 50}
         }
      }
 }

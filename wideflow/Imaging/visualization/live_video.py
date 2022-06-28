@@ -44,6 +44,5 @@ class LiveVideo(AbstractVis):
 
     def terminate(self):
         plt.close(self.fig)
-        plt.close(self.fig2)
 
 
