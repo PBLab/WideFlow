@@ -5,7 +5,6 @@ from core.processes import AffineTrans, Mask, DFF, HemoSubtraction, HemoCorrect
 
 import cupy as cp
 import numpy as np
-from Imaging.utils.interactive_bandpass_selector import InteractiveBandPassSelector
 
 
 class HemoDynamicsDFF(AbstractPipeLine):
@@ -130,7 +129,6 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.ptr = int(self.ptr_2c / 2)
             for process in self.processes_list:
                 process.process()
-
         else:  # second channel processing
             for process in self.processes_list_ch2:
                 process.process()

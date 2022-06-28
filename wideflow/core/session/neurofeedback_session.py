@@ -179,9 +179,10 @@ class NeuroFeedbackSession(AbstractSession):
 
         else:
             bbox = self.select_camera_sensor_roi(frame)
-            print(bbox)
-            self.camera.set_roi(bbox[0], bbox[1], bbox[2], bbox[3])
-            self.sensor_roi = bbox
+            if np.sum(bbox) > 1:
+                self.camera.reset_rois()
+                self.camera.set_roi(bbox[0], bbox[1], bbox[2], bbox[3])
+                self.sensor_roi = bbox
 
         self.camera.binning = tuple(self.camera_config["core_attr"]["binning"])  # restore configuration binning
         frame = self.camera.get_frame()
@@ -497,8 +498,12 @@ class NeuroFeedbackSession(AbstractSession):
         if np.sum(bbox) > 1:
             # convert to PyVcam format
             #  PyVCAM: camera ROI is defined as: (x_min, y_min, x_width, y_height)
-            #  bbox is defined (before conversion) as: (x_min, x_width, y_min, y_width)
+            #  bbox is defined (before conversion) as: (x_min, y_min, x_width, y_height)
             bbox = (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
+
+            # apply correction if an ROI is all ready set
+            if self.camera.sensor_roi[0] > 0 or self.camera.sensor_roi[1] > 0:
+                bbox = (self.camera.sensor_roi[0] + bbox[0], self.camera.sensor_roi[1] + bbox[1], bbox[2], bbox[3])
 
         return bbox
 
