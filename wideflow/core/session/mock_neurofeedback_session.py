@@ -9,7 +9,7 @@ from Imaging.utils.interactive_affine_transform import InteractiveAffineTransfor
 
 from utils.load_rois_data import load_rois_data
 
-from ...analysis.utils.extract_from_metadata_file import extract_from_metadata_file
+from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 from analysis.utils.vid_pstr import vid_pstr
 
 import numpy as np
@@ -38,9 +38,10 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         # use the same config used for running the live neurofeedback session
         self.config = config
         self.base_path = config["base_path"]
+        self.date = config["date"]
         self.mouse_id = config["mouse_id"]
         self.session_name = config["session_name"]
-        self.session_path = f"{self.base_path}/{self.mouse_id}/{self.session_name}/"
+        self.session_path = f"{self.base_path}/{self.date}/{self.mouse_id}/{self.session_name}/"
 
         self.regression_map_path = self.session_path + 'regression_coeff_map.npy'
 
@@ -64,7 +65,8 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
         self.analysis_pipeline = None
 
-        self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_20220320.h5'
+        # self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_20220320.h5'
+        self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
 
     def set_imaging_camera(self):
         cam = MockPVCamera(self.camera_config, self.session_path, self.crop_sensor)
@@ -79,9 +81,10 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         return serial_controller
 
     def set_metadata_writer(self):
-        timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(self.session_path)
-        metadata = {"timestamp": timestamp, "cue": cue, "metric_result": metric_result, "threshold": threshold,
-                    "serial_readout": serial_readout}
+        start_frame = 0
+        timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{self.session_path}/metadata.txt')
+        metadata = {"timestamp": timestamp[start_frame:], "cue": cue[start_frame:], "metric_result": metric_result[start_frame:], "threshold": threshold[start_frame:],
+                    "serial_readout": serial_readout[start_frame:]}
         return metadata
 
     def session_preparation(self):
@@ -168,6 +171,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             main_group = f[self.mouse_id]
             session_group = main_group.create_group(self.session_name)
             rois_traces_group = session_group.create_group('rois_traces')
+            #rois_traces_group = session_group.create_group('rois_traces')
             ch0_grp = rois_traces_group.create_group('channel_0')
             ch1_grp = rois_traces_group.create_group('channel_1')
             for roi_key, roi_trace in rois_traces_ch1.items():
@@ -200,6 +204,8 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         mask = cp.asanyarray(mask, dtype=cp.float32)
 
         rois_dict = load_rois_data(self.supplementary_data_config["rois_dict_path"])
+        for key in self.supplementary_data_config["closest_rois"]:
+            del rois_dict[key]
 
         if self.supplementary_data_config["rois_dict_path"].endswith('rois.h5'):
             shape = (297, 337)

@@ -86,3 +86,9 @@ class InteractiveBandPassSelector:
         self.src_fft = np.fft.fftshift((np.fft.fft2(self.src_img)))
         self.bbox_list = []
         self.draw()
+
+from scipy.io import loadmat
+reg_map = loadmat('/data/Rotem/hemodynamics_regression_map.mat')
+m=np.resize(reg_map['m'], (337, 297)).transpose()
+b=np.resize(reg_map['b'], (337, 297)).transpose()
+ibp = InteractiveBandPassSelector(m)

@@ -16,6 +16,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     session_config = load_config(args.config_path)
+    #session_config = load_config('/data/Lena/WideFlow_prj/MR/20221224_MR_NF11/session_config.json')#LK remove after debugging and return the line above this
+    #from core.session.mock_neurofeedback_session import PostAnalysisNeuroFeedbackSession #LK remove after debugging and put back lines 22-31
+    #session_pipeline = PostAnalysisNeuroFeedbackSession(session_config) #LK remove after debugging and put back lines 22-31
     if args.session == 'NeuroFeedbackSession':
         from core.session.neurofeedback_session import NeuroFeedbackSession
         session_pipeline = NeuroFeedbackSession(session_config)

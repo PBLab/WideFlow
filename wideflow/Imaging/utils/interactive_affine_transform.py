@@ -112,3 +112,4 @@ class InteractiveAffineTransform:
         self.trans_points_pos, self.fixed_points_pos, self.draggable_point = self.initiate_transform_points()
         self.update_transform()
 
+

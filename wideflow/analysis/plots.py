@@ -5,10 +5,10 @@ import numpy as np
 from scipy.ndimage import convolve
 import copy
 
-from analysis.utils.generate_color_list import generate_gradient_color_list
+# from analysis.utils.generate_color_list import generate_gradient_color_list
 
 
-def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1, t=None, c_reward='k', c_response='b'):
+def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1, t=None, c_reward='k', c_response='b', fig=None): #fig variable added by Lena
     if t is None:
         t = np.arange(len(rewards))
     rewards_inds = np.array(rewards)
@@ -18,22 +18,31 @@ def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1, t=None, c_rewar
 
     ax.vlines(t[np.ix_(rewards_inds)], ymin=ymin, ymax=ymax, color=c_reward, linewidth=1)
     ax.vlines(t[np.ix_(responses_inds)], ymin=0.5*ymin, ymax=0.5*ymax, color=c_response, linewidth=0.2)
+    if fig is not None:
+        return fig #Added by Lena
 
-
-def plot_session(ax, metric, rewards, responses, threshold, dt):
+def plot_session(ax, metric, rewards, responses, threshold, dt, fig=None): #fig variable added by Lena
 
     t = np.arange(0, dt * len(metric), dt)  # convert to minutes
+    ax2 = ax.twinx()#added by Lena
     ax.plot(t, metric, color='g', linewidth=0.5, alpha=0.5)
-    ax.plot(t, threshold, color='r', linewidth=0.2)
+    ax2.plot(t, threshold, color='r', linewidth=5)
     plot_reward_response(ax, rewards, responses, ymin=np.min(metric), ymax=np.max(metric), t=t)
 
     ax.set_xticks(np.int32(np.linspace(0, t[-1], 10)))
     ax.set_xticklabels(np.int32(np.linspace(0, t[-1], 10)))
     ax.set_ylabel('Z-score')
+    #ax.set_yticklabels(np.int32(np.linspace(-4, 4, 2)),  fontsize=18)#added by Lena
+    ax2.set_ylabel('Threshold', color='r') #added by Lena
+    ax2.spines['right'].set_color('red')#added by Lena
+    ax2.tick_params(axis='y', colors='red')#added by Lena
     ax.set_xlabel('Time [minutes]')
+    #ax2.legend(['threshold']) #Added by Lena
+    if fig is not None:
+        return fig #Added by Lena
 
 
-def plot_pstr(ax, rois_pstr_dict, dt, bold_list=[], proximity_dict={}, color_code='turbo'):
+def plot_pstr(ax, rois_pstr_dict, dt, bold_list=[], proximity_dict={}, color_code='turbo', fig=None): #fig variable added by LK
     delta_t2 = len(rois_pstr_dict[list(rois_pstr_dict.keys())[0]])
     delta_t = np.floor(delta_t2/2)
     dt = dt * 1000  # convert to milliseconds
@@ -50,6 +59,8 @@ def plot_pstr(ax, rois_pstr_dict, dt, bold_list=[], proximity_dict={}, color_cod
     sm = plt.cm.ScalarMappable(cmap=cmap)
     plt.colorbar(sm)
     # ax.legend(legend, ncol=np.max((int(nargs/10), 1)))
+    if fig is not None:
+        return fig #Added by Lena
 
 
 def plot_traces(ax, rois_traces_dict, dt, bold_list=[], proximity_dict={}, color_code='turbo', **kwargs):
@@ -167,11 +178,13 @@ def plot_box_plot(ax, *args, **kwargs):
         else:
             attr(val)
 
-    if 'legend' in list(kwargs.keys()):
-        leg = ax.get_legend()
-        hl_dict = {handle.get_label(): handle for handle in leg.legendHandles}
-        for i in range(nargs):
-            hl_dict[f'_line{i}'].set_color(c_list[i])
+    # if 'legend' in list(kwargs.keys()):      #lines 177-183 commented out by LK
+    #     leg = ax.get_legend()
+    #     hl_dict = {handle.get_label(): handle for handle in leg.legendHandles}
+    #     for i in range(nargs):
+    #         hl_dict[f'{list(hl_dict.keys())[i]}'].set_color(c_list[i])
+    #         #hl_dict[f'_child{i}'].set_color(c_list[i])
+
 
 
 def wf_imshow(ax, image, mask=None, map=None, conv_ker=None, show_cb=True, cm_name='turbo', vmin=None, vmax=None, cb_side='right'):

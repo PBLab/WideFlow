@@ -1,6 +1,6 @@
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
-from ..utils import load_config
+from wideflow.utils.load_config import load_config
 from analysis.utils.peristimulus_time_response import calc_pstr
 
 import numpy as np
@@ -139,18 +139,52 @@ def smoo_rewards(inds_list, shape):
     return x
 
 
-base_path = '/data/Rotem/WideFlow prj/'
-dataset_path = base_path + 'results/sessions_20220320.h5'
+base_path = '/data/Lena/WideFlow_prj/'
+dataset_path = base_path + 'Results/results_exp2.h5'
+date = '20230615'
 
-mouse_id = '2604'
+mouse_id = '31MN'
 sessions_list = [
     # '20220320_neurofeedback',
     # '20220321_neurofeedback',
     # '20220322_neurofeedback',
     # '20220323_neurofeedback',
     # '20220324_neurofeedback',
-    '20220210_neurofeedback'
+    #'20220210_neurofeedback'
+    # '20221201_MNL_NF4',
+    # '20221202_MNL_NF5',
+    # '20221218_MNL_NF6',
+    # '20221219_MNL_NF7',
+    #'20230117_MNL_NF17',
+    # 'FL_NF4_tiffs',
+    # 'FL_NF5_tiffs',
+    # 'FL_NF6_tiffs',
+    # 'FL_NF7_tiffs',
+    # 'FL_NF8_tiffs',
+    # 'FL_NF9_tiffs'
+    # '20230118_FL_NF1_tiffs'
+    # '20230118_MNL_NF18_tiffs',
+    # '20230119_MNL_NF19_tiffs',
+    # '20230122_MNL_NF20_tiffs'
+    # '20221129_MR_NF2_tiffs',
+    # '20221130_MR_NF3_tiffs',
+    # '20221201_MR_NF4_tiffs',
+    # '20221218_MR_NF6_tiffs',
+    # '20221219_MR_NF7_tiffs',
+    # '20221222_MR_NF9_tiffs',
+    # '20221223_MR_NF10_tiffs',
+    # '20230102_MR_NF12_tiffs',
+    # '20230103_MR_NF13_tiffs',
+    # '20230104_MR_NF14_tiffs',
+    # '20230116_MR_NF16_tiffs'
+    #'20221128_MR_NF1_tiffs'
+    f'{date}_{mouse_id}_NF5'
 ]
+
+start_frame = 0
+
+
+
 
 # load data
 n_sessions = len(sessions_list)
@@ -163,10 +197,10 @@ for session_name in sessions_list:
     sessions_config[session_name] = {}
     with h5py.File(dataset_path, 'r') as f:
         decompose_h5_groups_to_dict(f, sessions_data[session_name], f'/{mouse_id}/{session_name}/')
-        timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{base_path}{mouse_id}/{session_name}/')
-        sessions_metadata[session_name] = {"timestamp": timestamp, "cue": cue, "metric_result": metric_result, "threshold": threshold,
-                    "serial_readout": serial_readout}
-        sessions_config[session_name] = load_config(f'{base_path}{mouse_id}/{session_name}/')
+        timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{base_path}{date}/{mouse_id}/{session_name}/metadata.txt')
+        sessions_metadata[session_name] = {"timestamp": timestamp[start_frame:], "cue": cue[start_frame:], "metric_result": metric_result[start_frame:], "threshold": threshold[start_frame:],
+                    "serial_readout": serial_readout[start_frame:]}
+        sessions_config[session_name] = load_config(f'{base_path}{date}/{mouse_id}/{session_name}/')
 
 print(f"running analysis for mouse {mouse_id}")
 # calculate different knd of metrics

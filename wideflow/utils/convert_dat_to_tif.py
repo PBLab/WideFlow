@@ -5,6 +5,13 @@ import os
 
 
 def convert_dat_to_tif(path, nbytes, tiff_shape, type, nframes):
+    '''
+    path: str - full path to the .dat file
+    nbytes: int - number of bytes per frame
+    tiff_shape: tuple of size 3 - (n_frames, x_pixels, y_pixels) - dims of each tif file
+    type: numpy dtype
+    nframes: int - total number of frames
+    '''
     if not os.path.isfile(path):
         raise FileExistsError(f"{path}\ndat file doesn't exist")
     frames_offset = nbytes * tiff_shape[0]

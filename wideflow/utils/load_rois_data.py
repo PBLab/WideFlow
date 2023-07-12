@@ -17,3 +17,5 @@ def load_rois_data(file_path, shift=0):
     # keep keys order as index order
     roi_list = {k: v for k, v in sorted(roi_list.items(), key=lambda item: item[1]['Index'])}
     return roi_list
+
+
