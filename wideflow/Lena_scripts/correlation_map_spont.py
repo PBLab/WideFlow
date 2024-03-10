@@ -14,16 +14,16 @@ import seaborn as sns
 import scipy.cluster.hierarchy as sch
 from scipy.optimize import curve_fit
 
-from utils.load_tiff import load_tiff
-from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
+from wideflow.utils.load_tiff import load_tiff
+from wideflow.utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 
-from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
-from analysis.utils.peristimulus_time_response import calc_pstr
-from utils.load_config import load_config
-from utils.load_rois_data import load_rois_data
-from analysis.plots import plot_traces, wf_imshow
-from analysis.utils.rois_proximity import calc_rois_proximity
-from utils.paint_roi import paint_roi
+from wideflow.analysis.utils.extract_from_metadata_file import extract_from_metadata_file
+from wideflow.analysis.utils.peristimulus_time_response import calc_pstr
+from wideflow.utils.load_config import load_config
+from wideflow.utils.load_rois_data import load_rois_data
+from wideflow.analysis.plots import plot_traces, wf_imshow
+from wideflow.analysis.utils.rois_proximity import calc_rois_proximity
+from wideflow.utils.paint_roi import paint_roi
 
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
