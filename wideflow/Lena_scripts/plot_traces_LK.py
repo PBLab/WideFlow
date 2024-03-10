@@ -13,7 +13,7 @@ from utils.load_config import load_config
 
 #[timestamp, cues, metric_result, threshold, serial_readout] = extract_from_metadata_file('/data/Rotem/WideFlow prj/2680/20220324_neurofeedback/metadata.txt')
 
-base_path = '/data/Lena/WideFlow_prj'
+base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
 mouse_id = 'MR'
 #session_id = '20220324_neurofeedback'
 session_id = f'20230201_{mouse_id}_NF23'

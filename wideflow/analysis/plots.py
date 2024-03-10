@@ -24,6 +24,9 @@ def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1, t=None, c_rewar
 def plot_session(ax, metric, rewards, responses, threshold, dt, fig=None): #fig variable added by Lena
 
     t = np.arange(0, dt * len(metric), dt)  # convert to minutes
+    common_length = min(len(t), len(metric)) # added by Lena because in one mouse t was one value longer than metric
+    t = t[:common_length] #added by Lena because in one mouse t was one value longer than metric
+    metric = metric[:common_length] #added by Lena because in one mouse t was one value longer than metric
     ax2 = ax.twinx()#added by Lena
     ax.plot(t, metric, color='g', linewidth=0.5, alpha=0.5)
     ax2.plot(t, threshold, color='r', linewidth=5)

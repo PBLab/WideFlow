@@ -37,7 +37,7 @@ dataset_path = f'{base_path}/Results/results_exp2.h5'
 #base_path = '/data/Rotem/WideFlow prj'
 #dataset_path = f'{base_path}/results/sessions_20220320.h5'
 
-mice_id = ['21ML', '21ML','21ML']
+mice_id = ['31MN', '31MN','31MN']
 #mice_id = ['2604', '2604','2604']
 sessions_names = [
     # '20221128_MNL_NF1',
@@ -94,20 +94,28 @@ sessions_names = [
     # '20230104_MNL_NF14',
     # '20230116_MNL_NF16',
     # '20230117_MNL_NF17'
-    '20221128_MR_NF1_tiffs',
-    '20221129_MR_NF2_tiffs',
-    '20221130_MR_NF3_tiffs',
-    '20221201_MR_NF4_tiffs',
-    '20221218_MR_NF6_tiffs',
-    '20221219_MR_NF7_tiffs',
-    '20221222_MR_NF9_tiffs',
-    '20221223_MR_NF10_tiffs',
-    '20230102_MR_NF12_tiffs',
-    '20230103_MR_NF13_tiffs',
-    '20230104_MR_NF14_tiffs',
-    '20230116_MR_NF16_tiffs'
+    # '20221128_MR_NF1_tiffs',
+    # '20221129_MR_NF2_tiffs',
+    # '20221130_MR_NF3_tiffs',
+    # '20221201_MR_NF4_tiffs',
+    # '20221218_MR_NF6_tiffs',
+    # '20221219_MR_NF7_tiffs',
+    # '20221222_MR_NF9_tiffs',
+    # '20221223_MR_NF10_tiffs',
+    # '20230102_MR_NF12_tiffs',
+    # '20230103_MR_NF13_tiffs',
+    # '20230104_MR_NF14_tiffs',
+    # '20230116_MR_NF16_tiffs'
+    #'20230604_31MN_spont',
+    '20230604_31MN_spont_mockNF_excluded_closest',
+    '20230611_31MN_NF1',
+    '20230612_31MN_NF2',
+    '20230613_31MN_NF3',
+    '20230614_31MN_NF4',
+    '20230615_31MN_NF5'
 
 ]
+dates = ['20230604','20230611','20230612','20230613','20230614','20230615']
 start_frame = 0
 
 sessions_data = {}
@@ -129,7 +137,11 @@ for mouse_id in mice_id:
     #20221122_{mouse_id}_CRC3functional_parcellation_rois_dict.h5
     #FLfunctional_parcellation_cortex_map_CRC3.h5
     #FLfunctional_parcellation_rois_dict_CRC3.h5
+    config1 = load_config(f'{base_path}/{dates[0]}/{mouse_id}/{sessions_names[0]}/session_config.json')
     rois_dict = load_rois_data(rois_dict_path)
+    closest = config1["supplementary_data_config"]["closest_rois"]
+    for key in closest:
+        del rois_dict[key]
     sup_data[mouse_id] = {}
     with h5py.File(cortex_map_path, 'r') as f:
         cortex_mask = f["mask"][()]
@@ -144,14 +156,14 @@ for mouse_id in mice_id:
 
     sessions_metadata[mouse_id] = {}
     sessions_config[mouse_id] = {}
-    for sess_name in sessions_names:
+    for sess_name,date in zip(sessions_names,dates):
         # load sessions config __________________________________________________________
-        config = load_config(f'{base_path}/{mouse_id}/{sess_name}/session_config.json')
+        config = load_config(f'{base_path}/{date}/{mouse_id}/{sess_name}/session_config.json')
         sessions_config[mouse_id][sess_name] = config
 
         # load sessions metadata __________________________________________________________
         [timestamp, cue, metric_result, threshold, serial_readout] = extract_from_metadata_file(
-            f'{base_path}/{mouse_id}/{sess_name}/metadata.txt')
+            f'{base_path}/{date}/{mouse_id}/{sess_name}/metadata.txt')
         # f_start = 0
         # f_finish = 70000
         timestamp = timestamp[start_frame:]
@@ -285,7 +297,7 @@ for mouse_id in mice_id:
 
     # threshold = sessions_data[mouse_id]['20221128_MNL_NF1']['post_session_analysis']['analysis_parameters'][
     #     'fixed_threshold']
-    threshold = 2.8
+    threshold = 2.3
     dff_threshold = 0
     percentile = 95
     nbins = 100

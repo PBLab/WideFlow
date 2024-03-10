@@ -140,8 +140,11 @@ def smoo_rewards(inds_list, shape):
 
 
 base_path = '/data/Lena/WideFlow_prj/'
-dataset_path = base_path + 'Results/results_exp2.h5'
-date = '20230615'
+#base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/'
+dataset_path = base_path + 'Results/results_exp2_noMH.h5'
+#dataset_path = '/data/Lena/WideFlow_prj/Results/results2.h5'
+
+date = '20230611'
 
 mouse_id = '31MN'
 sessions_list = [
@@ -177,8 +180,9 @@ sessions_list = [
     # '20230103_MR_NF13_tiffs',
     # '20230104_MR_NF14_tiffs',
     # '20230116_MR_NF16_tiffs'
-    #'20221128_MR_NF1_tiffs'
-    f'{date}_{mouse_id}_NF5'
+    #'20230119_MNL_NF19_tiffs'
+    #'20230613_63MR_NF3'
+    f'{date}_{mouse_id}_NF1'
 ]
 
 start_frame = 0

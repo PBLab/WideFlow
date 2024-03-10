@@ -19,6 +19,7 @@ def paint_roi(rois_dict, cortex_map, rois_names, rois_vals=None, ax=None, annota
         ax.imshow(paint_map)
     for roi_name in rois_names:
         roi_pixels_list = rois_dict[roi_name]["PixelIdxList"]
+        #roi_pixels_list = rois_dict[roi_name]["outline"]
         pixels_inds = np.unravel_index(roi_pixels_list, (cortex_map.shape[1], cortex_map.shape[0]))
         paint_map[pixels_inds[1], pixels_inds[0]] = rois_vals[roi_name]
         if annotate:
