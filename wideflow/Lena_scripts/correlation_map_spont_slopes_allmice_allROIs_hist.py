@@ -51,6 +51,7 @@ sess_name = 'spont_mockNF_NOTexcluded_closest'
 #metric_index = 58 #21ML - 134, 31MN - 105, 54MRL - 85, 63MR - 52, 64ML - 71 (those are the indexes, the actual ROI numbers are this +1)
 
 results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+num_frames_21ML = 14000
 
 slopes = []
 for mouse_id in mice_id:
@@ -97,7 +98,16 @@ for mouse_id in mice_id:
 # for i in range(len(metric_prox)):
 #     traces[i] = (traces[i]+(list(metric_prox.values())[i])*1000)
 # correlation_matrix_dff_delta5 = np.corrcoef(traces)
-    traces = data['rois_traces']['channel_0']
+    #traces = data['rois_traces']['channel_0']
+    traces_long = data['rois_traces']['channel_0']
+    traces = {}
+
+    if session_id == '20230604_21ML_spont_mockNF_NOTexcluded_closest' or session_id == '20230613_21ML_NF3':
+        for a, b in traces_long.items():
+            shortened_list = b[:num_frames_21ML]
+            traces[a] = shortened_list
+    else:
+        traces = traces_long
     #metric_outline = np.unravel_index(functional_rois_dict[f'roi_{metric_index+1}']['outline'], (functional_cortex_map.shape[1], functional_cortex_map.shape[0]))
 
 
@@ -183,24 +193,24 @@ for mouse_id in mice_id:
 
     a=5
 
-
-hist, bin_edges = np.histogram(slopes, bins=20)
+num_bins = 11
+hist, bin_edges = np.histogram(slopes, bins=num_bins)
 mode_bin_index = np.argmax(hist)
 mode_values = [(bin_edges[mode_bin_index] + bin_edges[mode_bin_index + 1]) / 2]
 mean_slopes = np.mean(slopes)
 
 
 #ax_edge_right0 = f.add_subplot(gs[0,2])
-plt.hist(slopes, bins=20, edgecolor = 'black')
+plt.hist(slopes, bins=num_bins, edgecolor = 'black')
 plt.xlabel('Slope')
 plt.ylabel('Frequency')
 plt.axvline(x=mode_values[0], color='r', linestyle='--', label=f'Mode = {mode_values[0]:.2f}')
 # plt.axvline(x=mean_slopes,color = 'darkred', linestyle='--', label =f'Mean = {mean_slopes:.2f}' )
 plt.legend()
 
-plt.show()
-#plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-#plt.savefig(f'{base_path}/Figs_for_paper/{sess_name}_slopes_all_rois_all_mice_hist_mm_text.svg',format='svg',dpi=500)
+#plt.show()
+plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
+plt.savefig(f'{base_path}/Figs_for_paper/{sess_name}_slopes_all_rois_all_mice_hist_mm_21ML shortened bins = {num_bins}.svg',format='svg',dpi=500)
 
 
 ########## To add fit: uncomment from here to  plt.plot(x_fit, y_fit, label=f'Fitted Curve: y(x) = (1/(x) +{a})', color='red')

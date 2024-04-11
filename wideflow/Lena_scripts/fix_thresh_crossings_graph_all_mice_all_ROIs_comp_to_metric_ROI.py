@@ -32,10 +32,10 @@ sessions_vec = ['spont_mockNF_NOTexcluded_closest',
                  #  'CRC4','NF1', 'NF2', 'NF3', 'NF4', 'NF5'] #when changing sessions, note to change normalization and stats
 #sessions_vec = ['spont_mockNF_ROI2_excluded_closest', 'NF1_mock_ROI2','NF2_mock_ROI2','NF3_mock_ROI2','NF4_mock_ROI2', 'NF5_mock_ROI2']
 #sessions_vec = ['NF5', 'NF21_mock_ROI1','NF22_mock_ROI1','NF23_mock_ROI1','NF24_mock_ROI1', 'NF25_mock_ROI1']
-set_threshold = 1.5
+set_threshold = 1.27
 indexes_vec = [134, 105, 85, 52, 71
                ]#(those are the indexes of ROI1, the actual ROI numbers are this +1)
-
+num_frames_21ML = 14000
 
 crossings_allROIs = np.zeros((len(mice_id),len(sessions_vec)))
 stds = np.zeros((len(mice_id),len(sessions_vec)))
@@ -60,13 +60,15 @@ for mouse_id in mice_id:
             decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')
 
         # if mouse_id == '21ML' and session_name == 'spont_mockNF_NOTexcluded_closest':
-        #     zscores_dict_long = data["post_session_analysis_LK2"]["zsores_MH_diff5"]
-        #     zscores_dict = {}
-        #     for a, b in zscores_dict_long.items():
-        #         shortened_list = b[:14000]
-        #         zscores_dict[a] = shortened_list
-        # else:
-        zscores_dict = data["post_session_analysis_LK2"]["zsores_MH_diff5"]
+        zscores_dict_long = data["post_session_analysis_LK2"]["zsores_MH_diff5"]
+        zscores_dict = {}
+
+        if session_id == '20230604_21ML_spont_mockNF_NOTexcluded_closest' or session_id == '20230613_21ML_NF3':
+            for a, b in zscores_dict_long.items():
+                shortened_list = b[:num_frames_21ML]
+                zscores_dict[a] = shortened_list
+        else:
+            zscores_dict = zscores_dict_long
 
 
         crossings_sess = []
@@ -148,15 +150,19 @@ a=5
 #crossings[3,3] = (crossings[3,2]+crossings[3,4])/2
 
 ##normalizing crossings all ROIs in spont and CRC
-first_column = crossings_allROIs[:, 0]
+
 # first_column = (NF_sess_length_frames/spont_sess_length_frames)*first_column
 # crossings_allROIs[:,0] = first_column
 # second_column = crossings_allROIs[:, 1]
 # second_column = (NF_sess_length_frames/CRC_sess_length_frames)*second_column
 # crossings_allROIs[:,1] = second_column
-norm_crossings_allROIs = crossings_allROIs - first_column[:, np.newaxis]
-norm_crossings_allROIs = [[element / first_column[i] for element in row] for i, row in enumerate(norm_crossings_allROIs)]
 
+# first_column = crossings_allROIs[:, 0]
+# norm_crossings_allROIs = crossings_allROIs - first_column[:, np.newaxis]
+# norm_crossings_allROIs = [[element / first_column[i] for element in row] for i, row in enumerate(norm_crossings_allROIs)]
+second_column = crossings_allROIs[:, 1]
+norm_crossings_allROIs = crossings_allROIs - second_column[:, np.newaxis]
+norm_crossings_allROIs = [[element / second_column[i] for element in row] for i, row in enumerate(norm_crossings_allROIs)]
 
 
 
@@ -170,15 +176,19 @@ norm_crossings_allROIs = [[element / first_column[i] for element in row] for i, 
 
 
 ##normalizing crossings metric ROI in spont and CRC
-first_column = crossings[:, 0]
+
 # first_column = (NF_sess_length_frames/spont_sess_length_frames)*first_column
 # crossings[:,0] = first_column
 # second_column = crossings[:, 1]
 # second_column = (NF_sess_length_frames/CRC_sess_length_frames)*second_column
 # crossings[:,1] = second_column
-norm_crossings = crossings - first_column[:, np.newaxis]
-norm_crossings = [[element / first_column[i] for element in row] for i, row in enumerate(norm_crossings)]
 
+# first_column = crossings[:, 0]
+# norm_crossings = crossings - first_column[:, np.newaxis]
+# norm_crossings = [[element / first_column[i] for element in row] for i, row in enumerate(norm_crossings)]
+second_column = crossings[:, 1]
+norm_crossings = crossings - second_column[:, np.newaxis]
+norm_crossings = [[element / second_column[i] for element in row] for i, row in enumerate(norm_crossings)]
 
 
 
@@ -246,7 +256,11 @@ plt.legend()
 plt.show()
 print(f'All ROIs {res_stats_allROIs} {posthoc_tukey_allROIs} Target ROI {res_stats_metric} {posthoc_tukey_metric}')
 # plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-# plt.savefig(f'{base_path}/Figs_for_paper/All_mice_CRC4-NF5_TCR_allROIs_vs_metricROI_zscore_diff5_thr=1.5.svg',format='svg',dpi=500)
+# plt.savefig(f'{base_path}/Figs_for_paper/All_mice_{sessions_vec[0]}-{sessions_vec[-1]}_'
+#             f'norm to CRC4_TCR_allROIs_vs_metricROI_zscore_diff5_thr={set_threshold} 1400 frames only 21ML spont+NF3.svg',format='svg',dpi=500)
+#
+#
+
 #plt.savefig(f'{base_path}/Figures_exp2_all_mice_compare/{mice_and_roi}_fix_crossings_{set_threshold}.png',dpi=500)
 #plt.savefig(f'{base_path}/Figures_exp2_all_mice_compare/{mice_and_roi}_fix_crossings_{set_threshold}.pdf', format="pdf",dpi=500)
 

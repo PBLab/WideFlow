@@ -334,8 +334,8 @@ ax_conf = f.add_subplot(gs[2:, 2:])
 # ax_conf.arrow(2.9, 0.7, 0.2, 0.0, head_width=0.06)
 # ax_conf.arrow(2.9, 1.7, 0.2, 0.0, head_width=0.06)
 
-#plt.show()
-plt.savefig(f'{base_path}/Figs_for_paper/CRC_performance_21corr_31_54_63_64.svg',format='svg',dpi=200)
+plt.show()
+# plt.savefig(f'{base_path}/Figs_for_paper/CRC_performance_21corr_31_54_63_64.svg',format='svg',dpi=200)
 
 
 ###################################### statistics #####################################

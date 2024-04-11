@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 def paint_roi(rois_dict, cortex_map, rois_names, rois_vals=None, ax=None, annotate=False):
     if rois_vals is None:
         rois_vals = {}
-        for ind, roi_name in enumerate(rois_names):
-            rois_vals[roi_name] = ind
-        # for roi_name in rois_names:
-        #     rois_vals[roi_name] = 1
+        # for ind, roi_name in enumerate(rois_names):
+        #     rois_vals[roi_name] = ind
+        for roi_name in rois_names:
+            rois_vals[roi_name] = 1
 
     elif len(rois_names) != len(rois_vals):
         raise Exception('The number of elements in rois_names and rois_vals should be the same')

@@ -49,6 +49,8 @@ dates_vec = [
     ,'20230615'
              ]
 
+num_frames_21ML = 14000
+
 # peaks finder hyperparameters
 height_th, min_dst, prominence_th = 0.01, None, 0.005
 
@@ -68,7 +70,17 @@ for mouse_id in mice_ids:
         data = {}
         with h5py.File(dataset_path, 'a') as file:
             decompose_h5_groups_to_dict(file, data, f'/{mouse_id}/{date}_{mouse_id}_{sess_id}/')
-        rois_traces = data['rois_traces']['channel_0']
+        #rois_traces = data['rois_traces']['channel_0']
+        rois_traces_long = data['rois_traces']['channel_0']
+        rois_traces = {}
+
+        if (f'{date}_{mouse_id}_{sess_id}' == '20230604_21ML_spont_mockNF_NOTexcluded_closest' or
+                f'{date}_{mouse_id}_{sess_id}' == '20230613_21ML_NF3'):
+            for a, b in rois_traces_long.items():
+                shortened_list = b[:num_frames_21ML]
+                rois_traces[a] = shortened_list
+        else:
+            rois_traces = rois_traces_long
 
         cross_rois_inds = []
         traces_accum = np.ndarray(rois_traces['roi_01'].shape)
@@ -90,6 +102,7 @@ for mouse_id in mice_ids:
         cross_rois_inds.sort()
         cross_rois_inds = list(dict.fromkeys(cross_rois_inds))
         cross_rois_inds_diff.extend(np.diff(cross_rois_inds) * dt)
+        a=5
 
 t_cut_off = 12000
 
@@ -197,7 +210,21 @@ ax2.set_xlim(20, t_cut_off+3000)
 #ax1.spines['right'].set_visible(False)
 #ax1.spines['bottom'].set_visible(False)
 
-#plt.show()
+plt.show()
 
-plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-plt.savefig( f'/data/Lena/WideFlow_prj/Figs_for_paper/inter_peaks_delays_histogram_LK_data.svg',format='svg',dpi=500)
+# plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
+# plt.savefig( f'/data/Lena/WideFlow_prj/Figs_for_paper/inter_peaks_delays_histogram_LK_data.svg',format='svg',dpi=500)
+
+# Count the number of elements smaller than the threshold value
+time_diff_within_roi_under_delay = np.sum( within_inds_diff < (delay_time)) #blue curve
+time_diff_within_roi_percentage_under_delay = (time_diff_within_roi_under_delay / len(within_inds_diff)) * 100
+time_diff_between_roi_under_delay = np.sum( cross_rois_inds_diff < (delay_time)) #green curve
+time_diff_between_roi_percentage_under_delay = (time_diff_between_roi_under_delay / len( cross_rois_inds_diff)) * 100
+peak_width_under_delay = np.sum(widths < (delay_time)) #orange curve
+peak_width_percentage_under_delay = (peak_width_under_delay / len(widths)) * 100
+
+
+print(f'Diff. within ROI under delay {time_diff_within_roi_percentage_under_delay}% (blue),\n '
+      f'diff. between ROI under delay {time_diff_between_roi_percentage_under_delay}% (green),\n'
+      f'peak width under delay {peak_width_percentage_under_delay}% (orenge) ')
+

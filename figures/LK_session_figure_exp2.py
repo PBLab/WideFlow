@@ -88,12 +88,12 @@ frame3_metric = {key: val[non_rewards_inds[1]] for key, val in rois_metric_trace
 frame4 = resize(vid[cues_inds[-1]], cortex_map.shape)
 frame4_metric = {key: val[cues_inds[-1]] for key, val in rois_metric_traces_dict.items()}
 
-vmax = np.max(np.stack((frame0, frame1, frame2, frame3, frame4)))
-vmin = np.min(np.stack((frame0, frame1, frame2, frame3, frame4)))
+vmax = 0.04#np.max(np.stack((frame0, frame1, frame2, frame3, frame4)))
+vmin = -0.02#np.min(np.stack((frame0, frame1, frame2, frame3, frame4)))
 # zvmax = 4.5#np.max(rois_metric_traces)
 # zvmin = -4#np.min(rois_metric_traces)
-zvmax = 2 #np.max(list(rois_metric_traces_dict.values()))
-zvmin = -1 #np.min(list(rois_metric_traces_dict.values()))
+zvmax = 5#np.max(list(rois_metric_traces_dict.values()))
+zvmin = -3#np.min(list(rois_metric_traces_dict.values()))
 del vid
 #del rois_metric_traces
 
@@ -186,4 +186,4 @@ plt.yticks(fontsize=12)
 # plt.savefig('/data/Rotem/WideFlow prj/results/figures/session_performance.png')
 #plt.show()
 plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-plt.savefig(f'{base_path}/Figs_for_paper/{mouse_id}_{session_id}_session_fig_diff5.svg',format='svg',dpi=200)
+plt.savefig(f'{base_path}/Figs_for_paper/{mouse_id}_{session_id}_session_fig_diff5_max_cbar chosen.svg',format='svg',dpi=200)

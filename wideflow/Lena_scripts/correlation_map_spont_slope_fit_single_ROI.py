@@ -43,20 +43,22 @@ def calc_rois_corr(rois_dict, data, data_chosen_roi):
 
 
 base_path = '/data/Lena/WideFlow_prj'
-date = '20230604'
-mouse_id = '21ML'
-#sess_name= 'NF4'
-sess_name = 'spont_mockNF_NOTexcluded_closest'
+date = '20230608'
+mouse_id = '31MN'
+sess_name= 'CRC4'
+#sess_name = 'spont_mockNF_NOTexcluded_closest'
 session_id = f'{date}_{mouse_id}_{sess_name}'
 title = f'{mouse_id}_{sess_name}_noMH_corr_graph_smalldots_min0.55_linear_fit_mm_colorbar'
 #title = '21ML_roi02_corr'
-metric_index = 134 #21ML - 134, 31MN - 105, 54MRL - 85, 63MR - 52, 64ML - 71 (those are the indexes, the actual ROI numbers are this +1)
+metric_index = 105 #21ML - 134, 31MN - 105, 54MRL - 85, 63MR - 52, 64ML - 71 (those are the indexes, the actual ROI numbers are this +1)
 # metric_index = 65 #ROI2(motor)
 # metric_index = 58 #retrosplenial
 # metric_index = 85 #bottom of somatosensory
 # metric_index = 47 #v1
 
 results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+if sess_name == 'CRC4':
+    results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
 
 # timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
 # serial_readout = 1 - np.array(serial_readout)
@@ -234,8 +236,9 @@ plt.legend()
 plt.title(f'{title}')
 
 
-#plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
 #plt.show()
+
+plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
 plt.savefig(f'{base_path}/Figs_for_paper/{title}_text.svg',format='svg',dpi=500)
 
 

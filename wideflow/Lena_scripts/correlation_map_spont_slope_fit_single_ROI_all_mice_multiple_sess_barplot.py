@@ -55,15 +55,15 @@ def cohens_d(group1, group2):
 
 
 base_path = '/data/Lena/WideFlow_prj'
-dates_vec = ['20230604','20230608']
+dates_vec = ['20230604','20230608','20230611','20230614']
 mice_id = ['21ML',
      '31MN','54MRL','63MR','64ML']
 colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
-sessions_vec = [
+sessions_vec = [#
     'spont_mockNF_NOTexcluded_closest',
     'CRC4',
-    #'NF1'
-]
+    'NF1',
+    'NF4']
 #session_id = f'{date}_{mouse_id}_{sess_name}'
 #title = f'{mouse_id}_{sess_name}_noMH_allROIS_corr_graph_smalldots'
 
@@ -75,10 +75,14 @@ indexes_vec = [134,
 #indexes_vec = [189, 47, 21, 58, 80] #V1 ROIs
 #title = f'pre_post_corr_slopes_target_ROI_{sessions_vec[0]}_{sessions_vec[1]}'
 
+num_frames_21ML = 14000
+
+
 #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
 results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
 
-slopes = []
+slopes = {}
+
 for mouse_id,metric_index in zip(mice_id,indexes_vec):
     for date, sess_name in zip(dates_vec, sessions_vec):
         session_id = f'{date}_{mouse_id}_{sess_name}'
@@ -140,9 +144,14 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
         #traces = data['rois_traces']['channel_0']
         traces_long = data['rois_traces']['channel_0']
         traces = {}
-        for a, b in traces_long.items():
-            shortened_list = b[:14000]
-            traces[a] = shortened_list
+
+        if session_id == '20230604_21ML_spont_mockNF_NOTexcluded_closest' or session_id == '20230613_21ML_NF3':
+            for a, b in traces_long.items():
+                shortened_list = b[:num_frames_21ML]
+                traces[a] = shortened_list
+        else:
+            traces = traces_long
+
         # traces = data['post_session_analysis_LK2']['diff5']
         # traces = data['post_session_analysis_LK2']['zsores_MH_diff5']
         # traces = data['post_session_analysis_LK2']['zsores_MH']
@@ -151,7 +160,7 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
 
         #metric_outline = np.unravel_index(functional_rois_dict[f'roi_{metric_index+1}']['outline'], (functional_cortex_map.shape[1], functional_cortex_map.shape[0]))
 
-
+        slopes[f'{sess_name}_{mouse_id}'] = {}
         for i, (key, val) in enumerate(functional_rois_dict.items()):
             # metric_corr[key] = np.corrcoef(pstr_cat[key], pstr_cat[metric_roi])[0, 1]  # correlation with metric ROI
             # dff_corr[key] = np.corrcoef (sessions_data[sess_id]['post_session_analysis']['dff']['traces'][i], sessions_data[sess_id]['post_session_analysis']['dff']['traces'][105])[0,1]
@@ -225,7 +234,8 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
         x_data = np.array([value * 0.029 for value in list(rois_proximity_metric.values())])
         y_data = np.array(list(metric_corr.values()))
         coefficients = np.polyfit(x_data, y_data, 1)
-        slopes.append(coefficients[0])
+        #slopes.append(coefficients[0])
+        slopes[f'{sess_name}_{mouse_id}'] = (coefficients[0])
 
 
 ######     To plot multiple ROIs prox vs. correlation use the following loop. To plot a single one use plt.scatter(lis(rois_proximity_metric.values()), list(metric_corr.values())) and the plot settings under it (above this line)
@@ -250,18 +260,31 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
 
 a=5
 
-title = f'pre_post_corr_slopes_target_ROI_{sessions_vec[0]}_{sessions_vec[1]}_dist {relative} {dist} {traces_choice}'
+title = f'{sessions_vec}_slopes_target_ROIs_all mice_dist {relative} {dist} {traces_choice} shortened for 21ML'
 
-slopes_pre = [slopes[0], slopes[2],slopes[4],slopes[6],slopes[8]]
-slopes_post = [slopes[1],slopes[3],slopes[5],slopes[7],slopes[9]]
+# slopes_pre = [slopes[0], slopes[2],slopes[4],slopes[6],slopes[8]]
+# slopes_post = [slopes[1],slopes[3],slopes[5],slopes[7],slopes[9]]
 # slopes_pre = [slopes[0], slopes[2],slopes[4],slopes[6]]
 # slopes_post = [slopes[1],slopes[3],slopes[5],slopes[7]]
-statistic_wil, p_value_wil = wilcoxon(slopes_pre, slopes_post) #paired t-test gave p=0.076, so we went with wilcoxon (which is the substitute for paired t test when data is not compatible with a t test)
-t_statistic, p_value_ttset = ttest_rel(slopes_pre, slopes_post)
-effect_size = cohens_d(slopes_pre, slopes_post)
+# statistic_wil, p_value_wil = wilcoxon(slopes_pre, slopes_post) #paired t-test gave p=0.076, so we went with wilcoxon (which is the substitute for paired t test when data is not compatible with a t test)
+# t_statistic, p_value_ttset = ttest_rel(slopes_pre, slopes_post)
+# effect_size = cohens_d(slopes_pre, slopes_post)
 
-mean_pre = np.mean(slopes_pre)
-mean_post = np.mean(slopes_post)
+
+#Group slopes by sessions
+list_of_lists_slopes = []
+mean_list = []
+for sess in sessions_vec:
+    sess_mice = []
+    for mouse in mice_id:
+        sess_mice.append(f'{sess}_{mouse}')
+
+    slopes_sess = [slopes[key] for key in sess_mice]
+    list_of_lists_slopes.append(slopes_sess)
+    mean_list.append(np.mean(slopes_sess))
+
+# mean_pre = np.mean(slopes_pre)
+# mean_post = np.mean(slopes_post)
 
 # plt.bar(['pre','post'], [mean_pre, mean_post], color=['blue', 'orange'])
 # # for i in range(len(mice_id)):
@@ -271,27 +294,60 @@ mean_post = np.mean(slopes_post)
 #     plt.plot([mice_id.index(mouse_id), mice_id.index(mouse_id) ], [pre, post], color='gray', linestyle='--', marker='o', markersize=8)
 
 bar_width = 0.03
-bar_positions = [0,0.035]
+#bar_positions = [0,0.035]
+bar_positions = [i*(bar_width+0.005) for i in range(len(sessions_vec))]
 
-plt.bar(bar_positions, [mean_pre, mean_post],
-        width=bar_width, color=['red', 'blue']
+#t test spont to crc4
+t_statistic_spont_CRC4, p_value_ttset_spont_CRC4 = ttest_rel(list_of_lists_slopes[0], list_of_lists_slopes[1])
+effect_size_spont_CRC4 = cohens_d(list_of_lists_slopes[0], list_of_lists_slopes[1])
+
+#t test spont to nf4
+t_statistic_spont_NF4, p_value_ttset_spont_NF4 = ttest_rel(list_of_lists_slopes[0], list_of_lists_slopes[-1])
+effect_size_spont_NF4 = cohens_d(list_of_lists_slopes[0], list_of_lists_slopes[-1])
+
+#t test crc4 to nf4
+t_statistic_CRC4_NF4, p_value_ttset_CRC4_NF4 = ttest_rel(list_of_lists_slopes[1], list_of_lists_slopes[-1])
+effect_size_CRC4_NF4 = cohens_d(list_of_lists_slopes[1], list_of_lists_slopes[-1])
+
+
+plt.bar(bar_positions, mean_list,
+        width=bar_width#, color=['red', 'blue']
         #,bottom=max(max(slopes_pre),max(slopes_post))
         )
 
+
 # Plot individual data points on top of each bar
-plt.scatter(np.full_like(slopes_pre, 0, dtype=float), slopes_pre, color='black', marker='o')
-plt.scatter(np.full_like(slopes_post, 0.035, dtype=float), slopes_post, color='black', marker='o')
+for i in range(len(list_of_lists_slopes)):
+    plt.scatter(np.full_like(list_of_lists_slopes[i], bar_positions[i], dtype=float), list_of_lists_slopes[i], color='black', marker='o')
+
+
+for i in range(len(list_of_lists_slopes)):
+    if i==(len(list_of_lists_slopes)-1):
+        continue
+    else:
+        for m in range(len(mice_id)):
+            val1 = list_of_lists_slopes[i][m]
+            val2 = list_of_lists_slopes[i+1][m]
+            plt.plot([bar_positions[i],bar_positions[i+1]], [val1, val2], color=colors[m], linestyle='--', label=mice_id[m])
+
+a=5
+# plt.scatter(np.full_like(slopes_pre, 0, dtype=float), slopes_pre, color='black', marker='o')
+# plt.scatter(np.full_like(slopes_post, 0.035, dtype=float), slopes_post, color='black', marker='o')
 #plt.ylim(bottom=-0.105)
-for val1, val2, color in zip(slopes_pre, slopes_post,colors):
-    plt.plot([0 , 0.035], [val1, val2], color=color, linestyle='--', label=mice_id[list(slopes_pre).index(val1)])
+# for val1, val2, color in zip(slopes_pre, slopes_post,colors):
+#     plt.plot([0 , 0.035], [val1, val2], color=color, linestyle='--', label=mice_id[list(slopes_pre).index(val1)])
 
 
 
 plt.legend()
 plt.ylabel('Slope [1/mm]')
 #print(p_value_ttset)
-plt.title(f'{title} pv={p_value_ttset} cohens d = {effect_size}')
+#plt.title(f'{title} pv={p_value_ttset} cohens d = {effect_size}')
 plt.show()
 # plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
 # plt.savefig(f'{base_path}/Figs_for_paper/{title}.svg',format='svg',dpi=500)
+
+print(f'spont to CRC4 pv = {p_value_ttset_spont_CRC4} cohens d = {effect_size_spont_CRC4}'
+      f'spont to NF4 pv = {p_value_ttset_spont_NF4} cohens d = {effect_size_spont_NF4}'
+      f'CRC4 to NF4 pv = {p_value_ttset_CRC4_NF4} cohens d= {effect_size_CRC4_NF4}')
 a=5
