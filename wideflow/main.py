@@ -3,8 +3,10 @@
 from utils.imaging_utils import load_config
 import argparse
 
+import multiprocessing as mp
 
 if __name__ == "__main__":
+    mp.set_start_method('spawn')
     parser = argparse.ArgumentParser(description='Wide Field Real-Time Analysis and Neurofeedback')
 
     parser.add_argument('-c', '--config_path', type=str, help='full path to session configuration JSON file')
@@ -16,6 +18,10 @@ if __name__ == "__main__":
     if args.session == 'NeuroFeedbackSession':
         from core.session.neurofeedback_session import NeuroFeedbackSession
         session_pipeline = NeuroFeedbackSession(session_config)
+    elif args.session == 'NeuroFeedbackSession_LK':
+            from core.session.neurofeedback_session_LK import NeuroFeedbackSession_LK
+
+            session_pipeline = NeuroFeedbackSession_LK(session_config)
 
     elif args.session == 'PostAnalysisNeuroFeedbackSession':
         from core.session.mock_neurofeedback_session import PostAnalysisNeuroFeedbackSession

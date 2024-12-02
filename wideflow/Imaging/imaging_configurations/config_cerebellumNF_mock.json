@@ -1,0 +1,141 @@
+{
+    "base_path": "/storage/data_streaming/WideFlow_prj/20230618",
+
+    "mouse_id": "21ML",
+
+    "session_name": "20230618_21ML_NF21_mock_ROI1",
+
+    "camera_config": {
+        "core_attr": {
+            "exp_time": 30,
+            "binning": [2, 2],
+            "clear_mode": 0
+        },
+        "attr": {
+            "channels": 2,
+            "circ_buffer_count": 32,
+            "sensor_roi": [0, 0, 2048, 2048]
+        },
+        "splice_plugins_enable": false,
+        "splice_plugin_setting": [
+            {
+                "name": "pluginname1",
+                "parameters": [
+                    {
+                        "name": "module_call_order",
+                        "value":  1
+                    },
+                    {
+                        "name": "paramname",
+                        "value":  1
+                    }
+                ]
+            },
+            {
+                "name": "pluginname2",
+                "parameters": [
+                    {
+                        "name": "module_call_order",
+                        "value":  1
+                    },
+                    {
+                        "name": "paramname",
+                        "value":  1
+                    }
+                ]
+            }
+                                 ]
+    },
+
+    "serial_port_config": {
+        "port_id": "/dev/ttyACM0",
+        "baudrate": 9600,
+        "timeout": 0.0
+    },
+
+  "behavioral_camera_config": {
+        "activate": false,
+        "process": "python",
+        "script":"/home/wfield/PycharmProjects/WideFlow/wideflow/devices/spinnaker_flir_cam/bin/FLIRcam_main",
+        "file_name": "behavioral_vid.avi",
+        "attr": {
+            "exp_time": 5,
+            "roi_bbox": [500, 348, 512, 512],
+            "avi_type": "MJPG",
+            "acquisition_mode": "TRIGGER",
+            "chosen_trigger": "HARDWARE"
+        }
+    },
+
+
+    "deep_lab_cut_config": {
+        "activate": false,
+        "model_path": "/home/wfield/DLC_Wide Flow_resnet_50_iteration-0_shuffle-1",
+        "model_config": {"pose_shape":  [3, 3], "pose_dtype": "float32"}
+
+    },
+
+    "acquisition_config": {
+        "vid_file_name": "wf_raw_data.dat",
+        "meta_file_name": "session_metadata.txt",
+        "num_of_frames": 50000,
+        "convert_to_tiff": false
+    },
+
+    "feedback_config": {
+        "inter_feedback_delay": 1000.0,
+        "update_frames": [1000, 70000],
+        "eval_frames": 20000,
+        "update_every": 10,
+
+        "metric_threshold": 2.8,
+
+        "typical_count": 10,
+        "count_band": 2,
+        "step": 0.02,
+
+        "percentile": 95,
+        "nbins": 100
+    },
+
+    "registration_config": {
+        "automatic_cropping": false,
+        "reference_image_path": "",
+        "cropping_bbox_path": "/storage/data_streaming/WideFlow_prj/20230618/21ML/20230618_21ML_NF21_mock_ROI1/bbox.txt",
+        "matching_point_path": "/storage/data_streaming/WideFlow_prj/20230618/21ML/20230618_21ML_NF21_mock_ROI1/matching_points.txt"
+    },
+
+    "supplementary_data_config": {
+        "rois_dict_path": "/storage/data_streaming/WideFlow_prj/21ML/21MLfunctional_parcellation_rois_dict_10_20.h5",
+        "mask_path": "/home/wfield/PycharmProjects/WideFlow/data/cortex_map/allen_2d_cortex.h5",
+        "closest_rois": ["roi_134","roi_43","roi_116","roi_151","roi_127"]
+    },
+
+    "analysis_pipeline_config": {
+        "pipeline": "HemoDynamicsDFF",
+        "args": {
+            "capacity": 32,
+            "hemispheres": "left",
+            "metric_args": ["ROIDiff", ["roi_135"], 5],
+            "regression_map_path":  "/storage/data_streaming/WideFlow_prj/20230618/21ML/20230618_21ML_NF21_mock_ROI1/regression_coeff_map.npy",
+            "regression_n_samples": 512
+        }
+    },
+
+    "visualization_config": {
+        "show_live_stream": {
+            "status": false,
+            "size": [297, 168], "dtype": "float32", "buffer": "dff_buffer",
+            "class": "LiveVideo", "params": {"image_shape": [297, 168], "image_dtype": "float32", "frame_rate": 50}
+        },
+        "show_live_stream_and_metric": {
+            "status": false,
+            "size": [297, 337], "dtype": "float32", "buffer": "dff_buffer",
+            "class": "LiveVideoMetric", "params": {"image_shape": [297, 337], "frame_rate": 50}
+        },
+        "show_behavioral_monitoring": {
+            "status": false,
+            "class": "LiveVideo", "params": {"image_shape": [512, 512], "image_dtype": "uint8", "frame_rate": 50, "vmin": 0, "vmax": 255}
+        }
+     }
+}

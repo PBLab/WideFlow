@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../../../')
 import PySpin
-from PySpin import CameraPtr
+#from pyspin import CameraPtr
 
 
 class TriggerType:

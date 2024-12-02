@@ -1,8 +1,8 @@
 from devices.FLIRCam import FLIRCam
 import PySpin
 
-# import sys
-# sys.path.insert(1, '/home/pb/PycharmProjects/DeepLabCut-live/dlclive')
+import sys
+sys.path.insert(1, '/home/pb/PycharmProjects/DeepLabCut-live/dlclive')
 import dlclive
 from dlclive import DLClive
 

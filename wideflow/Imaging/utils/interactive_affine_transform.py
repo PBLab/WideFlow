@@ -21,7 +21,7 @@ class InteractiveAffineTransform:
         self.fig_src, self.ax_src = plt.subplots()
         self.fig_src.suptitle('Source Image')
         mng = self.fig_src.canvas.manager
-        mng.window.wm_geometry('+1+1')  # set figure position
+        # mng.window.wm_geometry('+1+1')  # set figure position
         self.ax_src.imshow(self.src_img)
 
         self.ax_accept = plt.axes([0.7, 0.05, 0.1, 0.075])
@@ -35,7 +35,7 @@ class InteractiveAffineTransform:
         self.fig_dst, self.ax_dst = plt.subplots()
         self.fig_dst.suptitle('Affine Transformed Image')
         mng = self.fig_dst.canvas.manager
-        mng.window.wm_geometry(f'+{self.src_nrows + 10}+1')
+        # mng.window.wm_geometry(f'+{self.src_nrows + 10}+1')
 
         self.td_offset = [
             [40, 40],

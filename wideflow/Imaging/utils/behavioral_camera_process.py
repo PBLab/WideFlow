@@ -1,4 +1,5 @@
 from devices.FLIRCam import FLIRCam
+#import pyspin as PySpin
 import PySpin
 
 import numpy as np

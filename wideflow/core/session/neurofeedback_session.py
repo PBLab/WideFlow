@@ -28,7 +28,7 @@ from utils.load_rois_data import load_rois_data
 from utils.write_bbox_file import write_bbox_file
 from utils.write_matching_point_file import write_matching_point_file
 
-from DeepLabCut.DLCLProcess import BehavioralMonitoring
+#from DeepLabCut.DLCLProcess import BehavioralMonitoring
 
 import numpy as np
 import cupy as cp
@@ -37,6 +37,9 @@ import os
 import sys
 import json
 import h5py
+import random
+import time
+import collections
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import RectangleSelector
@@ -136,18 +139,18 @@ class NeuroFeedbackSession(AbstractSession):
                                      self.bcam_frame_shm_name),
                                kwargs=self.behavioral_camera_config["attr"])
 
-    def set_behavioral_monitoring(self):
-        self.behavioral_monitoring_q = Queue(3)
-        target = BehavioralMonitoring(self.behavioral_monitoring_q,
-            self.deep_lab_cut_config["model_path"], self.deep_lab_cut_config["model_config"],
-            self.deep_lab_cut_config["processor_config"])
-
-        pose_shape = self.deep_lab_cut_config["processor_config"]["pose_shape"]
-        pose_dtype = self.deep_lab_cut_config["processor_config"]["pose_dtype"]
-        pose_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(pose_shape, dtype=pose_dtype).nbytes)
-
-        self.behavioral_monitoring_pose_shm = np.ndarray(pose_shape, dtype=pose_dtype, buffer=pose_shm.buf)
-        self.behavioral_monitoring_process = mp.Process(target=target, args=(pose_shm.name, self.bcam_frame_shm_name))
+    # def set_behavioral_monitoring(self):
+    #     self.behavioral_monitoring_q = Queue(3)
+    #     target = BehavioralMonitoring(self.behavioral_monitoring_q,
+    #         self.deep_lab_cut_config["model_path"], self.deep_lab_cut_config["model_config"],
+    #         self.deep_lab_cut_config["processor_config"])
+    #
+    #     pose_shape = self.deep_lab_cut_config["processor_config"]["pose_shape"]
+    #     pose_dtype = self.deep_lab_cut_config["processor_config"]["pose_dtype"]
+    #     pose_shm = shared_memory.SharedMemory(create=True, size=np.ndarray(pose_shape, dtype=pose_dtype).nbytes)
+    #
+    #     self.behavioral_monitoring_pose_shm = np.ndarray(pose_shape, dtype=pose_dtype, buffer=pose_shm.buf)
+    #     self.behavioral_monitoring_process = mp.Process(target=target, args=(pose_shm.name, self.bcam_frame_shm_name))
 
     def set_serial_controler(self):
         serial_controller = SerialControler(port=self.serial_config["port_id"],
@@ -258,6 +261,11 @@ class NeuroFeedbackSession(AbstractSession):
         self.analysis_pipeline.camera.start_live(buffer_frame_count=self.analysis_pipeline.camera.circ_buffer_count)
 
         print(f'starting session at {datetime.now()}')
+        # Initialize buffer for control group with a fixed delay (60 seconds in this case)
+        control_group_buffer = collections.deque(maxlen=1500)  # Assuming 25 FPs (post correction, meaning each frame is 2 channels), 1500 frames is ~60 seconds
+
+        # Initialize a timestamp to track the start time
+        start_time = time.time()
         # start session
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -276,16 +284,91 @@ class NeuroFeedbackSession(AbstractSession):
 
             # evaluate metric and give reward if metric above threshold
             cue = 0
+
             result = self.analysis_pipeline.evaluate()
-            self.serial_controller.sendToArduino(f'{(1 + np.clip(result / feedback_threshold, -1, 1)) / 2:3f}')  # map result to [0, 1]
+            ##############################################################
+
+            if self.feedback_config["exp_group"] == "NF":
+                # Neurofeedback Group: Send mapped result
+                value_to_send = f'{(1 + np.clip(result / feedback_threshold, -1, 1)) / 2:3f}'
+            # else:
+            #     # Control Group: Send a random value between 0 and 1
+            #     value_to_send = f'{random.uniform(0, 1):3f}'
+            else:
+                # Control Group: Delay logic
+                current_time = time.time()
+                elapsed_time = current_time - start_time
+                if elapsed_time < 60:  # First 60 seconds
+                    value_to_send = '0.000000'
+                else:
+                    # Retrieve value calculated 60 seconds ago
+                    value_to_send = control_group_buffer.popleft()
+
+                # Calculate the current value for future sending
+                delayed_value = f'{(1 + np.clip(result / feedback_threshold, -1, 1)) / 2:3f}'
+                control_group_buffer.append(delayed_value)
+
+            # Send value to Arduino
+            self.serial_controller.sendToArduino(value_to_send)
+
+            # Initialize the feedback queue for Control group if it doesn't exist
+            if not hasattr(self, 'feedback_queue'):
+                self.feedback_queue = []  # Each item: (scheduled_time, event_time)
+
+            # Common decision logic for detecting feedback events
             if int(cp.asnumpy(result) > feedback_threshold) and \
                     (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay and \
                     frame_counter > update_frames[0]:
-                self.serial_controller.sendFeedback()
-                feedback_time = perf_counter()
-                cue = 1
-                print('_________________________FEEDBACK HAS BEEN SENT____________________________\n'
-                      '___________________________________________________________________________')
+
+                # Add new feedback event
+                if self.feedback_config["exp_group"] == "control":
+                    # Schedule feedback for Control group with a random delay
+                    cue = 2
+                    feedback_time = perf_counter()
+                    random_delay = random.uniform(0.0, 90.0)  # Adjust the random delay range in seconds
+                    scheduled_time = perf_counter() + random_delay
+                    self.feedback_queue.append((scheduled_time, perf_counter()))  # Append (scheduled_time, event_time)
+                else:
+                    # Immediate feedback for NF group
+                    self.serial_controller.sendFeedback()
+                    feedback_time = perf_counter()
+                    cue = 1
+                    print('_________________________FEEDBACK HAS BEEN SENT____________________________\n'
+                          '___________________________________________________________________________')
+
+            # Process the feedback queue for Control group
+            if self.feedback_config["exp_group"] == "control":
+                current_time = perf_counter()
+                # Use a separate list to hold events that need removal
+                events_to_remove = []
+                for scheduled_time, event_time in list(self.feedback_queue):  # Iterate over a copy of the queue
+                    if current_time >= scheduled_time:
+                        # Send feedback for this event
+                        self.serial_controller.sendFeedback()
+                        #feedback_time = perf_counter()
+                        cue = 1
+                        print(f'_________________________FEEDBACK HAS BEEN SENT____________________________\n'
+                              f'Feedback sent for reward event at {event_time:.4f}s after delay of {scheduled_time - event_time:.4f}s\n'
+                              '___________________________________________________________________________')
+                        # Mark this event for removal after iteration
+                        events_to_remove.append((scheduled_time, event_time))
+
+                # Remove processed events
+                for event in events_to_remove:
+                    self.feedback_queue.remove(event)
+
+
+            ############################################
+
+            # self.serial_controller.sendToArduino(f'{(1 + np.clip(result / feedback_threshold, -1, 1)) / 2:3f}')  # map result to [0, 1]
+            # if int(cp.asnumpy(result) > feedback_threshold) and \
+            #         (frame_clock_start - feedback_time) * 1000 > inter_feedback_delay and \
+            #         frame_counter > update_frames[0]:
+            #     self.serial_controller.sendFeedback()
+            #     feedback_time = perf_counter()
+            #     cue = 1
+            #     print('_________________________FEEDBACK HAS BEEN SENT____________________________\n'
+            #           '___________________________________________________________________________')
 
             # update threshold
             results_seq[frame_counter] = result
@@ -325,33 +408,40 @@ class NeuroFeedbackSession(AbstractSession):
     def session_termination(self):
         print(f'session endded at {datetime.now()}')
         self.metadata.save_file()
+        print("metadata saved")
 
         self.analysis_pipeline.camera.finish()
         self.analysis_pipeline.camera.close()
         self.analysis_pipeline.clear_buffers()
+        print("camera closed")
 
         self.serial_controller.sendToArduino('0.0')  # make sure cueig LED is off
         self.serial_controller.close()
+        print("Arduino closed")
 
         try:
             self.terminate_visualiztion()
         except RuntimeError:
             print("something went wrong while terminating visualization processes")
 
+        print("terminate_visualiztion done")
         if self.behavioral_camera_config["activate"]:
             self.behavioral_camera_q.put('finish')
             self.behavioral_camera_process.join()
             self.behavioral_camera_process.terminate()
 
+        print("behavioral camera done")
         if self.deep_lab_cut_config["activate"]:
             self.behavioral_monitoring_q.put('finish')
             self.behavioral_monitoring_process.join()
             self.behavioral_monitoring_process.terminate()
 
+        print("DeepLabCut done")
         if self.bcam_frame_shm is not None:
             self.bcam_frame_shm.close()
             self.bcam_frame_shm.unlink()
 
+        print("starting to save json")
         with open(self.session_path + "session_config.json", 'w') as fp:
             json.dump(self.config, fp)
 
@@ -531,6 +621,8 @@ class NeuroFeedbackSession(AbstractSession):
 
         print(self.supplementary_data_config["rois_dict_path"])
         rois_dict = load_rois_data(self.supplementary_data_config["rois_dict_path"])
+        for key in self.supplementary_data_config["closest_rois"]:
+            del rois_dict[key]
 
         return mask, map, rois_dict
 
