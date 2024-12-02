@@ -24,27 +24,44 @@ def calc_diff(x, delta_t):
 
 
 base_path = '/data/Lena/WideFlow_prj'
-dataset_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+#dataset_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+
 
 #dates_vec = ['20230615', '20230618', '20230619', '20230620', '20230621', '20230622']
 #dates_vec = ['20230604', '20230618', '20230619', '20230620', '20230621', '20230622']
 #dates_vec = [ '20230604', '20230612', '20230613', '20230614', '20230615']
-dates_vec = ['20230604',
-             '20230608','20230611','20230612', '20230613', '20230614', '20230615'
+dates_vec = [#'20241121','20241123','20241124','20241125'
+    '20241201'
+
+    # ,'20241129'
              ]
 
 mice_id = [ #'21ML'
-    '31MN','54MRL','63MR','64ML'
-           ]
+    #'31MN','54MRL','63MR','64ML'
+     '187FN'
+     ,'203MN'
+      ,'204FR'
+       ,'206FRL'
+        ,'211MRR'
+        ,'218MN'
+    ]
 
 #sessions_vec = ['spont_mockNF_ROI2_excluded_closest','NF21', 'NF22', 'NF23', 'NF24', 'NF25']
 #sessions_vec = ['NF1', 'NF2', 'NF3', 'NF4', 'NF5']
-sessions_vec = [ 'spont_mockNF_NOTexcluded_closest',
-                'CRC4','NF1', 'NF2', 'NF3', 'NF4', 'NF5'
-                ]
+# sessions_vec = [ 'spont_mockNF_NOTexcluded_closest',
+#                 'CRC4','NF1', 'NF2', 'NF3', 'NF4', 'NF5'
+#                 ]
 #sessions_vec = ['spont_mockNF_ROI2_excluded_closest', 'NF1_mock_ROI2','NF2_mock_ROI2','NF3_mock_ROI2','NF4_mock_ROI2', 'NF5_mock_ROI2']
 #sessions_vec = ['NF5', 'NF21_mock_ROI1','NF22_mock_ROI1','NF23_mock_ROI1','NF24_mock_ROI1', 'NF25_mock_ROI1']
+# sessions_vec = ['spont','CRC1','CRC2','CRC3'
+#                 ,'CRC4'
+#                 ]
+sessions_vec = [
+                'NF3'
 
+                ]
 
 
 for mouse_id in mice_id:
@@ -69,10 +86,12 @@ for mouse_id in mice_id:
         for key in functional_rois_dict.keys():
             functional_rois_dict_temp = load_rois_data(functional_rois_dict_path)
 
-            if session_name == 'CRC4':
-                dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
-            else:
-                dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            # if session_name == 'CRC4':
+            #     dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # else:
+            #     #dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            #     dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+
             data = {}
             with h5py.File(dataset_path_noMH, 'r') as f:
                 decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')

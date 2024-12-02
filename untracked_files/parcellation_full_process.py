@@ -8,7 +8,7 @@ from untracked_files.matlab_functional_parcellation_to_roi_dict import convert_m
 
 from wideflow.utils.paint_roi import paint_roi
 
-mouse_id = '64ML'
+mouse_id = '218MN'
 map_size = [297, 337]
 rois_matlab_path = f'/data/Lena/WideFlow_prj/{mouse_id}/ROI_list_left.mat'  # path to the functional parcellation results, containing only ROI_list variable
 mouse_base_path = f'/data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map

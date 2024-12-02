@@ -29,7 +29,7 @@ def find_dist_outlines(vector1,vector2):
 
 base_path = '/data/Lena/WideFlow_prj'
 
-mice_id = ['21ML','31MN','54MRL','63MR','64ML']
+mice_id = ['187FN','203MN','204FR','206FRL','211MRR','218MN']
 
 
 

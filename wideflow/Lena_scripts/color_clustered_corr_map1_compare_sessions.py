@@ -100,6 +100,8 @@ vmin = 0
 vmax = 1
 clustermap0 = sns.clustermap(correlation_dict_dff0,cmap='inferno', vmin=vmin,vmax=vmax)
 
+#plt.show()
+
 # Extract the row and column linkage information
 row_linkage0 = clustermap0.dendrogram_row.linkage
 col_linkage0 = clustermap0.dendrogram_col.linkage
@@ -153,10 +155,10 @@ clustermap1 = sns.clustermap(correlation_dict_dff1, row_linkage=row_linkage0, co
                             vmin=vmin,vmax=vmax)
 
 plt.title(f'{mouse_id} {sess_name_vec[1]}')
+#
+# plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
+# plt.savefig(f'{base_path}/Figs_for_paper/{session_id1} correlation map with {session_id0} dendrogram.svg',format='svg',dpi=500)
 
-plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-plt.savefig(f'{base_path}/Figs_for_paper/{session_id1} correlation map with {session_id0} dendrogram.svg',format='svg',dpi=500)
-
-#plt.show()
+plt.show()
 
 

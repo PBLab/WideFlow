@@ -5,16 +5,36 @@ from run_convert_dat_to_tif import run_converter
 # base_path = '/data/Rotem/WideFlow prj'
 base_path = '/data/Lena/WideFlow_prj'
 #dates_vec = ['20230604','20230604','20230604','20230604','20230604']
-dates_vec = ['20230605']
+dates_vec = [#'20241130'
+            #  ,'20241130'
+            #  ,'20241130'
+            #  ,'20241130'
+            #  ,'20241130'
+            # ,'20241130'
+            '20241202'
+             ,'20241202'
+             ,'20241202'
+             ,'20241202'
+             ,'20241202'
+                ,'20241202'
+    # ,'20241123','20241124','20241125',
+    #          '20241126'
+             ]
 
-mouse_id_vec = [#'64ML','64ML','64ML','64ML','64ML'
-                '64ML'
-                # #'24MLL',
-                # '31MN',
-                # #'46FLL',
-                # '54MRL',
-                # '63MR',
-                # '64ML'
+mouse_id_vec = [#'218MN'
+    # ,'218MN','218MN','218MN'
+    # '187FN'
+    # ,'203MN'
+    # ,'204FR'
+    # ,'206FRL'
+    # ,'211MRR'
+    #'218MN'
+    '187FN'
+    , '203MN'
+    , '204FR'
+    , '206FRL'
+    , '211MRR'
+    ,'218MN'
                 ]
 session_name_vec = [
                     # '20221129_MR_NF2_tiffs',
@@ -58,10 +78,25 @@ session_name_vec = [
                     # '20230604_54MRL_spont_mockNF_NOTexcluded_closest',
                     # '20230604_63MR_spont_mockNF_NOTexcluded_closest',
                     # '20230604_64ML_spont_mockNF_NOTexcluded_closest' #FOR SPONT SESSIONS - remember to change metric ROI according to the mouse!!!!!!
-                    '20230605_64ML_CRC1'
                     # '20230606_64ML_CRC2',
                     # '20230607_64ML_CRC3',
                     # '20230608_64ML_CRC4'
+                    # '20241121_218MN_spont',
+                    # '20241123_218MN_CRC1',
+                    # '20241124_218MN_CRC2',
+                    # '20241125_218MN_CRC3',
+                    # '20241130_187FN_NF2'
+                    # ,'20241130_203MN_NF2'
+                    # ,'20241130_204FR_NF2'
+                    # ,'20241130_206FRL_NF2'
+                    # ,'20241130_211MRR_NF2'
+                    #'20241130_218MN_NF2'
+                     '20241202_187FN_NF4'
+                    , '20241202_203MN_NF4'
+                    , '20241202_204FR_NF4'
+                    , '20241202_206FRL_NF4'
+                    , '20241202_211MRR_NF4'
+                    , '20241202_218MN_NF4'
 
 
 ]
@@ -78,13 +113,13 @@ for date, mouse_id, session_name in zip(dates_vec,mouse_id_vec, session_name_vec
     config["registration_config"]["matching_point_path"] = f'{session_path}/matching_points.txt'
     # config["supplementary_data_config"]["rois_dict_path"] = f'{config["base_path"]}/{mouse_id}/functional_parcellation_rois_dict_left_hemi.h5'
     config["supplementary_data_config"]["rois_dict_path"] = f'{config["base_path"]}/{mouse_id}/functional_parcellation_rois_dict.h5'
-    config["supplementary_data_config"]["mask_path"] = "/data/Rotem/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5"
+    config["supplementary_data_config"]["mask_path"] = "/data/RotemP/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5"
     #20221122_MR_CRC3functional_parcellation_rois_dict.h5
     #FLfunctional_parcellation_rois_dict_CRC3.h5
     #20221122_{mouse_id}_CRC3functional_parcellation_rois_dict
 
     #For correction of sessions April 2023
-    #config["session_name"] = session_name
+    config["session_name"] = session_name
     #config["acquisition_config"]["num_of_frames"] = 50000
 
 
@@ -92,18 +127,20 @@ for date, mouse_id, session_name in zip(dates_vec,mouse_id_vec, session_name_vec
     #config["acquisition_config"]["metric_roi"] = ['roi_135']
     #config["supplementary_data_config"]["closest_rois"] = []
 
-    # #to remove "Mexican hat" from session that ran with "mexican hat
-    # config["supplementary_data_config"]["closest_rois"] = []
-
-    ##for CRC session to run as mock NF
-    config["analysis_pipeline_config"]["args"]["metric_args"] = ["ROIDiff", ["roi_72"], 5]
-    config["feedback_config"]["update_frames"] = [1000,60000]
-    config["feedback_config"]["eval_frames"] = 20000
-    config["feedback_config"]["update_every"] = 10
-    config["feedback_config"]["metric_threshold"] = 2.8
-    config["feedback_config"]["percentile"] = 95
-    config["acquisition_config"]["metric_roi"] = ['roi_72']
+    #to remove "Mexican hat" from session that ran with "mexican hat
     config["supplementary_data_config"]["closest_rois"] = []
+
+    # ##for CRC session to run as mock NF
+    # config["analysis_pipeline_config"]["args"]["metric_args"] = ["ROIDiff", ["roi_47"], 5]
+    # config["feedback_config"]["update_frames"] = [1000,60000]
+    # config["feedback_config"]["eval_frames"] = 20000
+    # config["feedback_config"]["update_every"] = 10
+    # config["feedback_config"]["metric_threshold"] = 2.8
+    # config["feedback_config"]["percentile"] = 95
+    # config["acquisition_config"]["metric_roi"] = ['roi_47']
+    # config["supplementary_data_config"]["closest_rois"] = [] #don't put closest here, because you want z-scores metrics
+    #                                                     # for them as well, so you can compare to all ROIs
+
 
 #    run_converter(session_path)
     sess = PostAnalysisNeuroFeedbackSession(config)

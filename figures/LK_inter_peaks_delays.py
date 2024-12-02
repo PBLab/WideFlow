@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from analysis.utils.generate_color_list import *
 import seaborn as sns
+import pandas as pd
 
 import h5py
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
@@ -223,6 +224,30 @@ time_diff_between_roi_percentage_under_delay = (time_diff_between_roi_under_dela
 peak_width_under_delay = np.sum(widths < (delay_time)) #orange curve
 peak_width_percentage_under_delay = (peak_width_under_delay / len(widths)) * 100
 
+
+###############Save datasets to excels:
+# sns.kdeplot(within_inds_diff, ax=ax2, color='blue', log_scale=True, shade=True)
+# sns.kdeplot(cross_rois_inds_diff, ax=ax2, color='green', log_scale=True, shade=True)
+# sns.kdeplot(widths, ax=ax2, color='orange', log_scale=True, shade=True)
+
+# Convert the NumPy array to a Pandas DataFrame
+within_inds_diff_df = pd.DataFrame(within_inds_diff)
+cross_rois_inds_diff_df = pd.DataFrame(cross_rois_inds_diff)
+widths_df = pd.DataFrame(widths)
+
+# Save the DataFrame to a CSV file
+file_path_blue = '/data/Lena/WideFlow_prj/blue_curve_data.csv'
+file_path_green = '/data/Lena/WideFlow_prj/green_curve_data.csv'
+file_path_orange = '/data/Lena/WideFlow_prj/orange_curve_data.csv'
+
+within_inds_diff_df.to_csv(file_path_blue, index=False)
+cross_rois_inds_diff_df.to_csv(file_path_green, index=False)
+widths_df.to_csv(file_path_orange, index=False)
+
+np.save('/data/Lena/WideFlow_prj/blue_curve_data.npy',within_inds_diff)
+np.save('/data/Lena/WideFlow_prj/green_curve_data.npy',cross_rois_inds_diff)
+np.save('/data/Lena/WideFlow_prj/orange_curve_data.npy',widths)
+#########################
 
 print(f'Diff. within ROI under delay {time_diff_within_roi_percentage_under_delay}% (blue),\n '
       f'diff. between ROI under delay {time_diff_between_roi_percentage_under_delay}% (green),\n'

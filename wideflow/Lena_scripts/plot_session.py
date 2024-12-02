@@ -5,9 +5,9 @@ from wideflow.analysis.utils.extract_from_metadata_file import extract_from_meta
 from wideflow.analysis.plots import plot_session
 
 base_path = '/data/Lena/WideFlow_prj'
-date = '20230608'
-mouse_id = '21ML'
-session_id = f'{date}_{mouse_id}_CRC4'
+date = '20241201'
+mouse_id = '218MN'
+session_id = f'{date}_{mouse_id}_NF3'
 #session_id = f'20230618_54MRL_NF21_mocknF_ROI1'
 #base_path = '/data/Lena/WideFlow_prj/MNL/20230123_MNL_NF21'
 #base_path= '/data/Lena/WideFlow_prj/20230608/20230608_21ML_mockNF_NOTexclude_closest'
@@ -29,7 +29,8 @@ fig.suptitle(f'{session_id}')
 
 #plt.savefig(f'/data/Lena/WideFlow_prj/Figures_Rotem/{mouse_id}_{session_id}')
 #plt.savefig(f'{base_path}/{mouse_id}/simple_figs/{session_id}')
-plt.show()
+plt.savefig(f'{base_path}/Figures_exp2.1/{session_id}.png', format = 'png')
+#plt.show()
 
 
 #plot_reward_response(ax, cue, serial_readout_correct, ymin=0, ymax=1, t=np.array(timestamp), c_reward='k', c_response='b', fig=fig)

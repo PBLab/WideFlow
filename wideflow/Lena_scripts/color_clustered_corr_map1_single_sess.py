@@ -189,10 +189,10 @@ ax_right0.scatter(metric_outline[0], metric_outline[1], marker='.', s=8, color='
 plt.title(f'num of clusters = {max(flat_clusters)+1}')
 ax_right0.axis('off')
 
-#plt.show()
-
-plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-plt.savefig(f'{base_path}/Figs_for_paper/{session_id} corr dendrogram cut at {cut_height} with clustering map.svg',format='svg',dpi=500)
+plt.show()
+#
+# plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
+# plt.savefig(f'{base_path}/Figs_for_paper/{session_id} corr dendrogram cut at {cut_height} with clustering map.svg',format='svg',dpi=500)
 
 # Output the grouping according to the cut dendrogram
 #print("Grouping according to the cut dendrogram:")

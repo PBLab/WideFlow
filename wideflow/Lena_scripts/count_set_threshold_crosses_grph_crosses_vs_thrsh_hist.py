@@ -13,22 +13,44 @@ from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 base_path = '/data/Lena/WideFlow_prj'
 
 mice_id = ['21ML','31MN','54MRL','63MR','64ML']
+# mice_id = [
+#     '187FN'
+#     '203MN'
+#     ,'204FR'
+#     ,'206FRL'
+#     ,'211MRR'
+#     ,'218MN'
+#            ]
 
-dates_vec = ['20230604','20230608','20230611', '20230612', '20230613', '20230614', '20230615']
+dates_vec = ['20230604','20230608','20230611', '20230612', '20230613'
+    , '20230614', '20230615'
+             ]
+#dates_vec = ['20241121','20241126', '20241129', '20241130','20241201']
 #dates_vec = ['20230604','20230611', '20230612', '20230613', '20230614']
 #dates_vec = ['20230618', '20230619', '20230620', '20230621', '20230622']
 
 #sessions_vec = ['spont_mockNF_excluded_closest','NF1', 'NF2', 'NF3', 'NF4']
-sessions_vec = ['spont_mockNF_NOTexcluded_closest','CRC4','NF1', 'NF2', 'NF3', 'NF4', 'NF5']
+sessions_vec = ['spont_mockNF_NOTexcluded_closest','CRC4','NF1', 'NF2', 'NF3'
+    , 'NF4', 'NF5'
+                ]
+#sessions_vec = ['spont','CRC4','NF1', 'NF2', 'NF3']
 #sessions_vec = ['spont_mockNF_ROI2_excluded_closest','NF21', 'NF22', 'NF23', 'NF24', 'NF25']
 indexes_vec = [134, 105, 85, 52, 71]#(those are the indexes of ROI1, the actual ROI numbers are this +1) [134, 105, 85, 52, 71]
-
+# indexes_vec = [
+#                 56,
+#                 41
+#                 ,69
+#                 ,50
+#                 ,53
+#                 ,46
+#                ]
 
 num_frames_21ML = 14000
 NF_sess_length_frames = 65000
 spont_sess_frames = 50000
+#spont_sess_frames = 60000
 set_threshold = (np.arange(0.5, 4.5, 0.1)).tolist()
-
+dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 
 peaks = np.zeros((len(mice_id),len(sessions_vec)-1))
 
@@ -44,6 +66,10 @@ for mouse_id in mice_id:
         session_id = f'{date}_{mouse_id}_{session_name}'
         if session_name == 'CRC4' and mouse_id == '63MR':
             session_id = '20230607_63MR_CRC3'
+        if session_name == 'CRC4' and mouse_id == '203MN':
+            session_id = '20241125_203MN_CRC3'
+        if session_name == 'CRC4' and mouse_id == '204FR':
+            session_id = '20241125_204FR_CRC3'
         #timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
 
         if session_name == 'CRC4':
