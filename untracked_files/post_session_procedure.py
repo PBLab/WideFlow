@@ -1,6 +1,7 @@
 from wideflow.utils.load_config import load_config
 from core.session.mock_neurofeedback_session import PostAnalysisNeuroFeedbackSession
 from run_convert_dat_to_tif import run_converter
+from tqdm import tqdm
 
 # base_path = '/data/Rotem/WideFlow prj'
 base_path = '/data/Lena/WideFlow_prj'
@@ -11,12 +12,19 @@ dates_vec = [#'20241130'
             #  ,'20241130'
             #  ,'20241130'
             # ,'20241130'
-            '20241202'
-             ,'20241202'
-             ,'20241202'
-             ,'20241202'
-             ,'20241202'
-                ,'20241202'
+            #'20250616'
+             # ,'20250616'
+             # ,'20250616'
+    #           ,'20250624'
+     '20250624'
+    , '20250624'
+    , '20250625'
+    , '20250625'
+    , '20250625'
+             # ,'20250616'
+             # ,'20250616'
+              #,'20250608'
+               # ,'20241203'
     # ,'20241123','20241124','20241125',
     #          '20241126'
              ]
@@ -29,12 +37,23 @@ mouse_id_vec = [#'218MN'
     # ,'206FRL'
     # ,'211MRR'
     #'218MN'
-    '187FN'
-    , '203MN'
-    , '204FR'
-    , '206FRL'
-    , '211MRR'
-    ,'218MN'
+
+     '229FR'
+    , '232FN'
+    ,'226MR'
+     #'228MN'
+     #,'228MN'
+    , '229FR'
+    ,'232FN'
+    # ,    '226MR'
+    # ,'229FR'
+    #  ,'232FN'
+    # ,    '226MR'
+    #  #'228MN'
+    #  #,'228MN'
+    # ,'229FR'
+    #  ,'232FN'
+    # #,'241FRLL'
                 ]
 session_name_vec = [
                     # '20221129_MR_NF2_tiffs',
@@ -91,18 +110,26 @@ session_name_vec = [
                     # ,'20241130_206FRL_NF2'
                     # ,'20241130_211MRR_NF2'
                     #'20241130_218MN_NF2'
-                     '20241202_187FN_NF4'
-                    , '20241202_203MN_NF4'
-                    , '20241202_204FR_NF4'
-                    , '20241202_206FRL_NF4'
-                    , '20241202_211MRR_NF4'
-                    , '20241202_218MN_NF4'
+                    #'20250616_226MR_NF11_diff10'
+                    #  '20250616_229FR_NF11_diff10'
+                       #'20250616_232FN_NF11_diff10'
+                    #  ,'20250624_226MR_NF3.2'
+                      '20250624_229FR_NF3.2'
+                       ,'20250624_232FN_NF3.2'
+    , '20250625_226MR_NF4.2'
+    , '20250625_229FR_NF4.2'
+    , '20250625_232FN_NF4.2'
+    # , '20250619_226MR_NF4'
+    # , '20250619_229FR_NF4'
+    # , '20250619_232FN_NF4'
+
+
 
 
 ]
 
 
-for date, mouse_id, session_name in zip(dates_vec,mouse_id_vec, session_name_vec):    #LK to change back to single mouse remove this line and create single variables for mouse_id and session_name
+for date, mouse_id, session_name in zip(dates_vec, mouse_id_vec, session_name_vec):   #LK to change back to single mouse remove this line and create single variables for mouse_id and session_name
     print(f'{session_name}') #added for loop by LK
     session_path = base_path + '/' + date + '/' + mouse_id + '/' + session_name
 
@@ -113,7 +140,7 @@ for date, mouse_id, session_name in zip(dates_vec,mouse_id_vec, session_name_vec
     config["registration_config"]["matching_point_path"] = f'{session_path}/matching_points.txt'
     # config["supplementary_data_config"]["rois_dict_path"] = f'{config["base_path"]}/{mouse_id}/functional_parcellation_rois_dict_left_hemi.h5'
     config["supplementary_data_config"]["rois_dict_path"] = f'{config["base_path"]}/{mouse_id}/functional_parcellation_rois_dict.h5'
-    config["supplementary_data_config"]["mask_path"] = "/data/RotemP/Wide Field/WideFlow/data/cortex_map/allen_2d_cortex.h5"
+    config["supplementary_data_config"]["mask_path"] = "/data/Lena/WideFlow/data/cortex_map/allen_2d_cortex.h5"
     #20221122_MR_CRC3functional_parcellation_rois_dict.h5
     #FLfunctional_parcellation_rois_dict_CRC3.h5
     #20221122_{mouse_id}_CRC3functional_parcellation_rois_dict
@@ -124,20 +151,20 @@ for date, mouse_id, session_name in zip(dates_vec,mouse_id_vec, session_name_vec
 
 
     #for spont
-    #config["acquisition_config"]["metric_roi"] = ['roi_135']
-    #config["supplementary_data_config"]["closest_rois"] = []
+    # config["acquisition_config"]["metric_roi"] = ['roi_41']
+    # config["supplementary_data_config"]["closest_rois"] = []
 
     #to remove "Mexican hat" from session that ran with "mexican hat
     config["supplementary_data_config"]["closest_rois"] = []
 
-    # ##for CRC session to run as mock NF
-    # config["analysis_pipeline_config"]["args"]["metric_args"] = ["ROIDiff", ["roi_47"], 5]
-    # config["feedback_config"]["update_frames"] = [1000,60000]
-    # config["feedback_config"]["eval_frames"] = 20000
-    # config["feedback_config"]["update_every"] = 10
-    # config["feedback_config"]["metric_threshold"] = 2.8
+    # ##for CRC or spont session to run as mock NF
+    config["analysis_pipeline_config"]["args"]["metric_args"] = ["ROIDiff", ["roi_47"], 10]
+    #config["feedback_config"]["update_frames"] = [1000,70000]
+    #config["feedback_config"]["eval_frames"] = 20000
+    #config["feedback_config"]["update_every"] = 10
+    #config["feedback_config"]["metric_threshold"] = 2.8
     # config["feedback_config"]["percentile"] = 95
-    # config["acquisition_config"]["metric_roi"] = ['roi_47']
+    #config["acquisition_config"]["metric_roi"] = ['roi_47']
     # config["supplementary_data_config"]["closest_rois"] = [] #don't put closest here, because you want z-scores metrics
     #                                                     # for them as well, so you can compare to all ROIs
 

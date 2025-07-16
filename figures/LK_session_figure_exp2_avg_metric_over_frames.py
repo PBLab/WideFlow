@@ -1,6 +1,7 @@
 import numpy as np
 from skimage.transform import resize
 from skimage.morphology import skeletonize
+from collections import defaultdict
 import matplotlib.pyplot as plt
 import h5py
 
@@ -88,6 +89,23 @@ frame3_metric = {key: val[non_rewards_inds[1]] for key, val in rois_metric_trace
 frame4 = resize(vid[cues_inds[-1]], cortex_map.shape)
 frame4_metric = {key: val[cues_inds[-1]] for key, val in rois_metric_traces_dict.items()}
 
+
+dicts = [frame0_metric, frame2_metric, frame4_metric]
+# Initialize a defaultdict to sum values
+sum_dict = defaultdict(float)
+
+# Count the number of dictionaries
+num_dicts = len(dicts)
+
+# Sum up all values for each key
+for d in dicts:
+    for key, value in d.items():
+        sum_dict[key] += value
+
+# Compute the average for each key
+average_dict = {key: sum_dict[key] / num_dicts for key in sum_dict}
+
+
 vmax = 0.04#np.max(np.stack((frame0, frame1, frame2, frame3, frame4)))
 vmin = -0.02#np.min(np.stack((frame0, frame1, frame2, frame3, frame4)))
 # zvmax = 4.5#np.max(rois_metric_traces)
@@ -132,7 +150,7 @@ ax_top10.axis('off')
 ax_top00.scatter(metric_outline[0], metric_outline[1], marker='.', s=0.5, c='k')
 ax_top10.scatter(metric_outline[0], metric_outline[1], marker='.', s=10.0, c='k')
 wf_imshow(ax_top00, frame0, mask=cortex_mask, map=cortex_map, show_cb=False, conv_ker=conv_ker, cm_name='inferno', vmin=vmin, vmax=vmax)
-_, _, Z01 = paint_roi(rois_dict, cortex_map, list(rois_dict.keys()), frame0_metric)
+_, _, Z01 = paint_roi(rois_dict, cortex_map, list(rois_dict.keys()), average_dict)
 wf_imshow(ax_top10, Z01, mask=cortex_mask, map=cortex_map, show_cb=False, cm_name='inferno', vmin=zvmin, vmax=zvmax)
 
 ax_top01 = f.add_subplot(gs[0, 1])

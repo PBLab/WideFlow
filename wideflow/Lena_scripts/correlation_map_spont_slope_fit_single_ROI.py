@@ -43,9 +43,9 @@ def calc_rois_corr(rois_dict, data, data_chosen_roi):
 
 
 base_path = '/data/Lena/WideFlow_prj'
-date = '20230608'
+date = '20230615'
 mouse_id = '31MN'
-sess_name= 'CRC4'
+sess_name= 'NF5'
 #sess_name = 'spont_mockNF_NOTexcluded_closest'
 session_id = f'{date}_{mouse_id}_{sess_name}'
 title = f'{mouse_id}_{sess_name}_noMH_corr_graph_smalldots_min0.55_linear_fit_mm_colorbar'
@@ -170,7 +170,7 @@ ax_right0 = f.add_subplot(gs[0,1])
 #plt.scatter(list(metric_prox.values()), list(metric_corr.values()))
 #[value * 29 for value in list(rois_proximity_metric.values())]
 plt.scatter([value * 0.029 for value in list(rois_proximity_metric.values())], list(metric_corr.values()))
-plt.ylim(0.55,1.02)
+plt.ylim(0,1.02)
 plt.ylabel("Correlation [A.U.]")
 plt.xlabel("Proximity [mm]")
 
@@ -208,7 +208,7 @@ y_fit = linear_fit(x_data)
 
 #plt.scatter(list(rois_proximity_metric.values()), list(metric_corr.values()))
 plt.scatter(x_data, y_data)
-plt.ylim(bottom=0.55)
+plt.ylim(bottom=0)
 # plt.plot(x_fit, y_fit, label=f'Fitted Curve: y(x) = {b:.4f}/e^({a:.4f}x + {c:.4f}) + {d:.4f}', color='red')
 # plt.plot(x_fit, y_fit, label=f'Fitted Curve: y(x) = (1/(x) +{a})', color='red')
 
@@ -236,12 +236,12 @@ plt.legend()
 plt.title(f'{title}')
 
 
-#plt.show()
+plt.show()
 
-plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-plt.savefig(f'{base_path}/Figs_for_paper/{title}_text.svg',format='svg',dpi=500)
-
-
+# plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
+# plt.savefig(f'{base_path}/Figs_for_paper/{title}_text.svg',format='svg',dpi=500)
+#
+#
 
 
 #print(popt)

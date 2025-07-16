@@ -16,21 +16,55 @@ beta = 1
 
 base_path = '/data/Lena/WideFlow_prj'
 
-mice_id = [ '21ML','31MN','54MRL','63MR','64ML']
+mice_id = [
+    #'21ML'
+    '31MN'
+    ,'54MRL'
+    #,'63MR'
+    #,'64ML'
+    ,'187FN'
+    ,'203MN'
+    ,'204FR'
+    ,'206FRL'
+    ,'211MRR'
+    #,'218MN'
+]
 #dates = ['20230605','20230608','20230605','20230608','20230605','20230608']
-sessions_names = {mice_id[0]: ['20230606_21ML_CRC2', '20230608_21ML_CRC4'],
-                  mice_id[1]: ['20230606_31MN_CRC2', '20230608_31MN_CRC4'],
-                  mice_id[2]: ['20230605_54MRL_CRC1', '20230608_54MRL_CRC4'],
-                  mice_id[3]: ['20230605_63MR_CRC1', '20230607_63MR_CRC3'],
-                  mice_id[4]: ['20230605_64ML_CRC1', '20230608_64ML_CRC4']}
+sessions_names = {
+    #mice_id[0]: ['20230606_21ML_CRC2', '20230608_21ML_CRC4'],
+                  mice_id[0]: ['20230606_31MN_CRC2', '20230608_31MN_CRC4'],
+                  mice_id[1]: ['20230605_54MRL_CRC1', '20230608_54MRL_CRC4'],
+                  #mice_id[3]: ['20230605_63MR_CRC1', '20230607_63MR_CRC3'],
+                  #mice_id[4]: ['20230605_64ML_CRC1', '20230608_64ML_CRC4']
+mice_id[2]: ['20241123_187FN_CRC1', '20241126_187FN_CRC4'],
+mice_id[3]: ['20241123_203MN_CRC1', '20241125_203MN_CRC3'],
+mice_id[4]: ['20241123_204FR_CRC1', '20241125_204FR_CRC3'],
+mice_id[5]: ['20241123_206FRL_CRC1', '20241126_206FRL_CRC4'],
+mice_id[6]: ['20241123_211MRR_CRC1', '20241126_211MRR_CRC4'],
+#mice_id[7]: ['20241123_218MN_CRC1', '20241126_218MN_CRC4'],
+}
+
+sessions_dates = {
+    #mice_id[0]: ['20230606_21ML_CRC2', '20230608_21ML_CRC4'],
+                  mice_id[0]: ['20230606', '20230608'],
+                  mice_id[1]: ['20230605', '20230608'],
+                  #mice_id[3]: ['20230605_63MR_CRC1', '20230607_63MR_CRC3'],
+                  #mice_id[4]: ['20230605_64ML_CRC1', '20230608_64ML_CRC4']
+                mice_id[2]: ['20241123', '20241126'],
+                mice_id[3]: ['20241123', '20241125'],
+                mice_id[4]: ['20241123', '20241125'],
+                mice_id[5]: ['20241123', '20241126'],
+                mice_id[6]: ['20241123', '20241126'],
+                #mice_id[7]: ['20241123', '20241126'],
+}
 # sessions_names = ['20230605_54MRL_CRC1', '20230608_54MRL_CRC4','20230605_63MR_CRC1', '20230607_63MR_CRC3',
 #                   '20230605_64ML_CRC1', '20230608_64ML_CRC4']
 
 session_meta = {}
 for mouse_id in mice_id:
     session_meta[mouse_id] = []
-    for s, sess_name in enumerate(sessions_names[mouse_id]):
-        [timestamp, cue, metric_result, threshold, serial_readout] = extract_from_metadata_file(f'{base_path}/{mouse_id}/{sess_name}/metadata.txt')
+    for s, (sess_name, sess_date) in enumerate(zip(sessions_names[mouse_id],sessions_dates[mouse_id])):
+        [timestamp, cue, metric_result, threshold, serial_readout] = extract_from_metadata_file(f'{base_path}/{sess_date}/{mouse_id}/{sess_name}/metadata.txt')
         dt = np.mean(np.diff(timestamp))
         cue = np.array(cue)
         serial_readout = 1 - np.array(serial_readout)
@@ -85,6 +119,8 @@ for mouse_id in mice_id:
         false_positive_rate = fp / (tn + fp)
         false_negative_rate = fn / (tp + fn)
         false_discovery_rate = fp / (fp + tp)
+        licking_rate = (tp+fp)/n_samples
+
 
         precision = tp / (tp + fp)
         recall = tp / (tp + fn)
@@ -100,6 +136,7 @@ for mouse_id in mice_id:
         session_meta[mouse_id][s]["fnr"] = false_negative_rate
         session_meta[mouse_id][s]["fn"] = fn
         session_meta[mouse_id][s]["fdr"] = false_discovery_rate
+        session_meta[mouse_id][s]["lr"] = licking_rate
 
         session_meta[mouse_id][s]["tpi"] = tpi
         session_meta[mouse_id][s]["tni"] = tni
@@ -117,46 +154,46 @@ for mouse_id in mice_id:
 ########Addind results for 21ML CRC4 Experiment 2 7.1.2024####################
 
 #Those values were calculated manually after counting the licks in the behavioral recording:
-tp=3598
-fn=6396
-fp=3505
-tn=46500
-
-n_samples = 25
-lick_frames = 25 * frames_win
-
-true_positive_rate = tp / (tp + fn)
-true_negative_rate = tn / (tn + fp)
-false_positive_rate = fp / (tn + fp)
-false_negative_rate = fn / (tp + fn)
-false_discovery_rate = fp / (fp + tp)
-
-precision = tp / (tp + fp)
-recall = tp / (tp + fn)
-recall_inv = tn / (fp + tn)
-f1_score = (1 + beta**2) * (precision * recall) / (beta**2 * precision + recall)
-
-session_meta['21ML'][1]["tpr"] = true_positive_rate
-session_meta['21ML'][1]["tp"] = tp
-session_meta['21ML'][1]["tnr"] = true_negative_rate
-session_meta['21ML'][1]["tn"] = tn
-session_meta['21ML'][1]["fpr"] = false_positive_rate
-session_meta['21ML'][1]["fp"] = fp
-session_meta['21ML'][1]["fnr"] = false_negative_rate
-session_meta['21ML'][1]["fn"] = fn
-session_meta['21ML'][1]["fdr"] = false_discovery_rate
-
+# tp=3598
+# fn=6396
+# fp=3505
+# tn=46500
+#
+# n_samples = 25
+# lick_frames = 25 * frames_win
+#
+# true_positive_rate = tp / (tp + fn)
+# true_negative_rate = tn / (tn + fp)
+# false_positive_rate = fp / (tn + fp)
+# false_negative_rate = fn / (tp + fn)
+# false_discovery_rate = fp / (fp + tp)
+#
+# precision = tp / (tp + fp)
+# recall = tp / (tp + fn)
+# recall_inv = tn / (fp + tn)
+# f1_score = (1 + beta**2) * (precision * recall) / (beta**2 * precision + recall)
+#
+# session_meta['21ML'][1]["tpr"] = true_positive_rate
+# session_meta['21ML'][1]["tp"] = tp
+# session_meta['21ML'][1]["tnr"] = true_negative_rate
+# session_meta['21ML'][1]["tn"] = tn
+# session_meta['21ML'][1]["fpr"] = false_positive_rate
+# session_meta['21ML'][1]["fp"] = fp
+# session_meta['21ML'][1]["fnr"] = false_negative_rate
+# session_meta['21ML'][1]["fn"] = fn
+# session_meta['21ML'][1]["fdr"] = false_discovery_rate
+##########################
 # session_meta[mouse_id][s]["tpi"] = tpi
 # session_meta[mouse_id][s]["tni"] = tni
 # session_meta[mouse_id][s]["fpi"] = fpi
 # session_meta[mouse_id][s]["fni"] = fni
 
-session_meta['21ML'][1]["precision"] = precision
-session_meta['21ML'][1]["recall"] = recall
-session_meta['21ML'][1]["recall_inv"] = recall_inv
-session_meta['21ML'][1]["F1 score"] = f1_score
-session_meta['21ML'][1]["random F1 score"] = lick_frames / n_samples
-
+# session_meta['21ML'][1]["precision"] = precision
+# session_meta['21ML'][1]["recall"] = recall
+# session_meta['21ML'][1]["recall_inv"] = recall_inv
+# session_meta['21ML'][1]["F1 score"] = f1_score
+# session_meta['21ML'][1]["random F1 score"] = lick_frames / n_samples
+#
 
 #######End of 21ML CRC4###############################
 
@@ -167,17 +204,39 @@ gs = f.add_gridspec(4, 3)
 
 bar_width = 0.6
 font_size = 13
-c_response = ['royalblue', 'crimson']
-x = [2*bar_width, 3.5*bar_width, 5*bar_width, 6.5*bar_width]
+c_response = ['royalblue', 'crimson','green']
+x = [2*bar_width, 3.5*bar_width, 5*bar_width, 6.5*bar_width, 8*bar_width, 9.5*bar_width]
 
 # tpr fpr bar plots ----------------------------------------------------------------------------
 ax_bar_up = f.add_subplot(gs[:2, 2])
-#y1 = [session_meta[mice_id[-1]][1]["tpr"], session_meta[mice_id[-1]][0]["tpr"]]
-y1 = [(session_meta[mice_id[0]][1]["tpr"]+session_meta[mice_id[1]][1]["tpr"]+session_meta[mice_id[2]][1]["tpr"]+session_meta[mice_id[3]][1]["tpr"]+session_meta[mice_id[4]][1]["tpr"])/5,
-     (session_meta[mice_id[0]][0]["tpr"]+session_meta[mice_id[1]][0]["tpr"]+session_meta[mice_id[2]][0]["tpr"]+session_meta[mice_id[3]][0]["tpr"]+session_meta[mice_id[4]][0]["tpr"])/5]
-#std_y1 = [0.0372, 0.0778]
-b1 = ax_bar_up.barh([x[1], x[3]], y1, height=bar_width, color=[c_response[0], c_response[0]], alpha=0.8)
-#ax_bar_up.errorbar(x=(x[1],x[3]), y=y1, yerr=std_y1,fmt='o', color='black')
+#mouse_colors = plt.cm.viridis(np.linspace(0, 1, len(mice_id)))  # Use a colormap for distinct colors
+mouse_colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta','blue','red','olivedrab','grey','green','aquamarine'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
+
+# #y1 = [session_meta[mice_id[-1]][1]["tpr"], session_meta[mice_id[-1]][0]["tpr"]]
+# y1 = [(session_meta[mice_id[0]][1]["tpr"]+session_meta[mice_id[1]][1]["tpr"]+session_meta[mice_id[2]][1]["tpr"]+session_meta[mice_id[3]][1]["tpr"]+session_meta[mice_id[4]][1]["tpr"])/5,
+#      (session_meta[mice_id[0]][0]["tpr"]+session_meta[mice_id[1]][0]["tpr"]+session_meta[mice_id[2]][0]["tpr"]+session_meta[mice_id[3]][0]["tpr"]+session_meta[mice_id[4]][0]["tpr"])/5]
+# #std_y1 = [0.0372, 0.0778]
+# b1 = ax_bar_up.barh([x[1], x[3]], y1, height=bar_width, color=[c_response[0], c_response[0]], alpha=0.8)
+# #ax_bar_up.errorbar(x=(x[1],x[3]), y=y1, yerr=std_y1,fmt='o', color='black')
+
+# Extract TPR values for each subject (pre and post)
+y_post = [session_meta[m][1]["tpr"] for m in mice_id]  # Post-training
+y_pre = [session_meta[m][0]["tpr"] for m in mice_id]   # Pre-training
+
+# Define x-coordinates for pre and post bars
+x_pre = x[1]
+x_post = x[0]
+
+# Compute mean for bars
+y1 = [ sum(y_pre) / len(y_pre),sum(y_post) / len(y_post)]
+
+# Plot bars
+b1 = ax_bar_up.barh([x_pre, x_post], y1, height=bar_width, color=[c_response[0], c_response[0]], alpha=0.8)
+
+# Add individual subject connecting lines
+for i in range(len(mice_id)):
+    ax_bar_up.plot([y_pre[i], y_post[i]], [x_pre, x_post], color=mouse_colors[i], marker='o', alpha=0.6)
+
 ax_bar_up.set_yticks([])
 ax_bar_up.set_ylabel('post-training               pre-training', fontsize=font_size)
 ax_bar_up.grid(axis='x')
@@ -186,23 +245,66 @@ ax_bar_up.tick_params(axis='x', colors=c_response[0])
 
 
 ax_bar_up_t = ax_bar_up.twiny()
-#y2 = [session_meta[mice_id[-1]][1]["fdr"], session_meta[mice_id[-1]][0]["fdr"]]
-y2 = [(session_meta[mice_id[0]][1]["fdr"]+session_meta[mice_id[1]][1]["fdr"]+session_meta[mice_id[2]][1]["fdr"]+session_meta[mice_id[3]][1]["fdr"]+session_meta[mice_id[4]][1]["fdr"])/5,
-     (session_meta[mice_id[0]][0]["fdr"]+session_meta[mice_id[1]][0]["fdr"]+session_meta[mice_id[2]][0]["fdr"]+session_meta[mice_id[3]][0]["fdr"]+session_meta[mice_id[4]][0]["fdr"])/5]
-b2 = ax_bar_up_t.barh([x[0], x[2]], y2, height=bar_width, color=[c_response[1], c_response[1]], alpha=0.8)
+# #y2 = [session_meta[mice_id[-1]][1]["fdr"], session_meta[mice_id[-1]][0]["fdr"]]
+# y2 = [(session_meta[mice_id[0]][1]["fdr"]+session_meta[mice_id[1]][1]["fdr"]+session_meta[mice_id[2]][1]["fdr"]+session_meta[mice_id[3]][1]["fdr"]+session_meta[mice_id[4]][1]["fdr"])/5,
+#      (session_meta[mice_id[0]][0]["fdr"]+session_meta[mice_id[1]][0]["fdr"]+session_meta[mice_id[2]][0]["fdr"]+session_meta[mice_id[3]][0]["fdr"]+session_meta[mice_id[4]][0]["fdr"])/5]
+# b2 = ax_bar_up_t.barh([x[0], x[2]], y2, height=bar_width, color=[c_response[1], c_response[1]], alpha=0.8)
+# Extract TPR values for each subject (pre and post)
+y_post2 = [session_meta[m][1]["fdr"] for m in mice_id]  # Post-training
+y_pre2 = [session_meta[m][0]["fdr"] for m in mice_id]   # Pre-training
 
+# Define x-coordinates for pre and post bars
+x_pre2 = x[3]
+x_post2 = x[2]
+
+# Compute mean for bars
+y2 = [ sum(y_pre2) / len(y_pre2), sum(y_post2) / len(y_post2)]
+
+# Plot bars
+b2 = ax_bar_up.barh([x_pre2, x_post2], y2, height=bar_width, color=[c_response[1], c_response[1]], alpha=0.8)
+
+# Create a dictionary to store handles for unique mice
+legend_handles = {}
+# Add individual subject connecting lines
+for i in range(len(mice_id)):
+    line, = ax_bar_up.plot([y_pre2[i], y_post2[i]], [x_pre2, x_post2], color=mouse_colors[i],label=f'{mice_id[i]}', marker='o', alpha=0.6)
+    if mice_id[i] not in legend_handles:
+        legend_handles[mice_id[i]] = line
+
+#ax_bar_up.legend(loc="upper right", fontsize=10)
 ax_bar_up_t.tick_params(axis='x', colors=c_response[1])
 ax_bar_up_t.set_xlim([0, 1])
 
-ax_bar_up.legend([b1[0], b2[0]], ['sensitivity', 'false discovery rate'], loc='upper right')
+# ax_bar_up.legend([b1[0], b2[0]], ['sensitivity', 'false discovery rate', 'licking rate'], loc='lower right')
+
+ax_bar_up_t1 = ax_bar_up_t.twiny()
+y_post3 = [session_meta[m][1]["lr"] for m in mice_id]  # Post-training
+y_pre3 = [session_meta[m][0]["lr"] for m in mice_id]   # Pre-training
+
+# Define x-coordinates for pre and post bars
+x_pre3 = x[5]
+x_post3 = x[4]
+
+# Compute mean for bars
+y3 = [ sum(y_pre3) / len(y_pre3), sum(y_post3) / len(y_post3)]
+
+# Plot bars
+b3 = ax_bar_up.barh([x_pre3, x_post3], y3, height=bar_width, color=[c_response[2], c_response[2]], alpha=0.8)
+
+# Add individual subject connecting lines
+for i in range(len(mice_id)):
+    ax_bar_up.plot([y_pre3[i], y_post3[i]], [x_pre3, x_post3], color=mouse_colors[i],label=f'{mice_id[i]}', marker='o', alpha=0.6)
+ax_bar_up_t1.set_xlim([0, 1])
+ax_bar_up.legend([b1[0], b2[0],b3[0]], ['sensitivity', 'false discovery rate', 'licking rate'], loc='lower right')
+#ax_bar_up.legend(legend_handles.values(), legend_handles.keys(), loc="upper right", fontsize=10)
 
 # session stim lick timing ------------------------------------------------------------
 ax0 = f.add_subplot(gs[0, :2])
-plot_reward_response(ax0, session_meta[mice_id[-1]][0]['cue'],
-            session_meta[mice_id[-1]][0]['tpi'],
+plot_reward_response(ax0, session_meta[mice_id[3]][0]['cue'],
+            session_meta[mice_id[3]][0]['tpi'],
             c_response=c_response[0])
-plot_reward_response(ax0, session_meta[mice_id[-1]][0]['cue'],
-            session_meta[mice_id[-1]][0]['fpi'],
+plot_reward_response(ax0, session_meta[mice_id[3]][0]['cue'],
+            session_meta[mice_id[3]][0]['fpi'],
             c_response=c_response[1])
 
 ax0.set_ylabel('pre-training', fontsize=font_size)
@@ -212,11 +314,11 @@ ax0.set_xticks([])
 # ax0.set_title("Mouse #1", loc='left')
 
 ax1 = f.add_subplot(gs[1, :2])
-plot_reward_response(ax1, session_meta[mice_id[-1]][1]['cue'],
-            session_meta[mice_id[-1]][1]['tpi'],
+plot_reward_response(ax1, session_meta[mice_id[3]][1]['cue'],
+            session_meta[mice_id[3]][1]['tpi'],
             c_response=c_response[0])
-plot_reward_response(ax1, session_meta[mice_id[-1]][1]['cue'],
-            session_meta[mice_id[-1]][1]['fpi'],
+plot_reward_response(ax1, session_meta[mice_id[3]][1]['cue'],
+            session_meta[mice_id[3]][1]['fpi'],
             c_response=c_response[1])
 ax1.set_ylabel('post-training', fontsize=font_size)
 ax1.set_yticks([])
@@ -339,18 +441,59 @@ plt.show()
 
 
 ###################################### statistics #####################################
-tpr_t0 = [session_meta['21ML'][0]['tpr'],session_meta['31MN'][0]['tpr'],session_meta['54MRL'][0]['tpr'], session_meta['63MR'][0]['tpr'], session_meta['64ML'][0]['tpr']]
-tpr_t1 = [session_meta['21ML'][1]['tpr'],session_meta['31MN'][1]['tpr'],session_meta['54MRL'][1]['tpr'], session_meta['63MR'][1]['tpr'], session_meta['64ML'][1]['tpr']]
+# tpr_t0 = [session_meta['21ML'][0]['tpr'],session_meta['31MN'][0]['tpr'],session_meta['54MRL'][0]['tpr'], session_meta['63MR'][0]['tpr'], session_meta['64ML'][0]['tpr']]
+# tpr_t1 = [session_meta['21ML'][1]['tpr'],session_meta['31MN'][1]['tpr'],session_meta['54MRL'][1]['tpr'], session_meta['63MR'][1]['tpr'], session_meta['64ML'][1]['tpr']]
+tpr_t0 = [session_meta['31MN'][0]['tpr'],session_meta['54MRL'][0]['tpr'],
+          session_meta['187FN'][0]['tpr'], session_meta['203MN'][0]['tpr'],
+          session_meta['204FR'][0]['tpr'], session_meta['206FRL'][0]['tpr'],
+          session_meta['211MRR'][0]['tpr']#, session_meta['218MN'][0]['tpr']
+          ]
+tpr_t1 = [session_meta['31MN'][1]['tpr'],session_meta['54MRL'][1]['tpr'],
+          session_meta['187FN'][1]['tpr'], session_meta['203MN'][1]['tpr'],
+          session_meta['204FR'][1]['tpr'], session_meta['206FRL'][1]['tpr'],
+          session_meta['211MRR'][1]['tpr']#, session_meta['218MN'][1]['tpr']
+          ]
 tpr_t0_avg = np.mean(np.array(tpr_t0))
 tpr_t1_avg = np.mean(np.array(tpr_t1))
 tpr_tstats, tpr_pval = ttest_rel(tpr_t0, tpr_t1, alternative='less')
 
-fdr_t0 = [session_meta['21ML'][0]['fdr'],session_meta['31MN'][0]['fdr'],session_meta['54MRL'][0]['fdr'], session_meta['63MR'][0]['fdr'], session_meta['64ML'][0]['fdr']]
-fdr_t1 = [session_meta['21ML'][1]['fdr'],session_meta['31MN'][1]['fdr'],session_meta['54MRL'][1]['fdr'], session_meta['63MR'][1]['fdr'], session_meta['64ML'][1]['fdr']]
+# fdr_t0 = [session_meta['21ML'][0]['fdr'],session_meta['31MN'][0]['fdr'],session_meta['54MRL'][0]['fdr'], session_meta['63MR'][0]['fdr'], session_meta['64ML'][0]['fdr']]
+# fdr_t1 = [session_meta['21ML'][1]['fdr'],session_meta['31MN'][1]['fdr'],session_meta['54MRL'][1]['fdr'], session_meta['63MR'][1]['fdr'], session_meta['64ML'][1]['fdr']]
+fdr_t0 = [session_meta['31MN'][0]['fdr'],session_meta['54MRL'][0]['fdr'],
+          session_meta['187FN'][0]['fdr'], session_meta['203MN'][0]['fdr'],
+          session_meta['204FR'][0]['fdr'], session_meta['206FRL'][0]['fdr'],
+          session_meta['211MRR'][0]['fdr']#, session_meta['218MN'][0]['fdr']
+          ]
+#fdr_t1 = [session_meta['21ML'][1]['fdr'],session_meta['31MN'][1]['fdr'],session_meta['54MRL'][1]['fdr'], session_meta['63MR'][1]['fdr'], session_meta['64ML'][1]['fdr']]
+fdr_t1 = [session_meta['31MN'][1]['fdr'],session_meta['54MRL'][1]['fdr'],
+          session_meta['187FN'][1]['fdr'], session_meta['203MN'][1]['fdr'],
+          session_meta['204FR'][1]['fdr'], session_meta['206FRL'][1]['fdr'],
+          session_meta['211MRR'][1]['fdr']#, session_meta['218MN'][1]['fdr']
+          ]
+
 fdr_t0_avg = np.mean(np.array(fdr_t0))
 fdr_t1_avg = np.mean(np.array(fdr_t1))
 fdr_tstats, fdr_pval = ttest_rel(fdr_t0, fdr_t1,alternative='greater')
 
+
+lr_t0 = [session_meta['31MN'][0]['lr'],session_meta['54MRL'][0]['lr'],
+          session_meta['187FN'][0]['lr'], session_meta['203MN'][0]['lr'],
+          session_meta['204FR'][0]['lr'], session_meta['206FRL'][0]['lr'],
+          session_meta['211MRR'][0]['lr']#, session_meta['218MN'][0]['lr']
+         ]
+#fdr_t1 = [session_meta['21ML'][1]['fdr'],session_meta['31MN'][1]['fdr'],session_meta['54MRL'][1]['fdr'], session_meta['63MR'][1]['fdr'], session_meta['64ML'][1]['fdr']]
+lr_t1 = [session_meta['31MN'][1]['lr'],session_meta['54MRL'][1]['lr'],
+          session_meta['187FN'][1]['lr'], session_meta['203MN'][1]['lr'],
+          session_meta['204FR'][1]['lr'], session_meta['206FRL'][1]['lr'],
+          session_meta['211MRR'][1]['lr']#, session_meta['218MN'][1]['lr']
+         ]
+
+lr_t0_avg = np.mean(np.array(lr_t0))
+lr_t1_avg = np.mean(np.array(lr_t1))
+lr_tstats, lr_pval = ttest_rel(lr_t0, lr_t1,alternative='less')
+
+
 # print results
 print(f'sensitivity: pre {tpr_t0_avg}  post {tpr_t1_avg}    one-sided paired ttest p-value: {tpr_pval}')
 print(f'false discovery rate: pre {fdr_t0_avg}  post {fdr_t1_avg}    one-sided paired ttest p-value: {fdr_pval}')
+print(f'licking rate: pre {lr_t0_avg}  post {lr_t1_avg}    one-sided paired ttest p-value: {lr_pval}')

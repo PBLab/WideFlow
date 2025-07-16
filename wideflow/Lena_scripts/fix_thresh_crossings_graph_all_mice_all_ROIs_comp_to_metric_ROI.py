@@ -32,7 +32,7 @@ sessions_vec = ['spont_mockNF_NOTexcluded_closest',
                  #  'CRC4','NF1', 'NF2', 'NF3', 'NF4', 'NF5'] #when changing sessions, note to change normalization and stats
 #sessions_vec = ['spont_mockNF_ROI2_excluded_closest', 'NF1_mock_ROI2','NF2_mock_ROI2','NF3_mock_ROI2','NF4_mock_ROI2', 'NF5_mock_ROI2']
 #sessions_vec = ['NF5', 'NF21_mock_ROI1','NF22_mock_ROI1','NF23_mock_ROI1','NF24_mock_ROI1', 'NF25_mock_ROI1']
-set_threshold = 1.27
+set_threshold = 3.0
 indexes_vec = [134, 105, 85, 52, 71
                ]#(those are the indexes of ROI1, the actual ROI numbers are this +1)
 num_frames_21ML = 14000

@@ -1,0 +1,425 @@
+import numpy as np
+from skimage.transform import resize
+from skimage.morphology import skeletonize
+from scipy.ndimage.filters import maximum_filter1d
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import h5py
+import seaborn as sns
+import scipy.cluster.hierarchy as sch
+from scipy.optimize import curve_fit
+from scipy.stats import pearsonr
+from scipy.stats import linregress
+from scipy.ndimage import convolve
+
+from utils.load_tiff import load_tiff
+from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
+
+from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
+from analysis.utils.peristimulus_time_response import calc_pstr
+from utils.load_config import load_config
+from utils.load_rois_data import load_rois_data
+from analysis.plots import plot_traces, wf_imshow
+from analysis.utils.rois_proximity import calc_rois_proximity
+from utils.paint_roi import paint_roi
+
+def exponential_func(x, a, b):
+    return a * np.exp(b * x)
+
+def linear_function(x, m, b):
+    return m * x + b
+
+def exponential_decay(x, a,b,c,d):
+    return b / np.exp(a * x + c) + d
+
+def one_over_x(x,a):
+    return (1/(x)) +a
+
+def calc_rois_corr(rois_dict, data, data_chosen_roi):
+    rois_corr = {}
+    for i, roi_key in enumerate (rois_dict.keys()):
+        corr=(np.corrcoef(data[roi_key],data_chosen_roi)[0,1])
+        rois_corr[roi_key] = corr
+    return rois_corr
+
+def calc_z_score(x):
+    x_mean = np.mean(x, axis=0)
+    x_std = np.std(x, axis=0)
+    return (x - x_mean) / (x_std + np.finfo(np.float32).eps)
+
+
+# def calc_z_score(x):
+#     x_mean = np.mean(x, axis=0)-np.mean(x, axis=0)
+#     x_std = np.std(x, axis=0)
+#     return (x - x_mean) / (x_std + np.finfo(np.float32).eps)
+
+def average_five_tuples(t1, t2, t3, t4, t5):
+    # Find the minimum length among the tuples
+    min_length = min(len(t1), len(t2), len(t3), len(t4), len(t5))
+
+    # Initialize an empty list to store the averages
+    avg_tuple = []
+
+    # Iterate over the tuples element-wise and calculate the average based on the minimum length
+    for i in range(min_length):
+        avg_element = (t1[i] + t2[i] + t3[i] + t4[i] + t5[i]) / 5
+        avg_tuple.append(avg_element)
+
+    return tuple(avg_tuple)
+
+def average_two_tuples(t1, t2):
+    # Find the minimum length among the tuples
+    min_length = min(len(t1), len(t2))
+
+    # Initialize an empty list to store the averages
+    avg_tuple = []
+
+    # Iterate over the tuples element-wise and calculate the average based on the minimum length
+    for i in range(min_length):
+        avg_element = (t1[i] + t2[i]) / 2
+        avg_tuple.append(avg_element)
+
+    return tuple(avg_tuple)
+
+def average_four_tuples(t1, t2, t3, t4):
+    # Find the minimum length among the tuples
+    min_length = min(len(t1), len(t2), len(t3), len(t4))
+
+    # Initialize an empty list to store the averages
+    avg_tuple = []
+
+    # Iterate over the tuples element-wise and calculate the average based on the minimum length
+    for i in range(min_length):
+        avg_element = (t1[i] + t2[i] + t3[i] + t4[i]) / 4
+        avg_tuple.append(avg_element)
+
+    return tuple(avg_tuple)
+
+def low_pass_filter(image, kernel_size=10):
+    kernel = np.ones((kernel_size, kernel_size)) / (kernel_size ** 2)
+    return convolve(image, kernel)
+
+def bin_ndarray(array, new_shape):
+    shape = (new_shape[0], array.shape[0] // new_shape[0],
+             new_shape[1], array.shape[1] // new_shape[1])
+    return array.reshape(shape).sum(-1).sum(1)
+
+
+
+
+base_path = '/data/Lena/WideFlow_prj'
+dates_vec = ['20241126','20241203']
+mice_id = [
+    #'187FN'
+    '203MN'
+    #,'204FR'
+    ,'206FRL'
+    ,'211MRR'
+    ,'218MN'
+    ]
+colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
+sessions_vec = [
+    #'spont_mockNF_NOTexcluded_closest',
+    'CRC4',
+    'NF5'
+    ]
+indexes_vec = [
+    #56  #187
+    41  #203
+    #,69  #204
+    ,50  #206
+    ,53  #211
+    ,46  #218
+    ]#(those are the indexes, the actual ROI numbers are this +1)[134, 105, 85, 52, 71 ]
+#indexes_vec = [65] #ROI2(motor)
+#indexes_vec = [58] #retrosplenial
+#indexes_vec = [85] #bottom of somatosensory
+#indexes_vec = [47] #v1
+num_frames_21ML = 10000
+
+
+title = (f'Average zscores of delta corr {mice_id} {sessions_vec[1]}-{sessions_vec[0]} '
+         f'colormap and scatter max shortened for 21ML with avg ROI')
+
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+# CRC_res_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+CRC_res_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+
+
+prox_all_sess = []
+zscores_delta_all_mice = {}
+pmaps = {}
+rois_dicts = {}
+delta_corr_all_mice = {}
+metric_outlines = {}
+for mouse_id,metric_index in zip(mice_id,indexes_vec):
+    corr_all_sess = []
+    for date, sess_name in zip(dates_vec, sessions_vec):
+        session_id = f'{date}_{mouse_id}_{sess_name}'
+        if mouse_id == '63MR' and sess_name == 'CRC4':
+            session_id = '20230607_63MR_CRC3'
+        if sess_name == 'CRC4' and mouse_id == '203MN':
+            session_id = '20241125_203MN_CRC3'
+        if sess_name == 'CRC4' and mouse_id == '204FR':
+            session_id = '20241125_204FR_CRC3'
+
+
+        data = {}
+        # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+        # if sess_name == 'CRC4':
+        #     results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+
+        with h5py.File(results_path, 'r') as f:
+            decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')
+
+        functional_cortex_map_path = f'{base_path}/{mouse_id}/functional_parcellation_cortex_map.h5'
+        functional_rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict.h5'
+        with h5py.File(functional_cortex_map_path, 'r') as f:
+            functional_cortex_mask = f["mask"][()]
+            functional_cortex_map = f["map"][()]
+        functional_cortex_mask = functional_cortex_mask[:, :168]
+        functional_cortex_map = functional_cortex_map[:, :168]
+        functional_cortex_map = skeletonize(functional_cortex_map)
+        functional_rois_dict = load_rois_data(functional_rois_dict_path)
+        rois_dicts[f'{mouse_id}'] = functional_rois_dict
+
+        # config = load_config(f'{base_path}/{date}/{mouse_id}/{session_id}/session_config.json')
+        # closest = config["supplementary_data_config"]["closest_rois"]
+        # for key in closest:
+        #     del functional_rois_dict[key]
+
+        a=5
+
+        metric_corr = {}
+        #rois_proximity = {}
+        #corr_all_rois = {}
+        #traces = data['post_session_analysis']['dff_delta5']['traces']
+
+        # #next 5 lines are for the mock perfect data
+        # traces_to_copy = traces[metric_index]
+        # traces = np.tile(traces_to_copy,(traces.shape[0],1))
+        # metric_prox = calc_rois_proximity(functional_rois_dict,f'roi_{metric_index+1}')
+        # for i in range(len(metric_prox)):
+        #     traces[i] = (traces[i]+(list(metric_prox.values())[i])*1000)
+        # correlation_matrix_dff_delta5 = np.corrcoef(traces)
+
+
+
+
+        traces = data['rois_traces']['channel_0']
+        #traces = data['post_session_analysis_LK2']['diff5']
+        #traces = data['post_session_analysis_LK2']['zsores_MH_diff5']
+        #traces = data['post_session_analysis_LK2']['zsores_MH']
+        traces_choice = 'traces'
+        #metric_outline = np.unravel_index(functional_rois_dict[f'roi_{metric_index+1}']['outline'], (functional_cortex_map.shape[1], functional_cortex_map.shape[0]))
+        metric_outline = np.unravel_index(functional_rois_dict[f'roi_{metric_index + 1}']['PixelIdxList'],
+                                          (functional_cortex_map.shape[1], functional_cortex_map.shape[0]))
+        metric_outlines[f'{mouse_id}'] = metric_outline
+
+
+        for i, (key, val) in enumerate(functional_rois_dict.items()):
+            # metric_corr[key] = np.corrcoef(pstr_cat[key], pstr_cat[metric_roi])[0, 1]  # correlation with metric ROI
+            # dff_corr[key] = np.corrcoef (sessions_data[sess_id]['post_session_analysis']['dff']['traces'][i], sessions_data[sess_id]['post_session_analysis']['dff']['traces'][105])[0,1]
+            # metric_corr[key] = np.corrcoef(metric_trace, sessions_data[sess_id]['post_session_analysis']['dff']['traces'][i])[0, 1]
+
+
+            metric_corr[key] = np.corrcoef(traces[key][:],traces[f'roi_{metric_index+1}'][:])[0, 1]
+            if (session_id == '20230604_21ML_spont_mockNF_NOTexcluded_closest' or session_id == '20230613_21ML_NF3'
+                    or session_id == '20241126_187FN_CRC4' or session_id == '20241126_218MN_CRC4' or session_id=='20241203_206FRL_NF5'
+                    or session_id=='20241201_211MRR_NF3' or session_id=='20241129_204FR_NF1'):
+                metric_corr[key] = np.corrcoef(traces[key][:num_frames_21ML], traces[f'roi_{metric_index + 1}'][:num_frames_21ML])[0, 1]
+            a=5
+            #metric_corr[key] = np.corrcoef(traces[key], traces[f'roi_01'])[0, 1]
+
+            #corr_all_rois[key] = calc_rois_corr(functional_rois_dict,traces,traces[key])
+            #rois_proximity[key] = calc_rois_proximity(functional_rois_dict, key)
+
+
+
+
+        #rois_proximity_metric = calc_rois_proximity(functional_rois_dict, f'roi_{metric_index+1}')
+        #rois_proximity_metric = calc_rois_proximity(functional_rois_dict, f'roi_01')
+        ### Remove ROIs further than 2mm
+        # for key in functional_rois_dict:
+        #     dist = 2
+        #     if rois_proximity_metric[key] > dist/0.029:
+        #         del rois_proximity_metric[key]
+        #         del metric_corr[key]
+        ############
+        #prox_all_sess.append(rois_proximity_metric)
+        corr_all_sess.append(metric_corr)
+        a=5
+
+    delta_corr = {}
+
+    for i, (key1, val1) in enumerate(corr_all_sess[0].items()):
+        delta_corr[key1] = corr_all_sess[1][key1]-val1
+
+    delta_corr_all_mice[f'{mouse_id}'] = delta_corr
+    zscores_delta_corr_list = calc_z_score(list(delta_corr.values()))
+    zscores_delta_corr_dict = {}
+    for key in delta_corr:
+        zscores_delta_corr_dict[key] = zscores_delta_corr_list[list(delta_corr.keys()).index(key)]
+
+    zscores_delta_all_mice[f'{mouse_id}'] = zscores_delta_corr_dict
+    _, _, pmaps[f'{mouse_id}'] = paint_roi(functional_rois_dict,
+                            functional_cortex_map,
+                            list(functional_rois_dict.keys()),
+                            #delta_corr)
+                            zscores_delta_corr_dict)
+    a=5
+
+
+
+pmap_avg = ((
+            #pmaps['187FN']
+            #+pmaps['204FR']
+            pmaps['203MN']
+             +pmaps['206FRL']
+             +pmaps['211MRR']
+             +pmaps['218MN']
+            )
+            /4)
+
+#pmap_avg = low_pass_filter(pmap_avg)
+#pmap_avg = bin_ndarray(pmap_avg, (5, 5))
+
+avg_tuple_outline_x = average_four_tuples(
+    #metric_outlines['187FN'][0]
+     #       ,metric_outlines['204FR'][0]
+            metric_outlines['203MN'][0]
+             ,metric_outlines['206FRL'][0]
+             ,metric_outlines['211MRR'][0]
+             ,metric_outlines['218MN'][0]
+)
+avg_tuple_outline_y = average_four_tuples(
+    # metric_outlines['187FN'][1]
+    #         ,metric_outlines['204FR'][1]
+            metric_outlines['203MN'][1]
+             ,metric_outlines['206FRL'][1]
+             ,metric_outlines['211MRR'][1]
+             ,metric_outlines['218MN'][1]
+)
+
+max_value = np.nanmax(pmap_avg)
+max_indices = np.argwhere(pmap_avg == max_value)
+max_index = [np.mean(max_indices[:,0]), np.mean(max_indices[:,1])]
+
+min_value = np.nanmin(pmap_avg)
+min_indices = np.argwhere(pmap_avg == min_value)
+min_index = [np.mean(min_indices[:,0]), np.mean(min_indices[:,1])]
+
+all_dists_from_max_pix = []
+all_dists_from_min_pix = []
+all_delta_corr_flat = []
+all_zscores_delta_corr_flat = []
+for mouse_id in mice_id:
+    for key in list(rois_dicts[f'{mouse_id}'].keys()):
+        dist = np.sqrt((max_index[0] - rois_dicts[f'{mouse_id}'][key]['Centroid'][0]) ** 2
+                       + (max_index[1] - rois_dicts[f'{mouse_id}'][key]['Centroid'][1]) ** 2)
+        dist_min = np.sqrt((min_index[0] - rois_dicts[f'{mouse_id}'][key]['Centroid'][0]) ** 2
+                       + (min_index[1] - rois_dicts[f'{mouse_id}'][key]['Centroid'][1]) ** 2)
+        all_dists_from_max_pix.append(dist)
+        all_dists_from_min_pix.append(dist_min)
+        all_delta_corr_flat.append(delta_corr_all_mice[f'{mouse_id}'][key])
+        all_zscores_delta_corr_flat.append(zscores_delta_all_mice[f'{mouse_id}'][key])
+
+multiplier = 0.029
+all_dists_from_max_mm = [value * multiplier for value in all_dists_from_max_pix]
+all_dists_from_min_mm = [value * multiplier for value in all_dists_from_min_pix]
+correlation_coefficient, p_value = pearsonr(all_dists_from_max_mm, all_zscores_delta_corr_flat)
+correlation_coefficient_min, p_value_min = pearsonr(all_dists_from_min_mm, all_zscores_delta_corr_flat)
+
+pmaps_avg_nan = pmap_avg.copy()
+pmaps_avg_nan[pmaps_avg_nan == 0] = np.nan
+avg_zscore_flat = []
+prox_avg_pmaps_flat_pix = []
+prox_min_avg_pmaps_flat_pix = []
+for x in range(np.shape(pmaps_avg_nan)[0]):
+    for y in range(np.shape(pmaps_avg_nan)[1]):
+        if np.isnan(pmaps_avg_nan[x,y]):
+            continue
+        elif pmaps_avg_nan[x,y] in avg_zscore_flat:
+            continue
+        else:
+            dist = np.sqrt((max_index[0] - x) ** 2
+                               + (max_index[1] - y) ** 2)
+            dist_min = np.sqrt((min_index[0] - x) ** 2
+                               + (min_index[1] - y) ** 2)
+            avg_zscore_flat.append(pmaps_avg_nan[x,y])
+            prox_avg_pmaps_flat_pix.append(dist)
+            prox_min_avg_pmaps_flat_pix.append(dist_min)
+
+prox_avg_pmaps_flat_mm = [value * multiplier for value in prox_avg_pmaps_flat_pix]
+prox_min_avg_pmaps_flat_mm = [value * multiplier for value in prox_min_avg_pmaps_flat_pix]
+correlation_coefficient_avg, p_value_avg = pearsonr(prox_avg_pmaps_flat_mm, avg_zscore_flat)
+correlation_coefficient_avg_min, p_value_avg_min = pearsonr(prox_min_avg_pmaps_flat_mm, avg_zscore_flat)
+
+
+
+##### Plotting
+f = plt.figure(constrained_layout=True, figsize=(17, 6))
+gs = f.add_gridspec(1,3)
+ax_left0 = f.add_subplot(gs[0, 0])
+pmap_avg[functional_cortex_mask==0] = None
+im, _ = wf_imshow(ax_left0, pmap_avg, mask=None, map=None, conv_ker=None, show_cb=False, cm_name='seismic', cb_side='left')
+cbar = plt.colorbar(im, ax=ax_left0, label=f'Z-score of delta corr {sessions_vec[1]} - corr {sessions_vec[0]}')
+#im.set_clim(np.nanmin(pmap_avg),np.nanmax(pmap_avg))
+im.set_clim(-2,2)
+#plt.colorbar(label=f'Corr {sessions_vec[1]} - corr {sessions_vec[0]}')
+#ax_left0.set_ylabel("PSTR", fontsize=12)
+ax_left0.scatter(avg_tuple_outline_x, avg_tuple_outline_y, marker='.', s=3, c='k')
+ax_left0.scatter(max_index[1], max_index[0], marker='.', s=14, c='green') #it's plotted max_indices[1] and then
+                                                                       # [0] because [1] is the column (x) and [0] is the row (y)
+#ax_left0.scatter(min_indices[:,1], min_indices[:,0], marker='.', s=14, c='green') #it's plotted max_indices[1] and then
+                                                                       # [0] because [1] is the column (x) and [0] is the row (y)
+plt.title(f'Z-score of delta corr over mice:{mice_id}, sessions: {sessions_vec[1]}-{sessions_vec[0]}')
+ax_left0.axis('off')
+
+
+
+ax_right0 = f.add_subplot(gs[0, 1])
+#ax_right0.scatter(all_dists_from_max_mm,all_delta_corr_flat)
+ax_right0.scatter(prox_avg_pmaps_flat_mm, avg_zscore_flat,color = 'grey', alpha=0.3, s=10, edgecolor = 'none')
+# coefficients = np.polyfit(prox_avg_pmaps_flat_mm, avg_zscore_flat, 1)
+# sns.regplot(x=prox_avg_pmaps_flat_mm, y=avg_zscore_flat, ci=95, label=f'slope {coefficients[0]}', scatter_kws={'s': 2.5})
+#slope, intercept, r_value, p_value_linear, std_err = linregress(prox_avg_pmaps_flat_mm, avg_zscore_flat)
+ax_right0.scatter(all_dists_from_max_mm,all_zscores_delta_corr_flat, s=10)
+#ax_right0.scatter(prox_avg_pmaps_flat_mm, avg_zscore_flat, color = 'black')
+# ax_right0.text(min(all_dists_from_max_mm),min(all_zscores_delta_corr_flat)+0.2,
+#                f'Correlation coefficient = {correlation_coefficient}, P-value = {p_value}')
+# ax_right0.text(min(all_dists_from_max_mm),min(all_zscores_delta_corr_flat),
+#                f'Correlation coefficient of avg = {correlation_coefficient_avg}, P-value of avg = {p_value_avg}')
+ax_right0.set_title(f'Correlation coefficient = {correlation_coefficient}, P-value = {p_value} '
+                    f'Correlation coefficient of avg = {correlation_coefficient_avg}, P-value of avg = {p_value_avg}')
+ax_right0.set_xlabel('Proximity to max z-score [mm]')
+ax_right0.set_ylabel('Z-score of delta corr [A.U.]')
+
+
+
+ax_right01 = f.add_subplot(gs[0, 2])
+#ax_right0.scatter(all_dists_from_max_mm,all_delta_corr_flat)
+ax_right01.scatter(prox_min_avg_pmaps_flat_mm, avg_zscore_flat,color = 'grey', alpha=0.3, s=10, edgecolor = 'none')
+# coefficients = np.polyfit(prox_avg_pmaps_flat_mm, avg_zscore_flat, 1)
+# sns.regplot(x=prox_avg_pmaps_flat_mm, y=avg_zscore_flat, ci=95, label=f'slope {coefficients[0]}', scatter_kws={'s': 2.5})
+#slope, intercept, r_value, p_value_linear, std_err = linregress(prox_avg_pmaps_flat_mm, avg_zscore_flat)
+ax_right01.scatter(all_dists_from_min_mm,all_zscores_delta_corr_flat, s=10)
+#ax_right0.scatter(prox_avg_pmaps_flat_mm, avg_zscore_flat, color = 'black')
+# ax_right0.text(min(all_dists_from_max_mm),min(all_zscores_delta_corr_flat)+0.2,
+#                f'Correlation coefficient = {correlation_coefficient}, P-value = {p_value}')
+# ax_right0.text(min(all_dists_from_max_mm),min(all_zscores_delta_corr_flat),
+#                f'Correlation coefficient of avg = {correlation_coefficient_avg}, P-value of avg = {p_value_avg}')
+ax_right01.set_title(f'Correlation coefficient = {correlation_coefficient_min}, P-value = {p_value_min} '
+                    f'Correlation coefficient of avg = {correlation_coefficient_avg_min}, P-value of avg = {p_value_avg_min}')
+ax_right01.set_xlabel('Proximity to min z-score [mm]')
+ax_right01.set_ylabel('Z-score of delta corr [A.U.]')
+
+
+
+
+
+plt.show()
+
+# plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
+# plt.savefig(f'{base_path}/Figs_for_paper/{title}.svg',format='svg',dpi=500)

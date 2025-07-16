@@ -14,13 +14,13 @@ from utils.load_config import load_config
 #[timestamp, cues, metric_result, threshold, serial_readout] = extract_from_metadata_file('/data/Rotem/WideFlow prj/2680/20220324_neurofeedback/metadata.txt')
 
 base_path = '/data/Lena/WideFlow_prj'
-date = '20230611'
-mouse_id = '31MN'
+date = '20241129'
+mouse_id = '203MN'
 #session_id = '20220324_neurofeedback'
 #session_id = f'20230131_{mouse_id}_NF8'
 session_id = f'{date}_{mouse_id}_NF1'
 
-start_frame = 0
+start_frame = 20000
 
 
 [timestamp, cues, metric_result, threshold, serial_readout] = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
@@ -51,7 +51,8 @@ session_meta[f'{session_id}'] = {"timestamp": timestamp[start_frame:], "cue": cu
 dt = np.mean(np.diff(timestamp))
 
 sessions_data = {}
-dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
+dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+#dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
 #'/data/Rotem/WideFlow prj/results/sessions_20220320.h5'
 #/data/Lena/WideFlow_prj/Results/sessions_xxx.h5
 with h5py.File(dataset_path, 'r') as f:
@@ -61,11 +62,20 @@ with h5py.File(dataset_path, 'r') as f:
 fig, ax = plt.subplots()
 
 cues1 = session_meta[f'{session_id}']['cue']
+# if mouse_id == '203MN' or mouse_id == '206FRL' or mouse_id == '211MRR' or mouse_id == '218MN':
+#     cues1 = [2 if x == 1 else 1 if x == 2 else x for x in cues1]
+
+
+
 # pstr = calc_pstr(cues1,  sessions_data['20221224_MNL_NF11']['post_session_analysis']['dff_delta5']['zscore'], 10)
 pstr = {}
+# for i, key in enumerate(session_meta[f'{session_id}']['rois_dict'].keys()):
+#     pstr[key] = np.mean(
+#         calc_pstr(cues1, sessions_data[f'{session_id}']['post_session_analysis']['dff_delta5']['zscore'][i], delta_t=10)
+#         , axis=0)
 for i, key in enumerate(session_meta[f'{session_id}']['rois_dict'].keys()):
     pstr[key] = np.mean(
-        calc_pstr(cues1, sessions_data[f'{session_id}']['post_session_analysis']['dff_delta5']['zscore'][i], delta_t=10)
+        calc_pstr(cues1, sessions_data[f'{session_id}']['post_session_analysis_LK2']['zsores_MH_diff5'][key][int(start_frame/2):], delta_t=10)
         , axis=0)
 
 #pstr = np.mean(calc_pstr(cues,  sessions_data['20221224_MNL_NF11']['post_session_analysis']['dff_delta5']['zscore'], dt)

@@ -46,10 +46,12 @@ def calc_rois_corr(rois_dict, data, data_chosen_roi):
 
 
 base_path = '/data/Lena/WideFlow_prj'
-dates_vec = ['20230604','20230608','20230611','20230614']
+dates_vec = ['20230604','20230608','20230611','20230615']
+#dates_vec = ['20241121','20241125','20241129','20241203']
 mice_id = ['31MN']
 colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
-sessions_vec = ['spont_mockNF_NOTexcluded_closest','CRC4','NF1','NF4']
+sessions_vec = ['spont_mockNF_NOTexcluded_closest','CRC4','NF1','NF5']
+#sessions_vec = ['spont','CRC3','NF1','NF5']
 #session_id = f'{date}_{mouse_id}_{sess_name}'
 #title = f'{mouse_id}_{sess_name}_noMH_allROIS_corr_graph_smalldots'
 indexes_vec = [105]#(those are the indexes, the actual ROI numbers are this +1)[134, 105, 85, 52, 71 ]
@@ -57,12 +59,16 @@ indexes_vec = [105]#(those are the indexes, the actual ROI numbers are this +1)[
 #indexes_vec = [58] #retrosplenial
 #indexes_vec = [85] #bottom of somatosensory
 #indexes_vec = [47] #v1
+#indexes_vec = [69] #204
+
 num_frames_21ML = 14000
 
 #title = f'{mice_id}_{sessions_vec}_roi_{indexes_vec[0]+1}_corr_vs_prox_linear_fit'
 
 results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
 CRC_res_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+# CRC_res_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 
 corr_all_sess = []
 prox_all_sess = []
@@ -213,7 +219,7 @@ plt.title(f'{title}')
 plt.legend()
 
 
-#plt.show()
-plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-plt.savefig(f'{base_path}/Figs_for_paper/{title}.svg',format='svg',dpi=500)
+plt.show()
+# plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
+# plt.savefig(f'{base_path}/Figs_for_paper/{title}.svg',format='svg',dpi=500)
 

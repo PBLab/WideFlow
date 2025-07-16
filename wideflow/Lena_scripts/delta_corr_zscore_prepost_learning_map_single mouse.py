@@ -53,15 +53,43 @@ def calc_z_score(x):
 
 
 base_path = '/data/Lena/WideFlow_prj'
-dates_vec = ['20230608','20230614']
-mice_id = ['64ML']
+#dates_vec = ['20230608','20230615']
+dates_vec = ['20241126','20241203']
+#mice_id = ['31MN']
+mice_id = [
+    #'21ML'
+    # '31MN'
+     #'54MRL'
+    #, '63MR'
+    #, '64ML'
+    #'187FN'
+    #'203MN'
+    #'204FR'
+    #'206FRL'
+    #'211MRR'
+    '218MN'
+    ]
 colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
-sessions_vec = ['CRC4','NF4']
-indexes_vec = [71]#(those are the indexes, the actual ROI numbers are this +1)[134, 105, 85, 52, 71 ]
+sessions_vec = ['CRC4','NF5']
+#indexes_vec = [71]#(those are the indexes, the actual ROI numbers are this +1)[134, 105, 85, 52, 71 ]
 #indexes_vec = [65] #ROI2(motor)
 #indexes_vec = [58] #retrosplenial
 #indexes_vec = [85] #bottom of somatosensory
 #indexes_vec = [47] #v1
+indexes_vec = [
+   # 134  # 21
+    # 105  # 31
+     #85  # 54
+    #, 52  # 63
+    #, 71  # 64
+    #56  #187
+    #41  #203
+    #69  #204
+     #50  #206
+     #53  #211
+     46  #218
+    ]#(those are the indexes, the actual ROI numbers are this +1)[134, 105, 85, 52, 71 ]
+
 
 #num_frames = 24300
 
@@ -79,12 +107,17 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
         session_id = f'{date}_{mouse_id}_{sess_name}'
         if mouse_id == '63MR' and sess_name == 'CRC4':
             session_id = '20230607_63MR_CRC3'
+        if sess_name == 'CRC4' and mouse_id == '203MN':
+            session_id = '20241125_203MN_CRC3'
+        if sess_name == 'CRC4' and mouse_id == '204FR':
+            session_id = '20241125_204FR_CRC3'
 
 
         data = {}
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
-        if sess_name == 'CRC4':
-            results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+        # if sess_name == 'CRC4':
+        #     results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
 
         with h5py.File(results_path, 'r') as f:
             decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')

@@ -21,7 +21,7 @@ import h5py
 from tifffile import TiffWriter
 
 from datetime import datetime
-
+from tqdm import tqdm
 
 class PostAnalysisNeuroFeedbackSession(AbstractSession):
     def __init__(self, config, crop_sensor=False):
@@ -67,7 +67,9 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
         # self.results_dataset_path = '/data/Rotem/WideFlow prj/results/sessions_20220320.h5'
         #self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
-        self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        #self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        #self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/sessions_exp3.h5'
+        self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
 
     def set_imaging_camera(self):
         cam = MockPVCamera(self.camera_config, self.session_path, self.crop_sensor)
@@ -83,7 +85,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
 
     def set_metadata_writer(self):
         start_frame = 0
-        timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{self.session_path}/metadata.txt')
+        timestamp, cue, metric_result, threshold, serial_readout, trial_number1 = extract_from_metadata_file(f'{self.session_path}/metadata.txt')
         metadata = {"timestamp": timestamp[start_frame:], "cue": cue[start_frame:], "metric_result": metric_result[start_frame:], "threshold": threshold[start_frame:],
                     "serial_readout": serial_readout[start_frame:]}
         return metadata
@@ -128,6 +130,7 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         # start session
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        progress_bar = tqdm(total=self.acquisition_config["num_of_frames"], desc="Processing frames", ncols=100)
         while self.camera.total_cap_frames < self.acquisition_config["num_of_frames"]:
             self.analysis_pipeline.process()
 
@@ -158,7 +161,10 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                     output_shape=dff_movie.shape[-2:])
 
             frame_counter += 1
-            print(f'frame: {frame_counter:06d}', end='\r')
+            #print(f'frame: {frame_counter:06d}', end='\r')
+            progress_bar.update(1)
+        progress_bar.close()
+
 
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
