@@ -47,5 +47,19 @@ class ROIDiff(AbstractMetric):
         for i, (roi_key, roi_dict) in enumerate(self.rois_dict.items()):
             self.rois_mean[i] = np.mean(self.diff[roi_dict['unravel_index'][1], roi_dict['unravel_index'][0]])
 
-        std = np.std(self.rois_mean)
-        self.result = (np.mean(self.rois_mean[self.metric_list]) - np.mean(self.rois_mean)) / (std + self.eps)
+        # std = np.std(self.rois_mean)
+        # self.result = (np.mean(self.rois_mean[self.metric_list]) - np.mean(self.rois_mean)) / (std + self.eps)
+
+        # Compute mask to exclude top 15% ROIs by mean
+        num_exclude = int(0.15 * len(self.rois_mean))
+        exclude_indices = np.argpartition(self.rois_mean, -num_exclude)[-num_exclude:]
+        mask = np.ones(len(self.rois_mean), dtype=bool)
+        mask[exclude_indices] = False
+
+        # Apply mask
+        filtered_means = self.rois_mean[mask]
+
+        # Compute std and result using filtered ROIs
+        std = np.std(filtered_means)
+        self.result = (np.mean(self.rois_mean[self.metric_list]) - np.mean(filtered_means)) / (std + self.eps)
+

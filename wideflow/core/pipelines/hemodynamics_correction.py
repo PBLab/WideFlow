@@ -50,17 +50,25 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.warped_buffer_ch2 = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.dff_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
         self.dff_buffer_ch2 = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
+        self.dff_pre_hemo_buffer = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]), dtype=cp.float32)
+        self.dff_pre_hemo_buffer_ch2 = cp.ndarray((self.capacity, self.new_shape[0], self.new_shape[1]),dtype=cp.float32
+        )
+
 
         affine_transform = AffineTrans(self.input, self.warped_input, self.affine_matrix, self.new_shape)
         # set processes for channel 1
         masking = Mask(self.warped_input, self.mask, self.warped_buffer)
         dff = DFF(self.dff_buffer, self.warped_buffer)
+        # # expose the DFF instance for external access (GFP / channel 0) LK
+        self.dff_blue = dff
         hemo_subtract = HemoSubtraction(self.dff_buffer, self.dff_buffer_ch2)
         self.processes_list = [affine_transform, masking, dff, hemo_subtract]
 
         # set processes for channel 2
         masking_ch2 = Mask(self.warped_input, self.mask, self.warped_buffer_ch2)
         dff_ch2 = DFF(self.dff_buffer_ch2, self.warped_buffer_ch2)
+        # expose the DFF instance for external access (hemo / channel 2) LK
+        self.dff_violet = dff_ch2
         hemo_correct = HemoCorrect(self.dff_buffer_ch2, self.regression_map)
         self.processes_list_ch2 = [affine_transform, masking_ch2, dff_ch2, hemo_correct]
 
@@ -108,6 +116,8 @@ class HemoDynamicsDFF(AbstractPipeLine):
         self.warped_buffer_ch2 = None
         self.dff_buffer = None
         self.dff_buffer_ch2 = None
+        self.dff_pre_hemo_buffer = None
+        self.dff_pre_hemo_buffer_ch2 = None
 
         mempool = cp.get_default_memory_pool()
         pinned_mempool = cp.get_default_pinned_memory_pool()
@@ -125,14 +135,37 @@ class HemoDynamicsDFF(AbstractPipeLine):
             self.ptr_2c += 1
 
         self.get_input()
+        # if not self.ptr_2c % 2:  # first channel processing
+        #     self.ptr = int(self.ptr_2c / 2)
+        #     for process in self.processes_list:
+        #         process.process()
         if not self.ptr_2c % 2:  # first channel processing
             self.ptr = int(self.ptr_2c / 2)
-            for process in self.processes_list:
+
+            # Run up to (but not including) hemo subtraction
+            for process in self.processes_list[:-1]:
                 process.process()
 
+            # Copy pre-hemo DFF for current frame
+            self.dff_pre_hemo_buffer[self.ptr] = cp.copy(self.dff_buffer[self.ptr])
+
+            # Now apply hemo subtraction (modifies self.dff_buffer in place)
+            self.processes_list[-1].process()
+
+        # else:  # second channel processing
+        #     for process in self.processes_list_ch2:
+        #         process.process()
         else:  # second channel processing
-            for process in self.processes_list_ch2:
+            self.ptr = int(self.ptr_2c / 2) #LK remove if hemo is saved weird
+            # Run up to (but not including) HemoCorrect
+            for process in self.processes_list_ch2[:-1]:
                 process.process()
+
+            # Copy DFF before regression correction
+            self.dff_pre_hemo_buffer_ch2[self.ptr] = cp.copy(self.dff_buffer_ch2[self.ptr])
+
+            # Now run regression correction
+            self.processes_list_ch2[-1].process()
 
     def evaluate(self):
         if not self.ptr_2c % 2:

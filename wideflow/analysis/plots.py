@@ -8,7 +8,7 @@ import copy
 # from analysis.utils.generate_color_list import generate_gradient_color_list
 
 
-def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1, t=None, c_reward='k', c_response='b', fig=None): #fig variable added by Lena
+def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1, t=None, c_reward='k', c_response='b', fig=None, linewidth_response = 0.2, show_legend = True): #fig variable added by Lena
     if t is None:
         t = np.arange(len(rewards))
     rewards_inds = np.array(rewards)
@@ -16,8 +16,11 @@ def plot_reward_response(ax, rewards, responses, ymin=0, ymax=1, t=None, c_rewar
     responses_inds = np.array(responses)
     responses_inds = [i for i in range(len(responses_inds)) if responses_inds[i]]
 
-    ax.vlines(t[np.ix_(rewards_inds)], ymin=ymin, ymax=ymax, color=c_reward, linewidth=1)
-    ax.vlines(t[np.ix_(responses_inds)], ymin=0.5*ymin, ymax=0.5*ymax, color=c_response, linewidth=0.2)
+    ax.vlines(t[np.ix_(rewards_inds)], ymin=ymin, ymax=ymax, color=c_reward, linewidth=1, alpha = 0.5, label='Reward')
+    ax.vlines(t[np.ix_(responses_inds)], ymin=ymin, ymax=ymin+0.1*(ymax-ymin), color=c_response, linewidth=linewidth_response, alpha = 0.7,  label='Response')
+
+    if show_legend:
+        ax.legend(frameon=False, fontsize=8, loc='upper right')
     if fig is not None:
         return fig #Added by Lena
 

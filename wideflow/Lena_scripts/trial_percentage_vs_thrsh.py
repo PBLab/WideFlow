@@ -26,6 +26,8 @@ def convert_input(input_value, led_baseline, adj_led_analog_val_max):
 
 
 base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+
 mice_id = [
     #'21ML',
    #'31MN',
@@ -38,11 +40,26 @@ mice_id = [
     #'206FRL',
    #'211MRR',
     #'218MN'
-   '226MR',
-    #'228MN'
-   # '229FR'
-  # '232FN'
-    #'241FRLL'
+  #'226MR',
+  # '228MN'
+  #'232FN'
+ #'241FRLL'
+   # '245FRL'
+    #'246FN'
+    #'248FL'
+    #'252MR'
+    #'256FLL'
+   # '257FR'
+   #  '228MN',
+   #  '258FL',
+   #     '259FRL',
+   #    '260FN',
+   #   '261MR',
+   #   '263MRL',
+   #  '266FR',
+    '276FL',
+    # '277FRL',
+    # '281MRL'
 ]
 
 indexes_vec = [ #somatosensory target ROI
@@ -62,7 +79,39 @@ indexes_vec = [ #somatosensory target ROI
    # 40, #229
    #46, #232
     #67, #241
-    360
+    #'36_11', #226
+    #'47_44', #228
+    #'47_49', #232
+    #'68_53' #241
+    #'90_71' #245
+    #'60_52' #246
+    #'35_36' #248
+    #'52_67' #252
+    #'23_27' #256
+    #'68_75' #257
+
+     #'14_17' #245 roi2
+    #'34_38' #246 roi2
+     #'19_39' #248 roi2
+    # '16_17' #252 roi2
+    # '69_67' #256 roi2
+    #'22_21' #257 roi2
+
+    # '66_45'# '228MN' roi1
+   #'66_42' # '258FL' roi1
+     #'62_45'# '259FRL' roi1
+     #'89_87'# '260FN' roi1
+    #'26_16'# '261MR' roi1
+    #'67_50'# '263MRL' roi1
+
+    # '50_40'  # '228MN' roi2
+    #  '12_18' # '258FL' roi2
+    #   '26_18'# '259FRL' roi2
+    #   '64_49'# '260FN' roi2
+    #  '76_110'# '261MR' roi2
+    #  '40_44'# '263MRL' roi2
+    # '62_43', #266
+    '78_80', #276
      ]#(those are the indexes, the actual ROI numbers are this +1)[134, 105, 85, 52, 71 ]
 
 line_styles = [
@@ -119,14 +168,30 @@ colors = [
 
 #colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta','blue','red','olivedrab','grey','green','aquamarine'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
 
-
+session_last_frame = 19000
 
 data_all_mice = {}
 #plotting_allROIs = {}
 for mouse_id, metric_index in zip(mice_id,indexes_vec):
     data_all_mice[f'{mouse_id}']={}
     #plotting_allROIs[f'{mouse_id}'] = {}
-    if mouse_id == '187FN' or mouse_id == '203MN' or mouse_id == '204FR' or mouse_id == '206FRL' or mouse_id == '211MRR' or mouse_id == '218MN':
+    if mouse_id == '266FR' or mouse_id == '276FL' or mouse_id == '277FRL' or mouse_id == '281MRL' :
+        dates_vec = [
+            '20251202', #spont
+
+        ]
+        sessions_vec = [
+            'spont_p3',
+            # 'CRC4',
+            # 'NF1'
+            #'NF2'
+            # 'NF3',
+            #'NF4',
+            #'NF5'
+        ]
+
+        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.h5'
+    elif mouse_id == '187FN' or mouse_id == '203MN' or mouse_id == '204FR' or mouse_id == '206FRL' or mouse_id == '211MRR' or mouse_id == '218MN':
         dates_vec = [
             #'20241121', #spont
             # '20241126', #crc4
@@ -166,8 +231,12 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             #'20250608'
             #'20250610'
             #'20250612'
-            #'20250616'
-            '20250622'
+            #'20250622'
+            #'20250718'
+            #'20250727'
+            #'20250728'
+            #'20250731'
+            '20250905'
             ]
         sessions_vec = [
            # 'spont_mockNF_NOTexcluded_closest',
@@ -179,16 +248,24 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             #'NF5'
             #'spont'
             #'CRC1'
-            #'NF1'
             #'NF11_diff10'
-            'NF2.2'
+            #'NF2.2'
+            #'NF1.3'
+            #'CRC1_p4'
+            #'NF1_p3'
+            'NF1_p3'
         ]
         #dates_vec = ['20230605','20230607','20230608']
         #sessions_vec = ['CRC1','CRC3','CRC4']
         #results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
         #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
         #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
+        #results_path = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
+        #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.3.h5'
+        #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
+        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_NEW2.h5'
+        #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_full_parcellations.h5'
 
     for date, session_name in zip(dates_vec, sessions_vec):
         session_id = f'{date}_{mouse_id}_{session_name}'
@@ -210,7 +287,7 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             threshold1 =  np.arange(65000)
             serial_readout_correct = np.arange(65000)
         else:
-            [timestamp, cue1, metric_result1, threshold1, serial_readout, trial_number1] = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
+            [timestamp1, cue1, metric_result1, threshold1, serial_readout, trial_number1] = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
             serial_readout_correct = [1-x for x in serial_readout]
         # # if mice_id.index(f'{mouse_id}') in control_indexes:
         # #     cue = [2 if x == 1 else 1 if x == 2 else x for x in cue]
@@ -235,7 +312,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         thresholds = np.arange(1, 10 + 0.1, 0.1)
         percentage_success = []
         #metric_result = np.repeat(data[f'roi_{metric_index+1}'], 2)
-        metric_result = np.repeat(data[f'roi_{str(metric_index + 1).zfill(2)}'][:], 2)
+        #metric_result = np.repeat(data[f'roi_{str(metric_index + 1).zfill(2)}'][:], 2)
+        metric_result = np.repeat(data[f'roi_{metric_index}'][:int(session_last_frame/2)], 2)
         max_trial_frames = 750
         timeout_rewarded = 200
         timeout_no_reward = 250
@@ -266,6 +344,7 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             frame_counter = 0
             trial_number = []
 
+            timestamp = timestamp1[:session_last_frame]
             while frame_counter < len(timestamp):
                 # --- Start of trial ---
                 trial_counter += 1
@@ -355,7 +434,7 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             data_all_mice[f'{mouse_id}'][f'threshold={threshold}']['cue'] = cue
             #data_all_mice[f'{mouse_id}'][f'threshold={threshold}']['converted_values'] = converted_values
             data_all_mice[f'{mouse_id}'][f'threshold={threshold}']['metric_result'] = metric_result
-            data_all_mice[f'{mouse_id}'][f'threshold={threshold}']['metric_result1'] = metric_result1
+            # data_all_mice[f'{mouse_id}'][f'threshold={threshold}']['metric_result1'] = metric_result1
             data_all_mice[f'{mouse_id}'][f'threshold={threshold}']['threshold'] = threshold
             data_all_mice[f'{mouse_id}'][f'threshold={threshold}']['threshold1'] = threshold1
             data_all_mice[f'{mouse_id}'][f'threshold={threshold}']['trial_number'] = trial_number
@@ -420,6 +499,7 @@ for color,mouse_id1,line in zip(colors,mice_id,line_styles):
     x=np.array(data_all_mice[f'{mouse_id1}']['thresholds'])
     y=np.array(data_all_mice[f'{mouse_id1}']['percentage_success'])
     idx = np.argmin(np.abs(y - 0.3))
+    # idx = np.argmin(np.abs(x - 3.9))
     x_point = x[idx]
     y_point = y[idx]
     plt.plot(x,y, color='grey', alpha=0.7)

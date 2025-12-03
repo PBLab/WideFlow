@@ -69,7 +69,19 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         #self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
         #self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
         #self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/sessions_exp3.h5'
-        self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
+        #self.results_dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
+        #self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.h5'
+        #self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.3.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        #self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_full_parcellations.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_NEW2.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_with_GFP_pre_hemo.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline_and_hemo.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline7.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_NEW.h5'
+        self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.h5'
 
     def set_imaging_camera(self):
         cam = MockPVCamera(self.camera_config, self.session_path, self.crop_sensor)
@@ -113,7 +125,13 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         self.analysis_pipeline.camera.frame_idx = -1  # back to first frame to compensate for frames used to fill the buffers
         self.analysis_pipeline.camera.total_cap_frames = 0
         rois_traces_ch1 = {}
-        rois_traces_ch2 = {}
+        rois_traces_ch2 = {} #Hemo dff post hemoCorrect
+        rois_traces_ch0_pre_hemo = {}  # GFP dff before hemoSubstract LK
+        rois_traces_ch3_signal = {}  # GFP raw signal per frame
+        rois_traces_ch4_baseline = {}  # GFP baseline per frame
+        rois_traces_ch5_signal = {} #Hemo raw signal per frame
+        rois_traces_ch6_baseline = {} #Hemo baseline for dff per frame
+        rois_traces_ch7_previolet = {} #Hemo dff before hemoCorrect
         for roi_key in self.cortex_rois_dict:
             rois_traces_ch1[roi_key] = np.zeros(
                 (int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),)
@@ -121,6 +139,24 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             rois_traces_ch2[roi_key] = np.zeros(
                 (int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),)
                 , dtype=np.float32)
+            rois_traces_ch0_pre_hemo[roi_key] = np.zeros(
+                (int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),),
+                dtype=np.float32
+            )
+            trace_len = int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels'])
+            rois_traces_ch3_signal[roi_key] = np.zeros(trace_len, dtype=np.float32)
+            rois_traces_ch4_baseline[roi_key] = np.zeros(trace_len, dtype=np.float32)
+            rois_traces_ch5_signal[roi_key] = np.zeros(trace_len, dtype=np.float32)
+            rois_traces_ch6_baseline[roi_key] = np.zeros(trace_len, dtype=np.float32)
+            rois_traces_ch7_previolet[roi_key] = np.zeros(trace_len, dtype=np.float32)
+
+            # Precompute ROI indices (numpy arrays) to avoid repeated tuple construction each frame
+            roi_pixel_idx = {}
+            for roi_key, roi_dict in self.cortex_rois_dict.items():
+                # keep same ordering used elsewhere: [rows, cols] = [unravel_index[1], unravel_index[0]]
+                rows = np.array(roi_dict['unravel_index'][1], dtype=np.int64)
+                cols = np.array(roi_dict['unravel_index'][0], dtype=np.int64)
+                roi_pixel_idx[roi_key] = (rows, cols)
 
         metric_result = np.zeros((self.acquisition_config["num_of_frames"],))
         dff_movie = np.zeros((int(self.acquisition_config["num_of_frames"] / self.camera_config['attr']['channels']),
@@ -145,12 +181,64 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
                                                                   self.cortex_rois_dict[roi_key]['unravel_index'][1],
                                                                   self.cortex_rois_dict[roi_key]['unravel_index'][0]])
                     )
+                # ROI traces before hemo correction (new) LK
+                for roi_key in rois_traces_ch0_pre_hemo:
+                    # rois_traces_ch0_pre_hemo[roi_key][frame_counter_ch] = cp.asnumpy(
+                    #     cp.mean(self.analysis_pipeline.dff_buffer[self.analysis_pipeline.ptr,
+                    #     self.cortex_rois_dict[roi_key]['unravel_index'][1],
+                    #     self.cortex_rois_dict[roi_key]['unravel_index'][0]]))
+                    rois_traces_ch0_pre_hemo[roi_key][frame_counter_ch] = cp.asnumpy(
+                        cp.mean(self.analysis_pipeline.dff_pre_hemo_buffer[self.analysis_pipeline.ptr,
+                        self.cortex_rois_dict[roi_key]['unravel_index'][1],
+                        self.cortex_rois_dict[roi_key]['unravel_index'][0]]))
+
+                # for roi_key in rois_traces_ch3_signal:
+                #     # mean raw GFP signal (same shape as signal[self.ptr])
+                #     rois_traces_ch3_signal[roi_key][frame_counter_ch] = cp.asnumpy(
+                #         cp.mean(self.analysis_pipeline.dff_blue.signal[self.analysis_pipeline.dff_blue.ptr,
+                #         self.cortex_rois_dict[roi_key]['unravel_index'][1],
+                #         self.cortex_rois_dict[roi_key]['unravel_index'][0]]))
+                #     # mean baseline value used for ΔF/F
+                #     rois_traces_ch4_baseline[roi_key][frame_counter_ch] = cp.asnumpy(
+                #         cp.mean(self.analysis_pipeline.dff_blue.baseline[
+                #                     self.cortex_rois_dict[roi_key]['unravel_index'][1],
+                #                     self.cortex_rois_dict[roi_key]['unravel_index'][0]]))
+                # --- Channel 3: mean raw fluorescence of ROI (same pixels used later for ROI DFF) ---
+                # current_ptr = self.analysis_pipeline.dff_blue.ptr
+                for roi_key in rois_traces_ch3_signal:
+                    rows, cols = roi_pixel_idx[roi_key]
+                    current_ptr = self.analysis_pipeline.dff_blue.ptr
+                    raw_pixels = self.analysis_pipeline.dff_blue.signal[current_ptr, rows, cols]
+                    # raw_pixels = self.analysis_pipeline.dff_blue.signal[ rows, cols]
+                    rois_traces_ch3_signal[roi_key][frame_counter_ch] = float(cp.asnumpy(cp.mean(raw_pixels)))
+
+                    baseline_pixels = self.analysis_pipeline.dff_blue.baseline[rows, cols]
+                    rois_traces_ch4_baseline[roi_key][frame_counter_ch] = float(cp.asnumpy(cp.mean(baseline_pixels)))
+
+                    # mean raw HEMO signal (same shape as signal[self.ptr])
+                    rois_traces_ch5_signal[roi_key][frame_counter_ch] = cp.asnumpy(
+                        cp.mean(self.analysis_pipeline.dff_violet.signal[self.analysis_pipeline.dff_violet.ptr,
+                        self.cortex_rois_dict[roi_key]['unravel_index'][1],
+                        self.cortex_rois_dict[roi_key]['unravel_index'][0]]))
+                    # mean baseline value used for ΔF/F of HEMO
+                    rois_traces_ch6_baseline[roi_key][frame_counter_ch] = cp.asnumpy(
+                        cp.mean(self.analysis_pipeline.dff_violet.baseline[
+                                    self.cortex_rois_dict[roi_key]['unravel_index'][1],
+                                    self.cortex_rois_dict[roi_key]['unravel_index'][0]]))
             else:
                 for roi_key in rois_traces_ch2:
                     rois_traces_ch2[roi_key][frame_counter_ch] = cp.asnumpy(
                         cp.mean(self.analysis_pipeline.dff_buffer_ch2[self.analysis_pipeline.ptr,
                                                                       self.cortex_rois_dict[roi_key]['unravel_index'][1],
                                                                       self.cortex_rois_dict[roi_key]['unravel_index'][0]])
+                    )
+
+                #Violet pre-hemoSubstract
+                for roi_key in rois_traces_ch7_previolet:
+                    rois_traces_ch7_previolet[roi_key][frame_counter_ch] = cp.asnumpy(
+                        cp.mean(self.analysis_pipeline.dff_pre_hemo_buffer_ch2[self.analysis_pipeline.ptr,
+                        self.cortex_rois_dict[roi_key]['unravel_index'][1],
+                        self.cortex_rois_dict[roi_key]['unravel_index'][0]])
                     )
                 frame_counter_ch += 1
 
@@ -169,10 +257,14 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # end session
-        self.session_termination(rois_traces_ch1, rois_traces_ch2, metric_result, dff_movie)
+        self.session_termination(rois_traces_ch1, rois_traces_ch2, rois_traces_ch0_pre_hemo,rois_traces_ch3_signal,
+                                 rois_traces_ch4_baseline,rois_traces_ch5_signal, rois_traces_ch6_baseline,rois_traces_ch7_previolet,
+                                 metric_result, dff_movie)
         print(f'session endded at {datetime.now()}')
 
-    def session_termination(self, rois_traces_ch1, rois_traces_ch2, metric_result, dff_movie):
+    def session_termination(self, rois_traces_ch1, rois_traces_ch2, rois_traces_ch0_pre_hemo,rois_traces_ch3_signal, rois_traces_ch4_baseline,
+                            rois_traces_ch5_signal, rois_traces_ch6_baseline, rois_traces_ch7_previolet,
+                            metric_result, dff_movie):
         self.analysis_pipeline.clear_buffers()
         with h5py.File(self.results_dataset_path, 'a') as f:
             main_group = f[self.mouse_id]
@@ -181,11 +273,36 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             #rois_traces_group = session_group.create_group('rois_traces')
             ch0_grp = rois_traces_group.create_group('channel_0')
             ch1_grp = rois_traces_group.create_group('channel_1')
+            ch2_grp = rois_traces_group.create_group('channel_2')
+            ch3_grp = rois_traces_group.create_group('channel_3')  # GFP raw signal
+            ch4_grp = rois_traces_group.create_group('channel_4')  # GFP baseline
+            ch5_grp = rois_traces_group.create_group('channel_5')  # hemo raw signal
+            ch6_grp = rois_traces_group.create_group('channel_6')  # hemo baseline
+            ch7_grp = rois_traces_group.create_group('channel_7')  # Violet before correction
+
             for roi_key, roi_trace in rois_traces_ch1.items():
                 ch0_grp.create_dataset(roi_key, data=roi_trace)
 
             for roi_key, roi_trace in rois_traces_ch2.items():
                 ch1_grp.create_dataset(roi_key, data=roi_trace)
+
+            for roi_key, roi_trace in rois_traces_ch0_pre_hemo.items():
+                ch2_grp.create_dataset(roi_key, data=roi_trace)
+
+            for roi_key, roi_trace in rois_traces_ch3_signal.items():
+                ch3_grp.create_dataset(roi_key, data=roi_trace)
+
+            for roi_key, roi_trace in rois_traces_ch4_baseline.items():
+                ch4_grp.create_dataset(roi_key, data=roi_trace)
+
+            for roi_key, roi_trace in rois_traces_ch5_signal.items():
+                ch5_grp.create_dataset(roi_key, data=roi_trace)
+
+            for roi_key, roi_trace in rois_traces_ch6_baseline.items():
+                ch6_grp.create_dataset(roi_key, data=roi_trace)
+
+            for roi_key, roi_trace in rois_traces_ch7_previolet.items():
+                ch7_grp.create_dataset(roi_key, data=roi_trace)
 
             session_group.create_dataset('metric_results', data=metric_result)
 

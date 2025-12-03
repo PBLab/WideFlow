@@ -9,17 +9,19 @@ from untracked_files.matlab_functional_parcellation_to_roi_dict_with_merging imp
 
 from wideflow.utils.paint_roi import paint_roi
 
-mouse_id = '232FN'
+mouse_id = '277FRL'
 map_size = [297, 337]
-rois_matlab_path = f'/data/Lena/WideFlow_prj/{mouse_id}/ROI_list_left.mat'  # path to the functional parcellation results, containing only ROI_list variable
-mouse_base_path = f'/data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
+# rois_matlab_path = f'/data/Lena/WideFlow_prj/{mouse_id}/ROI_list_left.mat'  # path to the functional parcellation results, containing only ROI_list variable
+# mouse_base_path = f'/data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
+rois_matlab_path = f'/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/{mouse_id}/ROI_list_left.mat'  # path to the functional parcellation results, containing only ROI_list variable
+mouse_base_path = f'/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
 # rois_data_path = mouse_base_path + 'functional_parcellation_rois_dict.h5'
 # parcellation_map_path = mouse_base_path + 'functional_parcellation_cortex_map.h5'
-rois_data_path = mouse_base_path + 'functional_parcellation_rois_dict_NEW.h5'
-parcellation_map_path = mouse_base_path + 'functional_parcellation_cortex_map_NEW.h5'
+rois_data_path = mouse_base_path + 'functional_parcellation_rois_dict_NEW2.h5'
+parcellation_map_path = mouse_base_path + 'functional_parcellation_cortex_map_NEW2.h5'
 
-#convert_matlab_functional_parcellation_struct_to_dict(rois_matlab_path, rois_data_path)
-convert_and_merge_rois(rois_matlab_path, rois_data_path, 'ROI47', 'ROI49')
+# convert_matlab_functional_parcellation_struct_to_dict(rois_matlab_path, rois_data_path)
+convert_and_merge_rois(rois_matlab_path, rois_data_path, 'ROI131', 'ROI118')
 rois_data = load_rois_data(rois_data_path)
 
 cortex_map = np.zeros(map_size)

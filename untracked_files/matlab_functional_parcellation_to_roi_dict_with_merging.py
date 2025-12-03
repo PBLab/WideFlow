@@ -50,7 +50,7 @@ def convert_and_merge_rois(rois_struct_path, rois_dict_path, merge_roi_name_1, m
             if not match:
                 raise ValueError(f"Cannot extract ROI number from name: {name}")
             roi_number = int(match.group())
-            roi_key = f'roi_{roi_number}'
+            roi_key = f'roi_{roi_number:02d}'
             rois_dict[roi_key] = {
                 'Index': len(rois_dict),
                 'Area': len(rois_struct['pixel_list'][i]),
@@ -81,6 +81,7 @@ def convert_and_merge_rois(rois_struct_path, rois_dict_path, merge_roi_name_1, m
     # Prune seam pixels from each outline
     merged_outline_set = (outline_1_set - shared_from_1) | (outline_2_set - shared_from_2)
     merged_outline = np.array(list(merged_outline_set))
+    merged_outline_linear = xy_to_linear(merged_outline, width=297)
 
     # Concatenate pixel lists from both ROIs (union of all pixels)
     merged_pixels = np.concatenate(merged_pixels, axis=0)
@@ -103,7 +104,7 @@ def convert_and_merge_rois(rois_struct_path, rois_dict_path, merge_roi_name_1, m
         'Area': merged_area,
         'Centroid': merged_centroid,
         'PixelIdxList': merged_pixels,
-        'outline': merged_outline,
+        'outline': merged_outline_linear,
         'top_left_bottom_rigth': [],
         'name': merged_name
     }

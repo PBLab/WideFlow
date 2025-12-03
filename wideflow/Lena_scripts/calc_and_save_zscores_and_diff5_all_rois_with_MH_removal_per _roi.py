@@ -53,16 +53,89 @@ def calc_z_score_exclude_top15(x):
         z[:, t] = (col - mu) / sigma
     return z
 
+# def calc_z_score_exclude_top15_eval_style(x):
+#     """
+#     Compute z-scores per ROI and per timepoint using frame-wise exclusion of the top 15% ROIs.
+#     Matches 'evaluate()' normalization logic.
+#     x: array of shape (n_rois, n_timepoints)
+#     """
+#     n_rois, n_timepoints = x.shape
+#     z = np.empty_like(x)
+#
+#     for t in range(n_timepoints):
+#         col = x[:, t]
+#         # Exclude top 15% of ROI values at this timepoint
+#         num_exclude = int(0.15 * n_rois)
+#         if num_exclude > 0:
+#             exclude_idx = np.argpartition(col, -num_exclude)[-num_exclude:]
+#             mask = np.ones(n_rois, dtype=bool)
+#             mask[exclude_idx] = False
+#             filtered = col[mask]
+#         else:
+#             filtered = col
+#
+#         mu = np.mean(filtered)
+#         sigma = np.std(filtered) + np.finfo(np.float32).eps
+#         z[:, t] = (col - mu) / sigma
+#
+#     return z
+
+#
+# def calc_z_score_exclude_top15_eval_style(x, metric_list=None):
+#     """
+#     Compute z-scores per ROI per timepoint using 'evaluate()'-style normalization:
+#     - Exclude top 15% of ROIs per frame
+#     - Compute mean and std from remaining ROIs
+#     - Return per-ROI z-scores and optionally per-frame scalar results
+#     x: ndarray, shape (n_rois, n_timepoints)
+#     metric_list: list of ROI indices defining the subset used for the main result (optional)
+#     """
+#     n_rois, n_timepoints = x.shape
+#     z = np.empty_like(x)
+#     eval_result = np.empty(n_timepoints) if metric_list is not None else None
+#
+#     for t in range(n_timepoints):
+#         col = x[:, t]
+#         num_exclude = int(0.15 * n_rois)
+#         if num_exclude > 0:
+#             exclude_idx = np.argpartition(col, -num_exclude)[-num_exclude:]
+#             mask = np.ones(n_rois, dtype=bool)
+#             mask[exclude_idx] = False
+#             filtered = col[mask]
+#         else:
+#             filtered = col
+#
+#         mu = np.mean(filtered)
+#         sigma = np.std(filtered) + np.finfo(np.float32).eps
+#         z[:, t] = (col - mu) / sigma
+#
+#         if metric_list is not None:
+#             eval_result[t] = (np.mean(col[metric_list]) - mu) / sigma
+#
+#     return z, eval_result
+
+
 #This needs to be run on sessions were no MH was used in the post_session_procedure to be able to access all ROIs.
 
 
-base_path = '/data/Lena/WideFlow_prj'
+#base_path = '/data/Lena/WideFlow_prj'
+base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
 #dataset_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
-dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+#dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 #dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 #dataset_path_noMH ='/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
 #dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/sessions_exp3.h5'
-dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
+#dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
+#dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.3.h5'
+#dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/sessions_exp3.h5'
+#dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
+#dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_NEW2.h5'
+#dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_full_parcellations.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
+dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.h5'
+
+
 
 #dates_vec = ['20230615', '20230618', '20230619', '20230620', '20230621', '20230622']
 #dates_vec = ['20230604', '20230618', '20230619', '20230620', '20230621', '20230622']
@@ -73,8 +146,20 @@ dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
 #     # ,'20241129'
 #              ]
 
-dates_vec = ['20250622']
-sessions_vec = ['NF2.2']
+# dates_vec = ['20250911','20250911','20250911']
+# sessions_vec = ['NF_control_p1','NF_control_p2','NF_control_p3']
+# dates_vec = ['20250802','20250802','20250802','20250803','20250803','20250803']
+# sessions_vec = ['NF3_p1','NF3_p2','NF3_p3','NF4_p1','NF4_p2','NF4_p3']
+dates_vec = ['20251202','20251202','20251202']
+sessions_vec = ['spont_p1','spont_p2','spont_p3']
+# dates_vec = ['20251123','20251123','20251123','20251123',
+#              '20251123','20251123','20251123','20251123',
+#              '20251123','20251123','20251123','20251123',
+#              '20251123','20251123','20251123','20251123']
+# sessions_vec = ['try_oldcode_diff5_no15removal', 'try_oldcode_diff5_yes15removal', 'try_oldcode_diff10_no15removal', 'try_oldcode_diff10_yes15removal',
+#                 'try_oldcode_diff5_no15removal_fake', 'try_oldcode_diff5_yes15removal_fake', 'try_oldcode_diff10_no15removal_fake', 'try_oldcode_diff10_yes15removal_fake',
+#                 'try_newcode_diff5_no15removal', 'try_newcode_diff5_yes15removal', 'try_newcode_diff10_no15removal', 'try_newcode_diff10_yes15removal',
+#                 'try_newcode_diff5_no15removal_fake', 'try_newcode_diff5_yes15removal_fake', 'try_newcode_diff10_no15removal_fake', 'try_newcode_diff10_yes15removal_fake']
 
 mice_id = [ #'21ML'
     #'31MN','54MRL'
@@ -85,11 +170,19 @@ mice_id = [ #'21ML'
      #   ,'206FRL'
      #    ,'211MRR'
      #    ,'218MN'
-    '226MR',
-    #'228MN',
-    # '229FR',
-    # '232FN',
-    #'241FRLL'
+  # '245FRL',
+    # '246FN',
+    #   '248FL',
+   #  '252MR',
+   #   '256FLL',
+   #  '257FR'
+    # '228MN',
+   #  '258FL',
+   #  '259FRL',
+   #   '260FN',
+    # '261MR',
+    # '263MRL'
+    '277FRL'
     ]
 
 #sessions_vec = ['spont_mockNF_ROI2_excluded_closest','NF21', 'NF22', 'NF23', 'NF24', 'NF25']
@@ -132,23 +225,27 @@ for mouse_id in mice_id:
         diff10_zscores_exc_top5 = {}
         diff10_zscores_exc_top10 = {}
         diff10_zscores_exc_top15 = {}
+        diff10_zscores_exc_top15_NEW = {}
+        diff10_zscores_exc_top15_NEW2 = {}
+        diff10_zscores_exc_top15_NEW3 = {}
+        diff10_zscores_exc_top15_NEW4 = {}
 
-        functional_rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict.h5'
-        closest_dict_path = f'{base_path}/{mouse_id}/closest_dict.h5'
+        functional_rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict_NEW2.h5'
+        closest_dict_path = f'{base_path}/{mouse_id}/closest_dict_NEW2.h5'
         functional_rois_dict = load_rois_data(functional_rois_dict_path)
         with h5py.File(closest_dict_path, 'r') as hf:
             closest_dict = {key: [item.decode('utf-8') for item in value] for key, value in hf.items()}
 
-        functional_rois_dict['roi_361'] = []
-        closest_dict['roi_361'] = ['roi_48', 'roi_54', 'roi_40','roi_42','roi_19',
-                                'roi_09','roi_37']
+        # functional_rois_dict['roi_69_67'] = []
+        # closest_dict['roi_69_67'] = ['roi_66', 'roi_64', 'roi_39','roi_29','roi_37',
+        #                          'roi_55']
         a=5
 
 
 
         for key in functional_rois_dict.keys():
             functional_rois_dict_temp = load_rois_data(functional_rois_dict_path)
-            functional_rois_dict_temp['roi_361'] = []
+            #functional_rois_dict_temp['roi_69_67'] = []
 
             # if session_name == 'CRC4':
             #     dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
@@ -160,7 +257,7 @@ for mouse_id in mice_id:
             with h5py.File(dataset_path_noMH, 'r') as f:
                 decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')
             traces_roi = data['rois_traces']['channel_0']
-            traces_roi['roi_361'] = (np.array(traces_roi['roi_36']) + np.array(traces_roi['roi_11'])) / 2
+            #traces_roi['roi_69_67'] = (np.array(traces_roi['roi_69']) + np.array(traces_roi['roi_67'])) / 2
             for val in closest_dict[key]:
                 del functional_rois_dict_temp[val]
                 del traces_roi[val]
@@ -183,6 +280,8 @@ for mouse_id in mice_id:
             # diff5_zscores_exc_top10[key] = diff5_zscores_mat_exc_top10[keys_list.index(key), :]
             # diff5_zscores_mat_exc_top17 = calc_z_score_exclude_top17(diff5_mat)
             # diff5_zscores_exc_top17[key] = diff5_zscores_mat_exc_top17[keys_list.index(key), :]
+            diff5_zscores_mat_exc_top15 = calc_z_score_exclude_top15(diff5_mat)
+            diff5_zscores_exc_top15[key] = diff5_zscores_mat_exc_top15[keys_list.index(key), :]
 
 
 
@@ -192,8 +291,16 @@ for mouse_id in mice_id:
             diff10_zscores[key] = diff10_zscores_mat[keys_list.index(key), :]
             # diff10_zscores_mat_exc_top5 = calc_z_score_exclude_top5(diff10_mat)
             # diff10_zscores_exc_top5[key] = diff10_zscores_mat_exc_top5[keys_list.index(key), :]
+
+
             diff10_zscores_mat_exc_top15 = calc_z_score_exclude_top15(diff10_mat)
             diff10_zscores_exc_top15[key] = diff10_zscores_mat_exc_top15[keys_list.index(key), :]
+            diff10_zscores_exc_top15_NEW4[key] = diff10_zscores_mat_exc_top15[keys_list.index(key), :]
+            # # diff10_zscores_mat_eval = calc_z_score_exclude_top15_eval_style(diff10_mat)
+            # # diff10_zscores_exc_top15_NEW[key] = diff10_zscores_mat_eval[keys_list.index(key), :]
+            # diff10_zscores_mat_eval, _ = calc_z_score_exclude_top15_eval_style(diff10_mat)
+            # diff10_zscores_exc_top15_NEW2[key] = diff10_zscores_mat_eval[keys_list.index(key), :]
+
             a=5
 
             diff20_mat = calc_diff(traces_mat, 20)
@@ -267,15 +374,15 @@ for mouse_id in mice_id:
             #         zscores_MH_diff5_exc_top10_grp.create_dataset(key, data=value)
             #
             #
-            # if 'zsores_MH_diff5_exc_top17' not in eval_grp.keys():
-            #     zscores_MH_diff5_exc_top17_grp = eval_grp.create_group('zsores_MH_diff5_exc_top17')
-            # else:
-            #     zscores_MH_diff5_exc_top17_grp = eval_grp['zsores_MH_diff5_exc_top17']
-            #
-            # for key, value in diff5_zscores_exc_top17.items():
-            #     #zscores_MH_diff5_exc_top17_grp.create_dataset(key, data=value)
-            #     if key not in zscores_MH_diff5_exc_top17_grp:
-            #         zscores_MH_diff5_exc_top17_grp.create_dataset(key, data=value)
+            if 'zsores_MH_diff5_exc_top15' not in eval_grp.keys():
+                zscores_MH_diff5_exc_top15_grp = eval_grp.create_group('zsores_MH_diff5_exc_top15')
+            else:
+                zscores_MH_diff5_exc_top15_grp = eval_grp['zsores_MH_diff5_exc_top15']
+
+            for key, value in diff5_zscores_exc_top15.items():
+                #zscores_MH_diff5_exc_top15_grp.create_dataset(key, data=value)
+                if key not in zscores_MH_diff5_exc_top15_grp:
+                    zscores_MH_diff5_exc_top15_grp.create_dataset(key, data=value)
 
 
 
@@ -329,6 +436,40 @@ for mouse_id in mice_id:
                 #zscores_MH_dif105_exc_top15_grp.create_dataset(key, data=value)
                 if key not in zscores_MH_diff10_exc_top15_grp:
                     zscores_MH_diff10_exc_top15_grp.create_dataset(key, data=value)
+
+
+            if 'zsores_MH_diff10_exc_top15_NEW' not in eval_grp.keys():
+                zscores_MH_diff10_exc_top15_NEW_grp = eval_grp.create_group('zsores_MH_diff10_exc_top15_NEW')
+            else:
+                zscores_MH_diff10_exc_top15_NEW_grp = eval_grp['zsores_MH_diff10_exc_top15_NEW']
+
+            for key, value in diff10_zscores_exc_top15_NEW.items():
+                #zscores_MH_dif105_exc_top15_NEW_grp.create_dataset(key, data=value)
+                if key not in zscores_MH_diff10_exc_top15_NEW_grp:
+                    zscores_MH_diff10_exc_top15_NEW_grp.create_dataset(key, data=value)
+
+
+            if 'zsores_MH_diff10_exc_top15_NEW2' not in eval_grp.keys():
+                zscores_MH_diff10_exc_top15_NEW2_grp = eval_grp.create_group('zsores_MH_diff10_exc_top15_NEW2')
+            else:
+                zscores_MH_diff10_exc_top15_NEW2_grp = eval_grp['zsores_MH_diff10_exc_top15_NEW2']
+
+            for key, value in diff10_zscores_exc_top15_NEW2.items():
+                #zscores_MH_dif105_exc_top15_NEW2_grp.create_dataset(key, data=value)
+                if key not in zscores_MH_diff10_exc_top15_NEW2_grp:
+                    zscores_MH_diff10_exc_top15_NEW2_grp.create_dataset(key, data=value)
+
+
+
+            if 'zsores_MH_diff10_exc_top15_NEW4' not in eval_grp.keys():
+                zscores_MH_diff10_exc_top15_NEW4_grp = eval_grp.create_group('zsores_MH_diff10_exc_top15_NEW4')
+            else:
+                zscores_MH_diff10_exc_top15_NEW4_grp = eval_grp['zsores_MH_diff10_exc_top15_NEW4']
+
+            for key, value in diff10_zscores_exc_top15_NEW4.items():
+                #zscores_MH_dif105_exc_top15_NEW4_grp.create_dataset(key, data=value)
+                if key not in zscores_MH_diff10_exc_top15_NEW4_grp:
+                    zscores_MH_diff10_exc_top15_NEW4_grp.create_dataset(key, data=value)
 
 
 
