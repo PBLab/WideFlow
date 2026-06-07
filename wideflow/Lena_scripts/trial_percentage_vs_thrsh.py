@@ -25,7 +25,9 @@ def convert_input(input_value, led_baseline, adj_led_analog_val_max):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = '/storage/DataCrunching/Lena'
+
 # base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
 
 mice_id = [
@@ -57,9 +59,13 @@ mice_id = [
    #   '261MR',
    #   '263MRL',
    #  '266FR',
-    '276FL',
-    # '277FRL',
-    # '281MRL'
+   #  '276FL',
+   #  '277FRL',
+   #  '281MRL'
+   #  '322MR'
+   #  '327FL'
+   #  '329FRR'
+    '331FN'
 ]
 
 indexes_vec = [ #somatosensory target ROI
@@ -110,8 +116,20 @@ indexes_vec = [ #somatosensory target ROI
     #   '64_49'# '260FN' roi2
     #  '76_110'# '261MR' roi2
     #  '40_44'# '263MRL' roi2
-    # '62_43', #266
-    '78_80', #276
+    # '62_43', #266 roi1
+    # '78_80', #276 roi1
+    # '131_118', #277 roi1
+    # '48_42' #281 roi1
+
+    # '13_40' #266 roi2
+    # '37_20' #276 roi2
+    # '20_36' #277 roi2
+    # '14_25' #281 roi2
+
+    # '30_37' #322 roi1
+    # '16_17' #327 roi1
+    # '07_08' #329 roi1
+    '22_34' #331 roi1
      ]#(those are the indexes, the actual ROI numbers are this +1)[134, 105, 85, 52, 71 ]
 
 line_styles = [
@@ -177,11 +195,14 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
     #plotting_allROIs[f'{mouse_id}'] = {}
     if mouse_id == '266FR' or mouse_id == '276FL' or mouse_id == '277FRL' or mouse_id == '281MRL' :
         dates_vec = [
-            '20251202', #spont
+            # '20251202', #spont
+            # '20251205', #nf1
+            '20251208' #nf2
+
 
         ]
         sessions_vec = [
-            'spont_p3',
+            'NF2_p3',
             # 'CRC4',
             # 'NF1'
             #'NF2'
@@ -190,7 +211,7 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             #'NF5'
         ]
 
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.h5'
+        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
     elif mouse_id == '187FN' or mouse_id == '203MN' or mouse_id == '204FR' or mouse_id == '206FRL' or mouse_id == '211MRR' or mouse_id == '218MN':
         dates_vec = [
             #'20241121', #spont
@@ -236,7 +257,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             #'20250727'
             #'20250728'
             #'20250731'
-            '20250905'
+            # '20250905'
+            '20260602'
             ]
         sessions_vec = [
            # 'spont_mockNF_NOTexcluded_closest',
@@ -253,7 +275,7 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             #'NF1.3'
             #'CRC1_p4'
             #'NF1_p3'
-            'NF1_p3'
+            'spont_p3'
         ]
         #dates_vec = ['20230605','20230607','20230608']
         #sessions_vec = ['CRC1','CRC3','CRC4']
@@ -263,8 +285,9 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         #results_path = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
         #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.3.h5'
         #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_NEW2.h5'
+        # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
+        # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_NEW2.h5'
+        results_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI1.h5'
         #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_full_parcellations.h5'
 
     for date, session_name in zip(dates_vec, sessions_vec):
@@ -309,7 +332,7 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         #     feedback_threshold = 2.8
 
         #threshold = 3.8
-        thresholds = np.arange(1, 10 + 0.1, 0.1)
+        thresholds = np.arange(1, 28 + 0.1, 0.1)
         percentage_success = []
         #metric_result = np.repeat(data[f'roi_{metric_index+1}'], 2)
         #metric_result = np.repeat(data[f'roi_{str(metric_index + 1).zfill(2)}'][:], 2)

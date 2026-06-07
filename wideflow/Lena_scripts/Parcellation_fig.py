@@ -5,21 +5,22 @@ import matplotlib.pyplot as plt
 from utils.paint_roi import paint_roi
 import numpy as np
 
-#base_path = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
-mouse_id = '277FRL'
-#mouse_base_path = f'/data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
-mouse_base_path = f'/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
-rois_data_path = mouse_base_path + 'functional_parcellation_rois_dict_NEW.h5'
+# base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+mouse_id = '331FN'
+# mouse_base_path = f'/data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
+mouse_base_path = f'/storage/DataCrunching/Lena/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
+# mouse_base_path = f'/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
+rois_data_path = mouse_base_path + 'functional_parcellation_rois_dict.h5'
 #rois_data_path = mouse_base_path + 'functional_parcellation_cortex_map.h5'
 
 
 roi_list = load_rois_data(rois_data_path)
 fig, ax = plt.subplots()
 ax, im, paint_map = paint_roi (roi_list, np.zeros((297,168)),
-                               ['roi_01', 'roi_131','roi_118', 'roi_60', 'roi_112','roi_127',
-                                'roi_69','roi_101','roi_94','roi_38']
-                               #  list(roi_list.keys())
+                               ['roi_01', 'roi_22','roi_34', 'roi_26', 'roi_21','roi_20',
+                                'roi_11','roi_41']#,'roi_15','roi_22','roi_36']#,'roi_07','roi_46']#,'roi_18']
+                                # list(roi_list.keys())
                                 ,ax=ax, annotate=True)
 # to show all rois: list(roi_list.keys())
 # to show specific rois: ['roi_', 'roi_']

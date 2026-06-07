@@ -9,20 +9,23 @@ from wideflow.utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_d
 
 # --- Paths and parameters ---
 base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
-dataset_path_noMH = f'{base_path}/Results/results_exp3.5.h5'
+dataset_path_noMH = f'{base_path}/Results/results_exp3.4_NEW.h5'
 # dataset_path_noMH = f'{base_path}/Results/results_exp3.5_with_GFP_pre_hemo.h5'
 # dataset_path_noMH = f'{base_path}/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline.h5'
 # dataset_path_noMH = f'{base_path}/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline_and_hemo.h5'
 # dataset_path_noMH = f'{base_path}/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline7.h5'
 #dataset_path_noMH = f'{base_path}/Results/results_exp3.4.h5'
 
-date = '20250909'
-mouse_id = '260FN'
-session_id = f'{date}_{mouse_id}_NF5_p2'
-metric_roi = '89_87'
+date = '20250810'
+mouse_id = '252MR'
+session_id = f'{date}_{mouse_id}_NF_control_p2'
+metric_roi = '52_67'
 
-first_frame = 2000
-last_frame = 5000
+# first_frame = 2000
+# last_frame = 5000
+
+first_frame = 0
+last_frame = 19000
 
 # --- Load metadata ---
 [timestamp, cue, metric_result, threshold, serial_readout, trial_number] = extract_from_metadata_file(
@@ -45,16 +48,17 @@ with h5py.File(dataset_path_noMH, 'r') as f:
 
 # --- Select multiple datasets to compare ---
 datasets_to_plot = {
-    # 'GFP raw pre-dff': d3['rois_traces']['channel_3'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
+    'GFP raw pre-dff': d3['rois_traces']['channel_3'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
     # 'GFP baseline for dff': d3['rois_traces']['channel_4'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
     # 'GFP-channel dff pre-HemoSubstract' : d3['rois_traces']['channel_2'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
-    # # 'Hemo raw pre-dff': d3['rois_traces']['channel_5'][f'roi_{metric_roi}'][int(first_frame / 2):int(last_frame / 2)],
+    'Hemo raw pre-dff': d3['rois_traces']['channel_5'][f'roi_{metric_roi}'][int(first_frame / 2):int(last_frame / 2)],
     # # 'Hemo baseline for dff': d3['rois_traces']['channel_6'][f'roi_{metric_roi}'][int(first_frame / 2):int(last_frame / 2)],
     # # 'pre-Hemo-corrected violet dff' : d3['rois_traces']['channel_7'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
     # 'Hemo-channel dff (after HemoCorrect)' : d3['rois_traces']['channel_1'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
     'Hemo-substracted GFP dff (final)' : d3['rois_traces']['channel_0'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
     #'Diff10' : d3['post_session_analysis_LK2']['diff10'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
     'Metric': metric_result,
+    'Threshold': threshold,
     #'Metric': d3['post_session_analysis_LK2']['zsores_MH_diff10_exc_top15'][f'roi_{metric_roi}'][int(first_frame/2):int(last_frame/2)],
 }
 
@@ -67,11 +71,13 @@ t = t[::2]
 # Each inner list defines one plot (i.e., datasets to overlay together)
 dataset_groups = [
     # ['GFP raw pre-dff', 'GFP baseline for dff'],  # plotted together
+    ['GFP raw pre-dff'],
+['Hemo raw pre-dff'],
     # # ['Hemo-channel dff (after HemoCorrect)' ],
     # ['Hemo-channel dff (after HemoCorrect)','GFP-channel dff pre-HemoSubstract', 'Hemo-substracted GFP dff (final)'],
     ['Hemo-substracted GFP dff (final)'],
-    ['Metric'],
-    (['Hemo-substracted GFP dff (final)','Metric'],True)
+    # ['Metric', 'Threshold'],
+    # (['Hemo-substracted GFP dff (final)','Metric'],True)
     # ['pre-Hemo-corrected violet dff','Hemo-channel dff (after HemoCorrect)']
     # ['Hemo-corrected dff']# plotted separately
     # ['Hemo raw pre-dff', 'Hemo baseline for dff'],  # plotted together

@@ -10,16 +10,16 @@ base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
 # dates = ['20251123','20251123']
 # mice_id = ['248FL', '248FL']
 # sessions = ['try_newcode_diff10_yes15removal', 'try_newcode_diff10_yes15removal_fake']
-dates = ['20250909','20250909']
+dates = ['20250831','20250831']
 mice_id = ['260FN', '260FN']
-sessions = ['NF5_p2', 'NF5_p2']
+sessions = ['spont_p2', 'spont_p2']
 metric_rois = ['89_87', '89_87'] #260
 # metric_rois = ['35_36', '35_36'] #248
 session_id_0 = f'{dates[0]}_{mice_id[0]}_{sessions[0]}'
 session_id_1 = f'{dates[1]}_{mice_id[1]}_{sessions[1]}'
 
-dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
-dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
+dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_NEW.h5'
+dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_NEW.h5'
 # dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
 # dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
 

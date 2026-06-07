@@ -119,7 +119,8 @@ def calc_z_score_exclude_top15(x):
 
 
 #base_path = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = '/storage/DataCrunching/Lena'
 #dataset_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
 #dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 #dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
@@ -133,7 +134,11 @@ base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
 #dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_NEW2.h5'
 #dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_full_parcellations.h5'
 # dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
-dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_NEW.h5'
+dataset_path_noMH = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI1.h5'
+
 
 
 
@@ -146,12 +151,12 @@ dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Resu
 #     # ,'20241129'
 #              ]
 
-# dates_vec = ['20250911','20250911','20250911']
-# sessions_vec = ['NF_control_p1','NF_control_p2','NF_control_p3']
-# dates_vec = ['20250802','20250802','20250802','20250803','20250803','20250803']
-# sessions_vec = ['NF3_p1','NF3_p2','NF3_p3','NF4_p1','NF4_p2','NF4_p3']
-dates_vec = ['20251202','20251202','20251202']
+dates_vec = ['20260602','20260602','20260602']
 sessions_vec = ['spont_p1','spont_p2','spont_p3']
+# dates_vec = ['20250727']
+# sessions_vec = ['spont']
+# dates_vec = ['20251208','20251208','20251208']
+# sessions_vec = ['NF2_p1','NF2_p2','NF2_p3']
 # dates_vec = ['20251123','20251123','20251123','20251123',
 #              '20251123','20251123','20251123','20251123',
 #              '20251123','20251123','20251123','20251123',
@@ -171,18 +176,25 @@ mice_id = [ #'21ML'
      #    ,'211MRR'
      #    ,'218MN'
   # '245FRL',
-    # '246FN',
-    #   '248FL',
-   #  '252MR',
-   #   '256FLL',
-   #  '257FR'
-    # '228MN',
-   #  '258FL',
-   #  '259FRL',
-   #   '260FN',
-    # '261MR',
-    # '263MRL'
-    '277FRL'
+  #   '246FN',
+  #     '248FL',
+  #   '252MR',
+  #    '256FLL',
+  #   '257FR'
+  #   '228MN',
+  #   '258FL',
+  #   '259FRL',
+  #    '260FN',
+  #   '261MR',
+  #   '263MRL'
+    # '266FR'
+    # '276FL'
+    # '277FRL'
+    # '281MRL'
+    # '322MR'
+    # '327FL'
+    # '329FRR'
+    '331FN'
     ]
 
 #sessions_vec = ['spont_mockNF_ROI2_excluded_closest','NF21', 'NF22', 'NF23', 'NF24', 'NF25']
@@ -230,8 +242,8 @@ for mouse_id in mice_id:
         diff10_zscores_exc_top15_NEW3 = {}
         diff10_zscores_exc_top15_NEW4 = {}
 
-        functional_rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict_NEW2.h5'
-        closest_dict_path = f'{base_path}/{mouse_id}/closest_dict_NEW2.h5'
+        functional_rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict_NEW_ROI1.h5'
+        closest_dict_path = f'{base_path}/{mouse_id}/closest_dict_NEW_ROI1.h5'
         functional_rois_dict = load_rois_data(functional_rois_dict_path)
         with h5py.File(closest_dict_path, 'r') as hf:
             closest_dict = {key: [item.decode('utf-8') for item in value] for key, value in hf.items()}

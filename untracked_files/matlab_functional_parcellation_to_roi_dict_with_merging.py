@@ -96,7 +96,9 @@ def convert_and_merge_rois(rois_struct_path, rois_dict_path, merge_roi_name_1, m
 
     num1 = int(match1.group())
     num2 = int(match2.group())
-    merged_key = f'roi_{num1}_{num2}'
+    # merged_key = f'roi_{num1}_{num2}'
+    # merged_name = f"{merge_roi_name_1}_{merge_roi_name_2}"
+    merged_key = f'roi_{num1:02d}_{num2:02d}'
     merged_name = f"{merge_roi_name_1}_{merge_roi_name_2}"
 
     rois_dict[merged_key] = {

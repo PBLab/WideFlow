@@ -28,18 +28,20 @@ def find_dist_outlines(vector1,vector2):
 
 
 #base_path = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = '/storage/DataCrunching/Lena/'
+
 
 #mice_id = ['245FRL','246FN','248FL','252MR','256FLL','257FR']
 # mice_id = ['246FN','245FRL']
-mice_id = ['276FL','277FRL']
+mice_id = ['329FRR','331FN']
 
 
 
 for mouse_id in mice_id:
     print(f'{mouse_id}')
 
-    functional_rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict_NEW2.h5'
+    functional_rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict_NEW_ROI1.h5'
     functional_rois_dict = load_rois_data(functional_rois_dict_path)
 
     closest = {}
@@ -51,7 +53,7 @@ for mouse_id in mice_id:
             if count > 1:
                 closest[key].append(str(key2))
 
-    file_path = f'{base_path}/{mouse_id}/closest_dict_NEW2.h5'
+    file_path = f'{base_path}/{mouse_id}/closest_dict_NEW_ROI1.h5'
 
     with h5py.File(file_path, 'w') as f:
         # for key, dict in closest.items():

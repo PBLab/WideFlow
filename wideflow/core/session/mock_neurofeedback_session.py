@@ -80,8 +80,12 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline_and_hemo.h5'
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline7.h5'
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
-        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_NEW.h5'
-        self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_NEW.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI1.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
+        self.results_dataset_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI1.h5'
+
+
 
     def set_imaging_camera(self):
         cam = MockPVCamera(self.camera_config, self.session_path, self.crop_sensor)
@@ -275,9 +279,9 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             ch1_grp = rois_traces_group.create_group('channel_1')
             ch2_grp = rois_traces_group.create_group('channel_2')
             ch3_grp = rois_traces_group.create_group('channel_3')  # GFP raw signal
-            ch4_grp = rois_traces_group.create_group('channel_4')  # GFP baseline
+            # ch4_grp = rois_traces_group.create_group('channel_4')  # GFP baseline
             ch5_grp = rois_traces_group.create_group('channel_5')  # hemo raw signal
-            ch6_grp = rois_traces_group.create_group('channel_6')  # hemo baseline
+            # ch6_grp = rois_traces_group.create_group('channel_6')  # hemo baseline
             ch7_grp = rois_traces_group.create_group('channel_7')  # Violet before correction
 
             for roi_key, roi_trace in rois_traces_ch1.items():
@@ -292,14 +296,14 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
             for roi_key, roi_trace in rois_traces_ch3_signal.items():
                 ch3_grp.create_dataset(roi_key, data=roi_trace)
 
-            for roi_key, roi_trace in rois_traces_ch4_baseline.items():
-                ch4_grp.create_dataset(roi_key, data=roi_trace)
+            # for roi_key, roi_trace in rois_traces_ch4_baseline.items():
+            #     ch4_grp.create_dataset(roi_key, data=roi_trace)
 
             for roi_key, roi_trace in rois_traces_ch5_signal.items():
                 ch5_grp.create_dataset(roi_key, data=roi_trace)
-
-            for roi_key, roi_trace in rois_traces_ch6_baseline.items():
-                ch6_grp.create_dataset(roi_key, data=roi_trace)
+            #
+            # for roi_key, roi_trace in rois_traces_ch6_baseline.items():
+            #     ch6_grp.create_dataset(roi_key, data=roi_trace)
 
             for roi_key, roi_trace in rois_traces_ch7_previolet.items():
                 ch7_grp.create_dataset(roi_key, data=roi_trace)
