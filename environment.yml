@@ -218,7 +218,6 @@ dependencies:
     - seaborn==0.12.1
     - shapely==2.0.2
     - shiboken6==6.2.4
-    - sklearn==0.0.post1
     - slicerator==1.1.0
     - snowballstemmer==2.2.0
     - Sphinx==4.5.0
