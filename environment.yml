@@ -105,7 +105,6 @@ dependencies:
     - imageio-ffmpeg==0.4.9
     - imagesize==1.4.1
     - imgaug==0.4.0
-    - importlib==1.0.4
     - importlib-metadata==6.0.0
     - importlib-resources==6.1.1
     - in-n-out==0.1.9
