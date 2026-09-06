@@ -129,7 +129,12 @@ indexes_vec = [ #somatosensory target ROI
     # '30_37' #322 roi1
     # '16_17' #327 roi1
     # '07_08' #329 roi1
-    '22_34' #331 roi1
+    # '22_34' #331 roi1
+
+    # '10_14' #322 roi2
+    # '20_25' #327 roi2
+    # '35_44' #329 roi2
+    '31_39' #331 roi2
      ]#(those are the indexes, the actual ROI numbers are this +1)[134, 105, 85, 52, 71 ]
 
 line_styles = [
@@ -258,7 +263,7 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             #'20250728'
             #'20250731'
             # '20250905'
-            '20260602'
+            '20260607'
             ]
         sessions_vec = [
            # 'spont_mockNF_NOTexcluded_closest',
@@ -274,8 +279,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             #'NF2.2'
             #'NF1.3'
             #'CRC1_p4'
-            #'NF1_p3'
-            'spont_p3'
+            'NF1_p3'
+            # 'spont_p3'
         ]
         #dates_vec = ['20230605','20230607','20230608']
         #sessions_vec = ['CRC1','CRC3','CRC4']
@@ -287,7 +292,7 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
         # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
         # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_NEW2.h5'
-        results_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI1.h5'
+        results_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI2.h5'
         #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_full_parcellations.h5'
 
     for date, session_name in zip(dates_vec, sessions_vec):

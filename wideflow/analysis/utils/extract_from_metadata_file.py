@@ -1,3 +1,4 @@
+# path may also be an already-open text stream, not just a file path -- added by Claude, 2026-08-12
 def extract_from_metadata_file(path):
     timestamp = []
     cue = []
@@ -6,7 +7,15 @@ def extract_from_metadata_file(path):
     serial_readout = []
     trial_number = []
     sr_prv = 1
-    with open(path, "r") as f:
+
+    if isinstance(path, str):
+        f = open(path, "r")
+        close_when_done = True
+    else:
+        f = path
+        close_when_done = False
+
+    try:
         line_txt = ""
         while line_txt != "frames metadata:\n":
             line_txt = f.readline()
@@ -25,5 +34,8 @@ def extract_from_metadata_file(path):
                 serial_readout.append(sr_prv)
             else:
                 serial_readout.append(sr_prv)
+    finally:
+        if close_when_done:
+            f.close()
 
     return timestamp, cue, metric_result, threshold, serial_readout, trial_number

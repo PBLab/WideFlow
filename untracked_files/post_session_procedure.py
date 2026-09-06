@@ -5,33 +5,52 @@ from tqdm import tqdm
 
 # base_path = '/data/Rotem/WideFlow prj'
 #base_path = '/data/Lena/WideFlow_prj'
-# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
-base_path = '/storage/DataCrunching/Lena'
+base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+# base_path = '/storage/DataCrunching/Lena'
 
 
 #dates_vec = ['20230604','20230604','20230604','20230604','20230604']
 dates_vec = [
-
-# # '20251202',
 # '20251202',
 # '20251202',
-
-'20260602',
-'20260602',
-'20260602',
-
-# '20251205',
-# '20251205',
-# '20251205',
+# '20251202',
 #
-# '20251205',
-# '20251205',
-# '20251205',
+# '20251203',
+# '20251203',
+# '20251203',
 #
-# '20251205',
-# '20251205',
-# '20251205'
 
+
+#
+
+
+# '20260602',
+# '20260602',
+# '20260602',
+
+'20260604',
+'20260604',
+'20260604',
+
+'20260609',
+'20260609',
+'20260609',
+
+'20260610',
+'20260610',
+'20260610',
+
+'20260611',
+# '20260611',
+'20260611',
+
+'20260612',
+'20260612',
+'20260612',
+
+'20260613',
+'20260613',
+'20260613',
              ]
 
 mouse_id_vec = [#'218MN'
@@ -78,6 +97,7 @@ mouse_id_vec = [#'218MN'
 # '259FRL',
 # '259FRL',
 # '259FRL',
+
 #
 # '260FN',
 # '260FN',
@@ -86,15 +106,24 @@ mouse_id_vec = [#'218MN'
 # '261MR',
 # '261MR',
 # '261MR',
+
 #
 # '263MRL',
 # '263MRL',
-# '263MRL'
+# '263MRL',
+
+# '276FL',
+# '276FL',
+# '276FL',
+#
+
+#
+
 
 # '266FR',
 # '266FR',
 # '266FR',
-#
+
 # '276FL',
 # '276FL',
 # '276FL',
@@ -107,46 +136,129 @@ mouse_id_vec = [#'218MN'
 # '281MRL',
 # '281MRL'
 
-'331FN',
-'331FN',
-'331FN'
-                ]
+
+#
+# '322MR',
+# '322MR',
+# '322MR',
+#
+# '327FL',
+# '327FL',
+# '327FL',
+#
+'329FRR',
+'329FRR',
+'329FRR',
+
+'329FRR',
+'329FRR',
+'329FRR',
+
+'329FRR',
+'329FRR',
+'329FRR',
+
+'329FRR',
+'329FRR',
+'329FRR',
+
+'329FRR',
+'329FRR',
+'329FRR',
+
+'329FRR',
+'329FRR',
+'329FRR',
+#
+# '331FN',
+# '331FN',
+# '331FN',
+
+]
 session_name_vec = [
-                    #'20250616_226MR_NF11_diff10'
-                    #  '20250616_229FR_NF11_diff10'
-                       #'20250616_232FN_NF11_diff10'
-                    #  ,'20250624_226MR_NF3.2'
-                      #'20250617_228MN_NF2'
-    #                    ,'20250624_232FN_NF3.2'
-    # , '20250625_226MR_NF4.2'
-    # , '20250625_229FR_NF4.2'
-    #  '20250720_241FRLL_NF3.3'
-    # , '20250721_226MR_NF4.3'
-    # , '20250721_228MN_NF4.3'
-     #'20250718_232FN_NF1.3_new_eval'
-    #'20250727_257FR_spont',
+
+# '20250911_263MRL_NF_control_p1',
+# '20250911_263MRL_NF_control_p2',
+# '20250911_263MRL_NF_control_p3',
 # #
 # #
-# '20251205_266FR_NF1_p1',
-# '20251205_266FR_NF1_p2',
-# '20251205_266FR_NF1_p3',
-#
-# '20251205_276FL_NF1_p1',
-# '20251205_276FL_NF1_p2',
-# '20251205_276FL_NF1_p3',
-#
-# '20251205_277FRL_NF1_p1',
-# '20251205_277FRL_NF1_p2',
-# '20251205_277FRL_NF1_p3',
-#
-# '20251205_281MRL_NF1_p1',
-# '20251205_281MRL_NF1_p2',
-# '20251205_281FRL_NF1_p3',
+# '20250831_261MR_spont_p1',
+# '20250831_261MR_spont_p2',
+# '20250831_261MR_spont_p3',
+
+# # '20260602_322MR_spont_p1',
+# '20260602_322MR_spont_p2',
+# '20260602_322MR_spont_p3',
+
+'20260604_329FRR_CRC_p1',
+'20260604_329FRR_CRC_p2',
+'20260604_329FRR_CRC_p3',
+
+'20260609_329FRR_NF2_p1',
+'20260609_329FRR_NF2_p2',
+'20260609_329FRR_NF2_p3',
+
+'20260610_329FRR_NF3_p1',
+'20260610_329FRR_NF3_p2',
+'20260610_329FRR_NF3_p3',
+
+'20260611_329FRR_NF4_p1',
+# '20260611_329FRR_NF4_p2',
+'20260611_329FRR_NF4_p3',
+
+'20260612_329FRR_NF5_p1',
+'20260612_329FRR_NF5_p2',
+'20260612_329FRR_NF5_p3',
+
+'20260613_329FRR_NF6_p1',
+'20260613_329FRR_NF6_p2',
+'20260613_329FRR_NF6_p3',
 
 
-'20260602_331FN_spont_p1',
-'20260602_331FN_spont_p2',
-'20260602_331FN_spont_p3',
+
+#
+# '20250906_261MR_NF2_p1',
+# '20250906_261MR_NF2_p2',
+# '20250906_261MR_NF2_p3',
+#
+# '20250907_261MR_NF3_p1',
+# '20250907_261MR_NF3_p2',
+# '20250907_261MR_NF3_p3',
+#
+# '20250908_261MR_NF4_p1',
+# '20250908_261MR_NF4_p2',
+# '20250908_261MR_NF4_p3',
+#
+# '20250909_261MR_NF5_p1',
+# '20250909_261MR_NF5_p2',
+# '20250909_261MR_NF5_p3',
+#
+# '20250910_261MR_NF6_p1',
+# '20250910_261MR_NF6_p2',
+# '20250910_261MR_NF6_p3',
+#
+# '20250911_261MR_NF_control_p1',
+# '20250911_261MR_NF_control_p2',
+# '20250911_261MR_NF_control_p3',
+
+# '20251218_276FL_NF11_p1',
+# '20251218_276FL_NF11_p2',
+# '20251218_276FL_NF11_p3',
+#
+# '20251218_277FRL_NF11_p1',
+# '20251218_277FRL_NF11_p2',
+# '20251218_277FRL_NF11_p3',
+#
+# '20251218_281MRL_NF11_p1',
+# '20251218_281MRL_NF11_p2',
+# '20251218_281MRL_NF11_p3',
+
+
+
+
+# '20260607_331FN_NF1_p1',
+# '20260607_331FN_NF1_p2',
+# '20260607_331FN_NF1_p3',
 ]
 
 
@@ -160,7 +272,7 @@ for date, mouse_id, session_name in zip(dates_vec, mouse_id_vec, session_name_ve
     config["date"] = date
     config["registration_config"]["matching_point_path"] = f'{session_path}/matching_points.txt'
     # config["supplementary_data_config"]["rois_dict_path"] = f'{config["base_path"]}/{mouse_id}/functional_parcellation_rois_dict_left_hemi.h5'
-    config["supplementary_data_config"]["rois_dict_path"] = f'{config["base_path"]}/{mouse_id}/functional_parcellation_rois_dict_NEW_ROI1.h5'
+    config["supplementary_data_config"]["rois_dict_path"] = f'{config["base_path"]}/{mouse_id}/functional_parcellation_rois_dict_NEW_ROI2.h5'
     # config["supplementary_data_config"]["mask_path"] = "/claustrum-storage/pblab_shared_data/Lena/WideFlow/data/cortex_map/allen_2d_cortex.h5"
     config["supplementary_data_config"]["mask_path"] = "/storage/DataCrunching/Lena/WideFlow/data/cortex_map/allen_2d_cortex.h5"
     #20221122_MR_CRC3functional_parcellation_rois_dict.h5
@@ -181,13 +293,13 @@ for date, mouse_id, session_name in zip(dates_vec, mouse_id_vec, session_name_ve
     config["supplementary_data_config"]["closest_rois"] = []
 
     # ##for CRC or spont session to run as mock NF
-    config["analysis_pipeline_config"]["args"]["metric_args"] = ["ROIDiff", ["roi_22_34"], 10]
+    config["analysis_pipeline_config"]["args"]["metric_args"] = ["ROIDiff", ["roi_35_44"], 10]
     # config["feedback_config"]["update_frames"] = [1000,70000]
     # config["feedback_config"]["eval_frames"] = 20000
     # config["feedback_config"]["update_every"] = 10
     # config["feedback_config"]["metric_threshold"] = 1.0
     # config["feedback_config"]["percentile"] = 95
-    config["acquisition_config"]["metric_roi"] = ['roi_22_34']
+    config["acquisition_config"]["metric_roi"] = ['roi_35_44']
     config["supplementary_data_config"]["closest_rois"] = [] #don't put closest here, because you want z-scores metrics
                                                         # for them as well, so you can compare to all ROIs
 

@@ -80,10 +80,14 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline_and_hemo.h5'
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline7.h5'
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
-        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_NEW.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI1.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI2.h5'
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI1.h5'
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
-        self.results_dataset_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI1.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.1_parc_ROI1.h5'
+        self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.1_parc_ROI2.h5'
+        # self.results_dataset_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI1.h5'
+        # self.results_dataset_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI2.h5'
 
 
 

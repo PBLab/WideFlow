@@ -119,8 +119,8 @@ def calc_z_score_exclude_top15(x):
 
 
 #base_path = '/data/Lena/WideFlow_prj'
-# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
-base_path = '/storage/DataCrunching/Lena'
+base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+# base_path = '/storage/DataCrunching/Lena'
 #dataset_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
 #dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 #dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
@@ -136,8 +136,14 @@ base_path = '/storage/DataCrunching/Lena'
 # dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
 # dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.h5'
 # dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
-# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_NEW.h5'
-dataset_path_noMH = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI1.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI1.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI2.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4_parc_ROI1.h5'
+# dataset_path_noMH = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI2.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI1.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
+dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.1_parc_ROI1.h5'
+
 
 
 
@@ -151,12 +157,47 @@ dataset_path_noMH = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI
 #     # ,'20241129'
 #              ]
 
-dates_vec = ['20260602','20260602','20260602']
-sessions_vec = ['spont_p1','spont_p2','spont_p3']
+dates_vec = [
+# '20260604','20260604','20260604',
+# '20260607','20260607','20260607',
+# '20260609','20260609','20260609',
+# '20260610','20260610','20260610',
+# '20260611','20260611','20260611',
+# '20260612','20260612','20260612',
+# '20260613','20260613','20260613',
+# '20250911','20250911','20250911',
+
+'20260616','20260616','20260616',
+'20260617','20260617','20260617',
+'20260618','20260618','20260618',
+'20260619','20260619','20260619',
+'20260620','20260620','20260620',
+
+
+             ]
+sessions_vec = [
+# 'spont_p1','spont_p2','spont_p3',
+# 'CRC_p1','CRC_p2','CRC_p3',
+# 'NF1_p1','NF1_p2','NF1_p3',
+# 'NF2_p1','NF2_p2','NF2_p3',
+# 'NF3_p1','NF3_p2','NF3_p3',
+# 'NF4_p1','NF4_p2','NF4_p3',
+# 'NF5_p1','NF5_p2','NF5_p3',
+# 'NF6_p1','NF6_p2','NF6_p3',
+# 'NF_control_p1','NF_control_p2','NF_control_p3',
+
+
+'NF7_p1','NF7_p2','NF7_p3',
+'NF8_p1','NF8_p2','NF8_p3',
+'NF9_p1','NF9_p2','NF9_p3',
+'NF10_p1','NF10_p2','NF10_p3',
+'NF11_p1','NF11_p2','NF11_p3',
+# 'NF12_p1','NF12_p2','NF12_p3',
+                ]
 # dates_vec = ['20250727']
 # sessions_vec = ['spont']
-# dates_vec = ['20251208','20251208','20251208']
-# sessions_vec = ['NF2_p1','NF2_p2','NF2_p3']
+# dates_vec = ['20250911','20250911','20250911']
+# sessions_vec = ['NF_control_p1','NF_control_p2','NF_control_p3']
 # dates_vec = ['20251123','20251123','20251123','20251123',
 #              '20251123','20251123','20251123','20251123',
 #              '20251123','20251123','20251123','20251123',
@@ -179,22 +220,22 @@ mice_id = [ #'21ML'
   #   '246FN',
   #     '248FL',
   #   '252MR',
-  #    '256FLL',
-  #   '257FR'
-  #   '228MN',
-  #   '258FL',
-  #   '259FRL',
-  #    '260FN',
-  #   '261MR',
-  #   '263MRL'
-    # '266FR'
-    # '276FL'
-    # '277FRL'
+    #  '256FLL',
+    # '257FR'
+    # '228MN',
+    # '258FL',
+    # '259FRL',
+    #  '260FN',
+    # '261MR',
+    # '263MRL'
+  #   '266FR',
+  #   '276FL',
+  #   '277FRL',
     # '281MRL'
-    # '322MR'
-    # '327FL'
-    # '329FRR'
-    '331FN'
+    '322MR',
+    '327FL',
+    '329FRR',
+    '331FN',
     ]
 
 #sessions_vec = ['spont_mockNF_ROI2_excluded_closest','NF21', 'NF22', 'NF23', 'NF24', 'NF25']

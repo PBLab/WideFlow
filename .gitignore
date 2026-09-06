@@ -1,1 +1,7 @@
 /.idea/
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+wideflow/config_local.py
+wideflow/Lena_scripts/napari-plugin-widefield-calcium-analysis/

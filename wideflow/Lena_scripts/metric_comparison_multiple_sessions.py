@@ -18,8 +18,8 @@ metric_rois = ['89_87', '89_87'] #260
 session_id_0 = f'{dates[0]}_{mice_id[0]}_{sessions[0]}'
 session_id_1 = f'{dates[1]}_{mice_id[1]}_{sessions[1]}'
 
-dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_NEW.h5'
-dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_NEW.h5'
+dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI1.h5'
+dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI1.h5'
 # dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
 # dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
 
@@ -33,10 +33,10 @@ with h5py.File(f'{dataset_path_1}', 'r') as f:
     decompose_h5_groups_to_dict(f, data_1, f'{mice_id[1]}/{session_id_1}/')
 
 timestamp_0, cue_0, metric_result_0, threshold_0, serial_readout_0, trial_number_0 = (
-    extract_from_metadata_file(f'{base_path_qnap}/{dates[0]}/{mice_id[0]}/{session_id_0}/metadata.txt'))
+    extract_from_metadata_file(f'{base_path}/{dates[0]}/{mice_id[0]}/{session_id_0}/metadata.txt'))
 
 timestamp_1, cue_1, metric_result_1, threshold_1, serial_readout_1, trial_number_1 = (
-    extract_from_metadata_file(f'{base_path_qnap}/{dates[1]}/{mice_id[1]}/{session_id_1}/metadata.txt'))
+    extract_from_metadata_file(f'{base_path}/{dates[1]}/{mice_id[1]}/{session_id_1}/metadata.txt'))
 
 metric_LK2_0 = data_0['post_session_analysis_LK2']['zsores_MH_diff10_exc_top15'][f'roi_{metric_rois[0]}']
 metric_LK2_1 = data_1['post_session_analysis_LK2']['zsores_MH_diff10_exc_top15'][f'roi_{metric_rois[1]}']

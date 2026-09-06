@@ -129,6 +129,13 @@ A template JSON file can be found at:
 		* params: dictionary - kwargs for the class
  
 
+## Post-session results data (`results_exp*.h5`)
+A full field-by-field description of everything stored in the offline-analysis
+results h5 files (per-ROI traces at each processing stage, the NF metric, and the
+z-score/diff variants computed afterward) is maintained in `CLAUDE.md`, not here —
+kept there so it's somewhere Claude Code always loads automatically when working in
+this repo.
+
 ## ROIs Dictionary and Cortical Map:
 Supplementary data is saved at ./data
 * ./data/cortex_map/allen_2d_cortex.h5 contain a boolean map and mask of the Allen cortical atlas
