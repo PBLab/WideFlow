@@ -5,7 +5,9 @@ from scipy import stats
 import pandas as pd
 import pingouin as pg
 
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 #dates_vec = ['20230615', '20230618', '20230619', '20230620', '20230621', '20230622']
 dates_vec_roi2 = ['20230604', '20230618', '20230619', '20230620', '20230621', '20230622']
 dates_vec_roi1 = ['20230604', '20230611', '20230612', '20230613', '20230614', '20230615']

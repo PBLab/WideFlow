@@ -14,11 +14,13 @@ from analysis.plots import *
 from utils.paint_roi import paint_roi
 
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 mouse_id = 'FL'
 session_id = f'20230122_{mouse_id}_NF4'
 
 # load cortex map and mask
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 cortex_map_path = f'{base_path}/{mouse_id}/FLfunctional_parcellation_cortex_map_CRC3.h5'
 rois_dict_path = f'{base_path}/{mouse_id}/FLfunctional_parcellation_rois_dict_CRC3.h5'
 # 20221122_{mouse_id}_CRC3functional_parcellation_cortex_map.h5
@@ -35,7 +37,8 @@ rois_dict = load_rois_data(rois_dict_path)
 
 # load data
 data = {}
-with h5py.File('/data/Lena/WideFlow_prj/Results/sessions_xxx.h5', 'r') as f:
+# with h5py.File('/data/Lena/WideFlow_prj/Results/sessions_xxx.h5', 'r') as f:
+with h5py.File(DATA_STAGING_PATH + '/Results/sessions_xxx.h5', 'r') as f:  #added by Claude 20260906
     decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')
 rois_metric_traces = data['post_session_analysis']['dff_delta5']['zscore']
 # convert to dict assuming rois are sorted
@@ -44,7 +47,8 @@ for i, key in enumerate(rois_dict.keys()):
     rois_metric_traces_dict[key] = rois_metric_traces[i]
 
 # load session indices
-session_path = f'/data/Lena/WideFlow_prj/{mouse_id}/{session_id}/'
+# session_path = f'/data/Lena/WideFlow_prj/{mouse_id}/{session_id}/'
+session_path = f'{DATA_STAGING_PATH}/{mouse_id}/{session_id}/'  #added by Claude 20260906
 [timestamp, cue, metric_result, threshold, serial_readout] = extract_from_metadata_file(session_path + 'metadata.txt')
 cue = np.array(cue)
 serial_readout = 1 - np.array(serial_readout)

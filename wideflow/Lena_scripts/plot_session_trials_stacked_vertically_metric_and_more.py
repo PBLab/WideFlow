@@ -8,7 +8,9 @@ from wideflow.analysis.plots import plot_reward_response
 from wideflow.utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 
 # --- Paths and parameters ---
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+from wideflow.config import BASE_PATH  #added by Claude 20260906
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
 dataset_path_noMH = f'{base_path}/Results/results_exp3.4_NEW.h5'
 # dataset_path_noMH = f'{base_path}/Results/results_exp3.5_with_GFP_pre_hemo.h5'
 # dataset_path_noMH = f'{base_path}/Results/results_exp3.5_with_GFP_pre_hemo_and_pre_dff_and_baseline.h5'

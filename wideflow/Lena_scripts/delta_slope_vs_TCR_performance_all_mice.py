@@ -10,6 +10,7 @@ from skimage.morphology import skeletonize
 from utils.load_rois_data import load_rois_data
 from analysis.utils.rois_proximity import calc_rois_proximity
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def calc_rois_corr(rois_dict, data, data_chosen_roi):
     rois_corr = {}
     for i, roi_key in enumerate (rois_dict.keys()):
@@ -19,7 +20,8 @@ def calc_rois_corr(rois_dict, data, data_chosen_roi):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 #dates_vec = ['20230615', '20230618', '20230619', '20230620', '20230621', '20230622']
 #dates_vec_roi1 = ['20230604', '20230611', '20230612', '20230613', '20230614', '20230615']
 dates_vec_roi1 = ['20230604', '20230615']
@@ -37,7 +39,8 @@ indexes_vec = [134, 105, 85, 52, 71 ]#(those are the indexes, the actual ROI num
 
 title = 'best_delta_slope_vs_best_TCR_scatter_NF5'
 
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 
 
 #crossings ROI1

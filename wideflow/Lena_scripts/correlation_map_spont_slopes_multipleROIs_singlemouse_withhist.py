@@ -20,6 +20,7 @@ from analysis.plots import plot_traces, wf_imshow
 from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
 
@@ -42,7 +43,8 @@ def calc_rois_corr(rois_dict, data, data_chosen_roi):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 date = '20230604'
 mouse_id = '31MN'
 sess_name= 'NF5'
@@ -51,7 +53,8 @@ session_id = f'{date}_{mouse_id}_{sess_name}'
 title = f'{mouse_id}_{sess_name}_noMH_allROIS_corr_graph_smalldots'
 metric_index = 58 #21ML - 134, 31MN - 105, 54MRL - 85, 63MR - 52, 64ML - 71 (those are the indexes, the actual ROI numbers are this +1)
 
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 
 # timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
 # serial_readout = 1 - np.array(serial_readout)

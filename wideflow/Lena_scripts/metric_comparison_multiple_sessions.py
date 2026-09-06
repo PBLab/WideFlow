@@ -4,8 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from wideflow.analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 
-base_path_qnap = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+from wideflow.config import BASE_PATH, DATA_STAGING_PATH  #added by Claude 20260906
+# base_path_qnap = '/data/Lena/WideFlow_prj'
+base_path_qnap = DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
 
 # dates = ['20251123','20251123']
 # mice_id = ['248FL', '248FL']
@@ -18,8 +21,10 @@ metric_rois = ['89_87', '89_87'] #260
 session_id_0 = f'{dates[0]}_{mice_id[0]}_{sessions[0]}'
 session_id_1 = f'{dates[1]}_{mice_id[1]}_{sessions[1]}'
 
-dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI1.h5'
-dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI1.h5'
+# dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI1.h5'
+dataset_path_0 = BASE_PATH + '/Results/results_exp3.5_parc_ROI1.h5'  #added by Claude 20260906
+# dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5_parc_ROI1.h5'
+dataset_path_1 = BASE_PATH + '/Results/results_exp3.5_parc_ROI1.h5'  #added by Claude 20260906
 # dataset_path_0 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
 # dataset_path_1 = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
 

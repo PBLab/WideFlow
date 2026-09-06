@@ -20,6 +20,7 @@ from analysis.plots import plot_traces, wf_imshow
 from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
 
@@ -52,7 +53,8 @@ def calc_z_score(x):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 #dates_vec = ['20230608','20230615']
 dates_vec = ['20241126','20241203']
 #mice_id = ['31MN']
@@ -97,8 +99,10 @@ indexes_vec = [
 title = (f'Zscore of delta corr {mice_id} {sessions_vec[1]}-{sessions_vec[0]} roi {indexes_vec[0]+1} '
          f'colorbar -2 to 2 blue to red frames')
 
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
-CRC_res_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
+# CRC_res_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+CRC_res_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 
 corr_all_sess = []
 prox_all_sess = []
@@ -114,7 +118,8 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
 
 
         data = {}
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        results_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
         #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
         # if sess_name == 'CRC4':
         #     results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'

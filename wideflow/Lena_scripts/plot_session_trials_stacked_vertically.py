@@ -4,8 +4,11 @@ import numpy as np
 from wideflow.analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 from wideflow.analysis.plots import plot_reward_response
 
-base_path_qnap = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+from wideflow.config import BASE_PATH, DATA_STAGING_PATH  #added by Claude 20260906
+# base_path_qnap = '/data/Lena/WideFlow_prj'
+base_path_qnap = DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
 date = '20251119'
 mouse_id = '260FN'
 session_id = f'{date}_{mouse_id}_NF5_p2_as_is'

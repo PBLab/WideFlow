@@ -23,6 +23,7 @@ from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
 
@@ -66,7 +67,8 @@ def calculate_zscore(data_point, mean, std_dev):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dates_vec = ['20230604','20230611','20230612','20230613','20230614','20230615']
 mice_id = ['21ML','31MN','54MRL','63MR','64ML']
 colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
@@ -77,7 +79,8 @@ sessions_vec = ['spont_mockNF_NOTexcluded_closest','NF1','NF2','NF3','NF4','NF5'
 #metric_index = 58 #21ML - 134, 31MN - 105, 54MRL - 85, 63MR - 52, 64ML - 71 (those are the indexes, the actual ROI numbers are this +1)
 indexes_vec = [134, 105, 85, 52, 71 ]#(those are the indexes of ROI1, the actual ROI numbers are this +1)
 
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 
 # roi_lists = {}
 # centroid_lists = {}
@@ -210,7 +213,8 @@ plt.legend()
 plt.ylabel('Z-score of target ROI slope [A.U.]')
 
 plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-plt.savefig( f'/data/Lena/WideFlow_prj/Figs_for_paper/zscores_of_slopes_all_mice_targetROI.svg',format='svg',dpi=500)
+# plt.savefig( f'/data/Lena/WideFlow_prj/Figs_for_paper/zscores_of_slopes_all_mice_targetROI.svg',format='svg',dpi=500)
+plt.savefig( f'{DATA_STAGING_PATH}/Figs_for_paper/zscores_of_slopes_all_mice_targetROI.svg',format='svg',dpi=500)  #added by Claude 20260906
 #plt.show()
 
 

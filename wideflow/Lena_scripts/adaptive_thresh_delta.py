@@ -16,7 +16,9 @@ from utils.paint_roi import paint_roi
 from utils.load_rois_data import load_rois_data
 from analysis.plots import *
 
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 mice_id = [
    #'21ML',
     '31MN'
@@ -140,7 +142,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         # CRC_sess_length_frames = 60000
         # NF_sess_length_frames = 65000
         # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        results_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
     else:
         dates_vec = [
            # '20230604','20230608',
@@ -151,7 +154,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         #dates_vec = ['20230605','20230607','20230608']
         #sessions_vec = ['CRC1','CRC3','CRC4']
         #results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+        # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+        results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 
 
         #sessions_vec = ['spont_mockNF_NOTexcluded_closest','CRC4','NF1', 'NF2', 'NF3', 'NF4', 'NF5']
@@ -169,9 +173,11 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         if session_name == 'CRC4' and mouse_id == '204FR':
             session_id = '20241125_204FR_CRC3'
         if mouse_id =='31MN' or mouse_id=='54MRL' or mouse_id=='21ML' or mouse_id=='63MR' or mouse_id=='64ML'  :
-            results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
         else:
-            results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+            results_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
 
         [timestamp, cue, metric_result, threshold, serial_readout] = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
         serial_readout_correct = [1-x for x in serial_readout]
@@ -183,7 +189,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         data = {}
         #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
         if (mouse_id == '31MN' or mouse_id == '54MRL') and session_name == 'CRC4':
-            results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            results_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 
         with h5py.File(results_path, 'r') as f:
             decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/post_session_analysis_LK2/zsores_MH_diff5/')

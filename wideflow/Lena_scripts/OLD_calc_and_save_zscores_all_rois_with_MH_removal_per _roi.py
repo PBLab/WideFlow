@@ -11,6 +11,7 @@ import h5py
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 from datetime import datetime
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def calc_z_score(x):
     x_mean = np.mean(x, axis=0)
     x_std = np.std(x, axis=0)
@@ -19,8 +20,10 @@ def calc_z_score(x):
 #This needs to be run on sessions were no MH was used in the post_session_procedure to be able to access all ROIs.
 
 
-base_path = '/data/Lena/WideFlow_prj'
-dataset_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
+# dataset_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+dataset_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 
 #dates_vec = ['20230615', '20230618', '20230619', '20230620', '20230621', '20230622']
 #dates_vec = ['20230604', '20230618', '20230619', '20230620', '20230621', '20230622']

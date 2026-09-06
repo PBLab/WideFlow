@@ -7,8 +7,11 @@ import pingouin as pg
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.anova import AnovaRM
 
-base_path_qnap = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+from wideflow.config import BASE_PATH, DATA_STAGING_PATH  #added by Claude 20260906
+# base_path_qnap = '/data/Lena/WideFlow_prj'
+base_path_qnap = DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
 #dates_vec = ['20250731','20250731','20250731', '20250801','20250801','20250801','20250802','20250802','20250802']
 mice_id = [
     '245FRL',

@@ -2,13 +2,15 @@ from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 import numpy as np
 import matplotlib.pyplot as plt
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def divide_array(arr, divisor):
     return [num / divisor for num in arr]
 
 def subtract_from_array(arr, value):
     return [num - value for num in arr]
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dates_vec = ['20230604', '20230611', '20230612', '20230613', '20230614', '20230615']
 #dates_vec = ['20230604', '20230618', '20230619', '20230620', '20230621', '20230622']
 #mouse_id_vec = ['24MLL', '24MLL', '24MLL', '24MLL', '24MLL', '24MLL']

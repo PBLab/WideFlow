@@ -11,6 +11,7 @@ import h5py
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 from datetime import datetime
 
+from wideflow.config import BASE_PATH  #added by Claude 20260906
 def calc_z_score(x):
     x_mean = np.mean(x, axis=0)
     x_std = np.std(x, axis=0)
@@ -119,7 +120,8 @@ def calc_z_score_exclude_top15(x):
 
 
 #base_path = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
 # base_path = '/storage/DataCrunching/Lena'
 #dataset_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
 #dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
@@ -142,7 +144,8 @@ base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
 # dataset_path_noMH = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI2.h5'
 # dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI1.h5'
 # dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
-dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.1_parc_ROI1.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.1_parc_ROI1.h5'
+dataset_path_noMH = BASE_PATH + '/Results/results_exp4.1_parc_ROI1.h5'  #added by Claude 20260906
 
 
 

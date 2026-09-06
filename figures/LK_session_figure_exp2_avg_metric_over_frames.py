@@ -15,13 +15,15 @@ from analysis.plots import *
 from utils.paint_roi import paint_roi
 
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 mouse_id = '187FN'
 date = '20241130'
 session_id = f'{date}_{mouse_id}_NF2'
 
 
 # load cortex map and mask
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 cortex_map_path = f'{base_path}/{mouse_id}/functional_parcellation_cortex_map.h5'
 rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict.h5'
 # 20221122_{mouse_id}_CRC3functional_parcellation_cortex_map.h5
@@ -35,14 +37,16 @@ cortex_mask = cortex_mask[:, :168]
 cortex_map = cortex_map[:, :168]
 cortex_map = skeletonize(cortex_map)
 rois_dict = load_rois_data(rois_dict_path)
-session_path = f'/data/Lena/WideFlow_prj/{date}/{mouse_id}/{session_id}/'
+# session_path = f'/data/Lena/WideFlow_prj/{date}/{mouse_id}/{session_id}/'
+session_path = f'{DATA_STAGING_PATH}/{date}/{mouse_id}/{session_id}/'  #added by Claude 20260906
 config = load_config(session_path + 'session_config.json')
 # for key in config['supplementary_data_config']["closest_rois"]:
 #     del rois_dict[key]
 
 # load data
 data = {}
-with h5py.File('/data/Lena/WideFlow_prj/Results/results_exp2.1.h5', 'r') as f:
+# with h5py.File('/data/Lena/WideFlow_prj/Results/results_exp2.1.h5', 'r') as f:
+with h5py.File(DATA_STAGING_PATH + '/Results/results_exp2.1.h5', 'r') as f:  #added by Claude 20260906
     decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')
 #rois_metric_traces = data['post_session_analysis']['dff_delta5']['zscore']
 # convert to dict assuming rois are sorted

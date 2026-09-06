@@ -19,9 +19,12 @@ from Lena_scripts.mice_meta.parsing import build_session_id  # from the mice_h5_
 
 # ============================== CONFIG ======================================
 
+from wideflow.config import BASE_PATH  #added by Claude 20260906
 MICE_METADATA_H5 = '/home/elenakreines/WideFlow/wideflow/Lena_scripts/mice_meta/mice_metadata.h5'   # output of sync_excel_to_h5.py
-BASE_PATH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
-BASE_RESULTS_DIR = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results'
+# BASE_PATH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+BASE_PATH = BASE_PATH  #added by Claude 20260906
+# BASE_RESULTS_DIR = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results'
+BASE_RESULTS_DIR = BASE_PATH + '/Results'  #added by Claude 20260906
 
 # --- 1. Choose mice ---
 MICE_ID = [

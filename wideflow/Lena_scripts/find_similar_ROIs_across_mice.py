@@ -22,6 +22,7 @@ from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 from scipy.stats import ttest_rel
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def find_closest_key(dict1, dict2):
     result = {}
 
@@ -41,7 +42,8 @@ def find_closest_key(dict1, dict2):
     return result
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 #dates_vec = ['20230604','20230614']
 mice_id = ['21ML','31MN','54MRL','63MR','64ML']
 #colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
@@ -50,7 +52,8 @@ mice_id = ['21ML','31MN','54MRL','63MR','64ML']
 roi_lists = {}
 centroid_lists = {}
 for mouse in mice_id:
-    roi_lists[mouse] = load_rois_data(f'/data/Lena/WideFlow_prj/{mouse}/functional_parcellation_rois_dict.h5')
+    # roi_lists[mouse] = load_rois_data(f'/data/Lena/WideFlow_prj/{mouse}/functional_parcellation_rois_dict.h5')
+    roi_lists[mouse] = load_rois_data(f'{DATA_STAGING_PATH}/{mouse}/functional_parcellation_rois_dict.h5')  #added by Claude 20260906
     centroid_lists[mouse] = {}
     for key in roi_lists[mouse]:
         centroid_lists[mouse][key] = roi_lists[f'{mouse}'][key]['Centroid']

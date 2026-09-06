@@ -8,7 +8,9 @@ from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dates_vec = ['20230604','20230608', '20230611', '20230612', '20230613', '20230614', '20230615']
 #dates_vec = ['20241121','20241126', '20241129', '20241130', '20241201', '20241202','20241203']
 #dates_vec = ['20230604', '20230618', '20230619', '20230620', '20230621', '20230622']
@@ -71,9 +73,11 @@ for mouse_id in mice_id:
         #timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
 
         if session_name == 'CRC4':
-            dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            dataset_path_noMH = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
         else:
-            dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            dataset_path_noMH = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
         #dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 
         data = {}

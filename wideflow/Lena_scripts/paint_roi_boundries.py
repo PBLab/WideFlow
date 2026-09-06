@@ -8,8 +8,10 @@ from io import BytesIO
 import base64
 import PIL
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 mouse_id = '54MRL'
-mouse_base_path = f'/data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
+# mouse_base_path = f'/data/Lena/WideFlow_prj/{mouse_id}/'  # path to the directory where to save parcellation rois data and map
+mouse_base_path = f'{DATA_STAGING_PATH}/{mouse_id}/'  # path to the directory where to save parcellation rois data and map  #added by Claude 20260906
 rois_data_path = mouse_base_path + 'functional_parcellation_rois_dict.h5'
 #rois_data_path = mouse_base_path + 'functional_parcellation_cortex_map.h5'
 #20221122_MR_CRC3functional_parcellation_rois_dict.h5
@@ -87,6 +89,7 @@ im = ax.imshow(paint_map2, cmap='gray')
 #plt.show()
 #
 #plt.rcParams['svg.fonttype'] = 'none'  # or 'path' or 'none'
-plt.savefig( f'/data/Lena/WideFlow_prj/Figs_for_paper/parcellation_{mouse_id}_outlineTRY6.svg',format='svg',dpi=500, transparent=True)
+# plt.savefig( f'/data/Lena/WideFlow_prj/Figs_for_paper/parcellation_{mouse_id}_outlineTRY6.svg',format='svg',dpi=500, transparent=True)
+plt.savefig( f'{DATA_STAGING_PATH}/Figs_for_paper/parcellation_{mouse_id}_outlineTRY6.svg',format='svg',dpi=500, transparent=True)  #added by Claude 20260906
 
 #fig.suptitle(f'{mouse_id}')

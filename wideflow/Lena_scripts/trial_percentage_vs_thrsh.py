@@ -16,6 +16,7 @@ from utils.paint_roi import paint_roi
 from utils.load_rois_data import load_rois_data
 from analysis.plots import *
 
+from wideflow.config import BASE_PATH, DATA_STAGING_PATH  #added by Claude 20260906
 def convert_input(input_value, led_baseline, adj_led_analog_val_max):
     """Applies the same transformation as the Arduino LED logic."""
     input_value = np.clip(input_value, 0.0, 1.0)  # Ensure input is in [0,1]
@@ -216,7 +217,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
             #'NF5'
         ]
 
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
+        # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
+        results_path = BASE_PATH + '/Results/results_exp4_parc_ROI2.h5'  #added by Claude 20260906
     elif mouse_id == '187FN' or mouse_id == '203MN' or mouse_id == '204FR' or mouse_id == '206FRL' or mouse_id == '211MRR' or mouse_id == '218MN':
         dates_vec = [
             #'20241121', #spont
@@ -244,7 +246,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         # CRC_sess_length_frames = 60000
         # NF_sess_length_frames = 65000
         # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        results_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
     else:
         dates_vec = [
             #'20230604', #spont
@@ -326,7 +329,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
         if (mouse_id == '21ML' or mouse_id == '31MN' or mouse_id == '54MRL'
             or mouse_id == '63MR' or mouse_id == '64ML') and session_name == 'CRC4':
-            results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            results_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
         with h5py.File(results_path, 'r') as f:
             decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/post_session_analysis_LK2/zsores_MH_diff10_exc_top15/')
 

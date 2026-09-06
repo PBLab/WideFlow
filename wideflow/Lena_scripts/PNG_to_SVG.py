@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import svgwrite
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def convert_png_to_svg(input_path, output_path):
     # Read the PNG image using OpenCV
     image = cv2.imread(input_path, cv2.IMREAD_GRAYSCALE)
@@ -26,6 +27,8 @@ def convert_png_to_svg(input_path, output_path):
     dwg.save()
 
 # Example usage
-input_png_path = '/data/Lena/WideFlow_prj/Figs_for_paper/life_of_a_frame.png'
-output_svg_path = '/data/Lena/WideFlow_prj/Figs_for_paper/life_of_a_frame_try1.svg'
+# input_png_path = '/data/Lena/WideFlow_prj/Figs_for_paper/life_of_a_frame.png'
+input_png_path = DATA_STAGING_PATH + '/Figs_for_paper/life_of_a_frame.png'  #added by Claude 20260906
+# output_svg_path = '/data/Lena/WideFlow_prj/Figs_for_paper/life_of_a_frame_try1.svg'
+output_svg_path = DATA_STAGING_PATH + '/Figs_for_paper/life_of_a_frame_try1.svg'  #added by Claude 20260906
 convert_png_to_svg(input_png_path, output_svg_path)

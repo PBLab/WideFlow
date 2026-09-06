@@ -18,6 +18,7 @@ from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def plot_pstr(ax, rois_pstr_dict, dt, bold_list=[], proximity_dict={}, color_code='turbo', cbar_show=True):
     delta_t2 = len(rois_pstr_dict[list(rois_pstr_dict.keys())[0]])
     delta_t = np.floor(delta_t2/2)
@@ -51,12 +52,17 @@ session_id1 = '20230604_31MN_spont'
 session_id2 = '20230604_31MN_spont'
 session_id3 = '20230604_31MN_spont'
 sessions_id = [session_id0, session_id1, session_id2, session_id3]
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 
-session_path0 = f'/data/Lena/WideFlow_prj/20230604/{mouse_id}/{session_id0}/'
-session_path1 = f'/data/Lena/WideFlow_prj/20230604/{mouse_id}/{session_id1}/'
-session_path2 = f'/data/Lena/WideFlow_prj/20230604/{mouse_id}/{session_id2}/'
-session_path3 = f'/data/Lena/WideFlow_prj/20230604/{mouse_id}/{session_id3}/'
+# session_path0 = f'/data/Lena/WideFlow_prj/20230604/{mouse_id}/{session_id0}/'
+session_path0 = f'{DATA_STAGING_PATH}/20230604/{mouse_id}/{session_id0}/'  #added by Claude 20260906
+# session_path1 = f'/data/Lena/WideFlow_prj/20230604/{mouse_id}/{session_id1}/'
+session_path1 = f'{DATA_STAGING_PATH}/20230604/{mouse_id}/{session_id1}/'  #added by Claude 20260906
+# session_path2 = f'/data/Lena/WideFlow_prj/20230604/{mouse_id}/{session_id2}/'
+session_path2 = f'{DATA_STAGING_PATH}/20230604/{mouse_id}/{session_id2}/'  #added by Claude 20260906
+# session_path3 = f'/data/Lena/WideFlow_prj/20230604/{mouse_id}/{session_id3}/'
+session_path3 = f'{DATA_STAGING_PATH}/20230604/{mouse_id}/{session_id3}/'  #added by Claude 20260906
 
 functional_cortex_map_path = f'{base_path}/{mouse_id}/functional_parcellation_cortex_map.h5'
 functional_rois_dict_path = f'{base_path}/{mouse_id}/functional_parcellation_rois_dict.h5'
@@ -79,10 +85,14 @@ cortex_map = skeletonize(cortex_map)
 rois_dict = load_rois_data(rois_dict_path)
 
 # dataset_path0 = '/data/Rotem/WideFlow prj/results/archive/sessions_dataset_new.h5'
-dataset_path0 = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
-dataset_path1 = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
-dataset_path2 = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
-dataset_path3 = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
+# dataset_path0 = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
+dataset_path0 = DATA_STAGING_PATH + '/Results/results_exp2.h5'  #added by Claude 20260906
+# dataset_path1 = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
+dataset_path1 = DATA_STAGING_PATH + '/Results/results_exp2.h5'  #added by Claude 20260906
+# dataset_path2 = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
+dataset_path2 = DATA_STAGING_PATH + '/Results/results_exp2.h5'  #added by Claude 20260906
+# dataset_path3 = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
+dataset_path3 = DATA_STAGING_PATH + '/Results/results_exp2.h5'  #added by Claude 20260906
 
 ###################################################################################
 ################################ prepare data #####################################

@@ -13,7 +13,9 @@ from utils.load_config import load_config
 
 #[timestamp, cues, metric_result, threshold, serial_readout] = extract_from_metadata_file('/data/Rotem/WideFlow prj/2680/20220324_neurofeedback/metadata.txt')
 
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 date = '20241129'
 mouse_id = '203MN'
 #session_id = '20220324_neurofeedback'
@@ -51,7 +53,8 @@ session_meta[f'{session_id}'] = {"timestamp": timestamp[start_frame:], "cue": cu
 dt = np.mean(np.diff(timestamp))
 
 sessions_data = {}
-dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+# dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+dataset_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
 #dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
 #'/data/Rotem/WideFlow prj/results/sessions_20220320.h5'
 #/data/Lena/WideFlow_prj/Results/sessions_xxx.h5

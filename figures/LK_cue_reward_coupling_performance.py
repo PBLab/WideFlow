@@ -9,12 +9,14 @@ from scipy.ndimage.filters import maximum_filter1d
 from scipy.stats import ttest_rel
 
 #  statistics hyperparameters
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 sdf_win = [100, 500]
 sdfx_win = [200, 200]
 frames_win = 400
 beta = 1
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 
 
 mice_id = [

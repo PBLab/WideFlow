@@ -7,11 +7,14 @@ import h5py
 
 
 # base_path = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+from wideflow.config import BASE_PATH  #added by Claude 20260906
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
 #dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp3.h5'
 # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 #dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.h5'
-dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
+# dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
+dataset_path_noMH = BASE_PATH + '/Results/results_exp3.5.h5'  #added by Claude 20260906
 # dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 # dataset_path_noMH = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_tests.h5'
 

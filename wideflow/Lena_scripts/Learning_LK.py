@@ -18,6 +18,7 @@ from scipy.ndimage.filters import maximum_filter1d
 from scipy.signal import find_peaks, peak_prominences, peak_widths, savgol_filter
 from Imaging.utils.numba_histogram import numba_histogram
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def percentile_update_procedure(threshold, samples, percentile, nbins):
     hist, bins = numba_histogram(samples, nbins, density=True)
     bins_width = np.diff(bins)
@@ -31,7 +32,8 @@ def percentile_update_procedure(threshold, samples, percentile, nbins):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dataset_path = f'{base_path}/Results/results_exp2.h5'
 #sessions_xxx
 #base_path = '/data/Rotem/WideFlow prj'

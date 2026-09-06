@@ -5,7 +5,9 @@ from wideflow.analysis.utils.extract_from_metadata_file import extract_from_meta
 from wideflow.analysis.plots import plot_session
 from wideflow.analysis.plots import plot_reward_response
 
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 #base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
 date = '20250909'
 mouse_id = '260FN'

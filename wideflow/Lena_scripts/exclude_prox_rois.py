@@ -6,7 +6,9 @@ from utils.paint_roi import paint_roi
 import numpy as np
 
 
-mouse_base_path = '/data/Lena/WideFlow_prj/MNL/'  # path to the directory where to save parcellation rois data and map
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# mouse_base_path = '/data/Lena/WideFlow_prj/MNL/'  # path to the directory where to save parcellation rois data and map
+mouse_base_path = DATA_STAGING_PATH + '/MNL/'  # path to the directory where to save parcellation rois data and map  #added by Claude 20260906
 rois_data_path = mouse_base_path + '20221122_MNL_CRC3functional_parcellation_rois_dict.h5'
 #20221122_MR_CRC3functional_parcellation_rois_dict.h5
 #FLfunctional_parcellation_rois_dict_CRC3.h5

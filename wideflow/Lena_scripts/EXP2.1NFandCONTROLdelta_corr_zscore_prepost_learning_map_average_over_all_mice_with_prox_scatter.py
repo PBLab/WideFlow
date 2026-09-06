@@ -26,6 +26,7 @@ from analysis.plots import plot_traces, wf_imshow
 from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
 
@@ -110,7 +111,8 @@ def bin_ndarray(array, new_shape):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dates_vec = ['20241126','20241203']
 mice_id = [
     #'21ML'
@@ -156,8 +158,10 @@ title = (f'Average zscores of delta corr {mice_id} {sessions_vec[1]}-{sessions_v
 
 # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
 # CRC_res_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
-CRC_res_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
+# CRC_res_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+CRC_res_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
 
 
 prox_all_sess = []
@@ -180,7 +184,8 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
         spont_sess_length_frames = 60000
         CRC_sess_length_frames = 60000
         NF_sess_length_frames = 65000
-        dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        dataset_path_noMH = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
     else:
         dates_vec = ['20230608'
             ,  '20230615'
@@ -201,9 +206,11 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
         if sess_name == 'CRC4' and mouse_id == '204FR':
             session_id = '20241125_204FR_CRC3'
         if (mouse_id == '21ML' or mouse_id == '31MN' or mouse_id == '54MRL' or mouse_id == '63MR' or mouse_id == '64ML') and sess_name == 'CRC4':
-            dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            dataset_path_noMH = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
         if (mouse_id == '21ML' or mouse_id == '31MN' or mouse_id == '54MRL' or mouse_id == '63MR' or mouse_id == '64ML') and sess_name != 'CRC4':
-            dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            dataset_path_noMH = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 
 
         data = {}

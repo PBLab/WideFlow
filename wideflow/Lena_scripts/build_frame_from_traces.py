@@ -6,8 +6,11 @@ from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 from wideflow.analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 from scipy.ndimage.filters import maximum_filter1d
 
-results_path = '/data/Lena/WideFlow_prj/Results/sessions_xxx.h5'
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# results_path = '/data/Lena/WideFlow_prj/Results/sessions_xxx.h5'
+results_path = DATA_STAGING_PATH + '/Results/sessions_xxx.h5'  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 mouse_id = 'MNL'
 #session_id = '20220324_neurofeedback'
 session_id = f'20230119_{mouse_id}_NF19'

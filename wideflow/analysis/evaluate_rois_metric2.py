@@ -9,6 +9,7 @@ from scipy.signal import find_peaks, peak_prominences, convolve2d
 
 import h5py
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 temporal_window = 1000  # in milliseconds, used to calculate divergence metric and pstr
 smoo_kernel_size = 11
 max_f_to_peak = 5
@@ -139,7 +140,8 @@ def smoo_rewards(inds_list, shape):
     return x
 
 
-base_path = '/data/Lena/WideFlow_prj/'
+# base_path = '/data/Lena/WideFlow_prj/'
+base_path = DATA_STAGING_PATH + '/'  #added by Claude 20260906
 #base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/'
 dataset_path = base_path + 'Results/results_exp2_noMH.h5'
 #dataset_path = '/data/Lena/WideFlow_prj/Results/results2.h5'

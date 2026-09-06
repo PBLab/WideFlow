@@ -23,6 +23,7 @@ from analysis.plots import plot_traces, wf_imshow
 from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
 
@@ -107,7 +108,8 @@ def bin_ndarray(array, new_shape):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dates_vec = ['20241126','20241203']
 mice_id = [
     #'187FN'
@@ -143,8 +145,10 @@ title = (f'Average zscores of delta corr {mice_id} {sessions_vec[1]}-{sessions_v
 
 # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
 # CRC_res_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
-CRC_res_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
+# CRC_res_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+CRC_res_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
 
 
 prox_all_sess = []

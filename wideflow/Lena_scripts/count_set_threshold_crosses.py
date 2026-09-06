@@ -1,7 +1,9 @@
 from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 import numpy as np
 
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 date = '20230613'
 mouse_id = '54MRL'
 session_id = f'{date}_{mouse_id}_NF3'

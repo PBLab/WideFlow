@@ -21,6 +21,7 @@ from analysis.plots import plot_traces, wf_imshow
 from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
 
@@ -76,7 +77,8 @@ def cohens_d(group1, group2):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dates_vec = ['20230608','20230614']
 mice_id = ['21ML','31MN','54MRL','63MR','64ML']
 colors = ['cyan', 'orange', 'purple', 'chartreuse', 'magenta'] #21'cyan',24'blue',31'orange',46'green',54'purple', 63'chartreuse', 64'magenta'
@@ -88,12 +90,14 @@ sessions_vec = ['CRC4','NF4']
 indexes_vec = [134, 105, 85, 52, 71 ]#(those are the indexes of ROI1, the actual ROI numbers are this +1)
 
 
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 
 roi_lists = {}
 centroid_lists = {}
 for mouse in mice_id:
-    roi_lists[mouse] = load_rois_data(f'/data/Lena/WideFlow_prj/{mouse}/functional_parcellation_rois_dict.h5')
+    # roi_lists[mouse] = load_rois_data(f'/data/Lena/WideFlow_prj/{mouse}/functional_parcellation_rois_dict.h5')
+    roi_lists[mouse] = load_rois_data(f'{DATA_STAGING_PATH}/{mouse}/functional_parcellation_rois_dict.h5')  #added by Claude 20260906
     centroid_lists[mouse] = {}
     for key in roi_lists[mouse]:
         centroid_lists[mouse][key] = roi_lists[f'{mouse}'][key]['Centroid']
@@ -112,9 +116,11 @@ for mouse_id, metric_index in zip(mice_id, indexes_vec):
         if sess_name == 'CRC4' and mouse_id == '63MR':
             session_id = '20230607_63MR_CRC3'
 
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+        # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+        results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
         if sess_name == 'CRC4':
-            results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            results_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
         data = {}
         with h5py.File(results_path, 'r') as f:
             decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')

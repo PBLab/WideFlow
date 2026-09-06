@@ -11,6 +11,7 @@ import numpy as np
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 
 
+from wideflow.config import BASE_PATH  #added by Claude 20260906
 def _to_str(val):
     """h5py datasets round-trip strings as bytes sometimes -- normalize."""
     if isinstance(val, bytes):
@@ -95,7 +96,8 @@ def get_roi_info(mouse_record, roi_choice):
 def build_results_path(base_results_dir, group_number, roi_choice):
     """
     Matches the pattern:
-        '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp{group_num}_parc_{ROI}.h5'
+        # '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp{group_num}_parc_{ROI}.h5'
+        BASE_PATH + '/Results/results_exp{group_num}_parc_{ROI}.h5'  #added by Claude 20260906
 
     group_number is stored as a float (e.g. 3.4, 4.0) -- group 4 is written
     as plain '4' (not '4.0') to match 'results_exp4_parc_ROI1.h5', while

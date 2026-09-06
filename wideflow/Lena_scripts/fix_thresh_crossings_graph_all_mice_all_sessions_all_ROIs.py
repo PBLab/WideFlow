@@ -10,8 +10,11 @@ import h5py
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 
 
-base_path = '/data/Lena/WideFlow_prj'
-dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
+# dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+dataset_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 
 #dates_vec = ['20230615', '20230618', '20230619', '20230620', '20230621', '20230622']
 #dates_vec = ['20230604', '20230618', '20230619', '20230620', '20230621', '20230622']

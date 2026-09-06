@@ -17,6 +17,7 @@ from utils.load_rois_data import load_rois_data
 from analysis.plots import *
 
 
+from wideflow.config import BASE_PATH, DATA_STAGING_PATH  #added by Claude 20260906
 def count_threshold_crossings(vector, threshold, window_size, step_size):
     """
     Counts the rate of threshold crossings in a moving window.
@@ -69,7 +70,8 @@ def percentage_increasing(vector):
 
 
 #base_path = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
 mice_id = [
    # '21ML',
    # '31MN',
@@ -215,7 +217,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         # CRC_sess_length_frames = 60000
         # NF_sess_length_frames = 65000
         # dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+        results_path = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
     else:
         dates_vec = [
             #'20230604', #spont
@@ -241,7 +244,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         #results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
         #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
         #results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.3.h5'
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        results_path = BASE_PATH + '/Results/results_exp3.4.h5'  #added by Claude 20260906
 
     for date, session_name in zip(dates_vec, sessions_vec):
         session_id = f'{date}_{mouse_id}_{session_name}'
@@ -266,7 +270,8 @@ for mouse_id, metric_index in zip(mice_id,indexes_vec):
         data = {}
         #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
         if (mouse_id == '31MN' or mouse_id == '54MRL') and session_name == 'CRC4':
-            results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            results_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 
         # with h5py.File(results_path, 'r') as f:
         #     decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/post_session_analysis_LK2/zsores_MH_diff10_exc_top15/')

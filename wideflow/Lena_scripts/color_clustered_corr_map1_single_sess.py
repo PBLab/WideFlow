@@ -21,6 +21,7 @@ from analysis.plots import plot_traces, wf_imshow
 from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.paint_roi import paint_roi
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def calc_rois_corr(rois_dict, data, data_chosen_roi):
     rois_corr = {}
     for i, roi_key in enumerate (rois_dict.keys()):
@@ -31,7 +32,8 @@ def calc_rois_corr(rois_dict, data, data_chosen_roi):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 #date = '20230614'
 mouse_id = '64ML'
 #sess_name = 'spont_mockNF_NOTexcluded_closest'
@@ -49,9 +51,11 @@ if mouse_id == '63MR' and sess_name == 'CRC4':
     session_id = '20230607_63MR_CRC3'
 
 
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 if sess_name == 'CRC4' or sess_name == 'CRC3':
-    results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+    # results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+    results_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 
 # timestamp, cue, metric_result, threshold, serial_readout = extract_from_metadata_file(f'{base_path}/{date}/{mouse_id}/{session_id}/metadata.txt')
 # serial_readout = 1 - np.array(serial_readout)

@@ -23,6 +23,7 @@ from utils.paint_roi import paint_roi
 from scipy.stats import ttest_rel
 
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
 
@@ -54,7 +55,8 @@ def cohens_d(group1, group2):
     return cohen_d
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dates_vec = ['20230604','20230608']
 mice_id = ['21ML',
      '31MN','54MRL','63MR','64ML']
@@ -76,7 +78,8 @@ indexes_vec = [134,
 #title = f'pre_post_corr_slopes_target_ROI_{sessions_vec[0]}_{sessions_vec[1]}'
 
 #results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
-results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+results_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 
 slopes = []
 for mouse_id,metric_index in zip(mice_id,indexes_vec):
@@ -88,10 +91,12 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
 
 
         if sess_name == 'CRC4':
-            results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            results_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 
         else:
-            results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+            results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 
 
         data = {}

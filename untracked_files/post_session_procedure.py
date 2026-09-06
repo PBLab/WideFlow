@@ -5,7 +5,9 @@ from tqdm import tqdm
 
 # base_path = '/data/Rotem/WideFlow prj'
 #base_path = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+from wideflow.config import BASE_PATH  #added by Claude 20260906
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
 # base_path = '/storage/DataCrunching/Lena'
 
 

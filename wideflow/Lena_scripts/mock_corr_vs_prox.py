@@ -4,13 +4,16 @@ from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 from analysis.utils.rois_proximity import calc_rois_proximity
 from utils.load_rois_data import load_rois_data
 
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 date = '20230604'
 mouse_id = '31MN'
 session_id = f'{date}_{mouse_id}_spont'
 metric_index = 105 #21ML - 134, 31MN - 105, 54MRL - 85, 63MR - 52, 64ML - 71 (those are the indexes, the actual ROI numbers are this +1)
 
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2.h5'  #added by Claude 20260906
 
 data = {}
 with h5py.File(results_path, 'r') as f:

@@ -23,6 +23,7 @@ from tifffile import TiffWriter
 from datetime import datetime
 from tqdm import tqdm
 
+from wideflow.config import BASE_PATH  #added by Claude 20260906
 class PostAnalysisNeuroFeedbackSession(AbstractSession):
     def __init__(self, config, crop_sensor=False):
         """
@@ -85,7 +86,8 @@ class PostAnalysisNeuroFeedbackSession(AbstractSession):
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI1.h5'
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4_parc_ROI2.h5'
         # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.1_parc_ROI1.h5'
-        self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.1_parc_ROI2.h5'
+        # self.results_dataset_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp4.1_parc_ROI2.h5'
+        self.results_dataset_path = BASE_PATH + '/Results/results_exp4.1_parc_ROI2.h5'  #added by Claude 20260906
         # self.results_dataset_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI1.h5'
         # self.results_dataset_path = '/storage/DataCrunching/Lena/Results/results_exp4.1_parc_ROI2.h5'
 

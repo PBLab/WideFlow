@@ -13,6 +13,7 @@ from analysis.utils.extract_from_metadata_file import extract_from_metadata_file
 from scipy.signal import savgol_filter
 
 # feedback delay
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 delay_time = 32
 delay_delta = 3
 
@@ -30,8 +31,10 @@ delay_delta = 3
 #     '20220324_neurofeedback'
 #     ]
 
-base_path = '/data/Lena/WideFlow_prj'
-dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
+# dataset_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+dataset_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
 mice_ids = ['21ML','31MN','54MRL','63MR','64ML']
 
 sessions_ids = [    'spont_mockNF_NOTexcluded_closest'
@@ -236,17 +239,23 @@ cross_rois_inds_diff_df = pd.DataFrame(cross_rois_inds_diff)
 widths_df = pd.DataFrame(widths)
 
 # Save the DataFrame to a CSV file
-file_path_blue = '/data/Lena/WideFlow_prj/blue_curve_data.csv'
-file_path_green = '/data/Lena/WideFlow_prj/green_curve_data.csv'
-file_path_orange = '/data/Lena/WideFlow_prj/orange_curve_data.csv'
+# file_path_blue = '/data/Lena/WideFlow_prj/blue_curve_data.csv'
+file_path_blue = DATA_STAGING_PATH + '/blue_curve_data.csv'  #added by Claude 20260906
+# file_path_green = '/data/Lena/WideFlow_prj/green_curve_data.csv'
+file_path_green = DATA_STAGING_PATH + '/green_curve_data.csv'  #added by Claude 20260906
+# file_path_orange = '/data/Lena/WideFlow_prj/orange_curve_data.csv'
+file_path_orange = DATA_STAGING_PATH + '/orange_curve_data.csv'  #added by Claude 20260906
 
 within_inds_diff_df.to_csv(file_path_blue, index=False)
 cross_rois_inds_diff_df.to_csv(file_path_green, index=False)
 widths_df.to_csv(file_path_orange, index=False)
 
-np.save('/data/Lena/WideFlow_prj/blue_curve_data.npy',within_inds_diff)
-np.save('/data/Lena/WideFlow_prj/green_curve_data.npy',cross_rois_inds_diff)
-np.save('/data/Lena/WideFlow_prj/orange_curve_data.npy',widths)
+# np.save('/data/Lena/WideFlow_prj/blue_curve_data.npy',within_inds_diff)
+np.save(DATA_STAGING_PATH + '/blue_curve_data.npy',within_inds_diff)  #added by Claude 20260906
+# np.save('/data/Lena/WideFlow_prj/green_curve_data.npy',cross_rois_inds_diff)
+np.save(DATA_STAGING_PATH + '/green_curve_data.npy',cross_rois_inds_diff)  #added by Claude 20260906
+# np.save('/data/Lena/WideFlow_prj/orange_curve_data.npy',widths)
+np.save(DATA_STAGING_PATH + '/orange_curve_data.npy',widths)  #added by Claude 20260906
 #########################
 
 print(f'Diff. within ROI under delay {time_diff_within_roi_percentage_under_delay}% (blue),\n '

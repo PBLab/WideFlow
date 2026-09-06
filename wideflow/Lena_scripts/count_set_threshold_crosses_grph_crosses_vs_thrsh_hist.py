@@ -10,7 +10,9 @@ import statistics
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 
 
-base_path = '/data/Lena/WideFlow_prj'
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 
 mice_id = [
     #'21ML'
@@ -66,7 +68,8 @@ NF_sess_length_frames = 65000
 spont_sess_frames = 50000
 #spont_sess_frames = 60000
 set_threshold = (np.arange(0.5, 4.0, 0.1)).tolist()
-dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+# dataset_path_noMH = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
+dataset_path_noMH = DATA_STAGING_PATH + '/Results/results_exp2.1.h5'  #added by Claude 20260906
 
 peaks = np.zeros((len(mice_id),len(sessions_vec)-1))
 

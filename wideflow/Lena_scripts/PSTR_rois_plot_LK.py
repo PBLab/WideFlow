@@ -11,14 +11,18 @@ from utils.load_rois_data import load_rois_data
 from utils.load_config import load_config
 
 #[timestamp, cues, metric_result, threshold, serial_readout] = extract_from_metadata_file('/data/Rotem/WideFlow prj/2680/20220324_neurofeedback/metadata.txt')
-[timestamp, cues, metric_result, threshold, serial_readout] = extract_from_metadata_file('/data/Lena/WideFlow_prj/MNL/20221218_MNL_NF6/metadata.txt')
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
+# [timestamp, cues, metric_result, threshold, serial_readout] = extract_from_metadata_file('/data/Lena/WideFlow_prj/MNL/20221218_MNL_NF6/metadata.txt')
+[timestamp, cues, metric_result, threshold, serial_readout] = extract_from_metadata_file(DATA_STAGING_PATH + '/MNL/20221218_MNL_NF6/metadata.txt')  #added by Claude 20260906
 serial_readout_correct = [1-x for x in serial_readout]
 cue = maximum_filter1d(cues, 2)[::2]
-config = load_config('/data/Lena/WideFlow_prj/MNL/20221218_MNL_NF6/session_config.json')
+# config = load_config('/data/Lena/WideFlow_prj/MNL/20221218_MNL_NF6/session_config.json')
+config = load_config(DATA_STAGING_PATH + '/MNL/20221218_MNL_NF6/session_config.json')  #added by Claude 20260906
 metric_roi = config['analysis_pipeline_config']['args']['metric_args'][1][0]
 
 
-functional_rois_dict = load_rois_data('/data/Lena/WideFlow_prj/MNL/20221122_MNL_CRC3functional_parcellation_rois_dict.h5')
+# functional_rois_dict = load_rois_data('/data/Lena/WideFlow_prj/MNL/20221122_MNL_CRC3functional_parcellation_rois_dict.h5')
+functional_rois_dict = load_rois_data(DATA_STAGING_PATH + '/MNL/20221122_MNL_CRC3functional_parcellation_rois_dict.h5')  #added by Claude 20260906
 #/data/Lena/WideFlow_prj/MNL/20221122_MNL_CRC3functional_parcellation_rois_dict.h5
 #/data/Rotem/WideFlow prj/2680/functional_parcellation_rois_dict_left_hemi.h5
 session_meta = {}
@@ -28,7 +32,8 @@ session_meta['20221218_MNL_NF6'] = {"timestamp": timestamp, "cue": cue, "metric_
 dt = np.mean(np.diff(timestamp))
 
 sessions_data = {}
-dataset_path = '/data/Lena/WideFlow_prj/Results/sessions_xxx.h5'
+# dataset_path = '/data/Lena/WideFlow_prj/Results/sessions_xxx.h5'
+dataset_path = DATA_STAGING_PATH + '/Results/sessions_xxx.h5'  #added by Claude 20260906
 #'/data/Rotem/WideFlow prj/results/sessions_20220320.h5'
 #/data/Lena/WideFlow_prj/Results/sessions_xxx.h5
 with h5py.File(dataset_path, 'r') as f:

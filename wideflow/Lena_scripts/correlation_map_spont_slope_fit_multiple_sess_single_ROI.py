@@ -23,6 +23,7 @@ from utils.paint_roi import paint_roi
 from scipy.stats import linregress
 
 
+from wideflow.config import DATA_STAGING_PATH  #added by Claude 20260906
 def exponential_func(x, a, b):
     return a * np.exp(b * x)
 
@@ -45,7 +46,8 @@ def calc_rois_corr(rois_dict, data, data_chosen_roi):
 
 
 
-base_path = '/data/Lena/WideFlow_prj'
+# base_path = '/data/Lena/WideFlow_prj'
+base_path = DATA_STAGING_PATH  #added by Claude 20260906
 dates_vec = ['20230604','20230608','20230611','20230615']
 #dates_vec = ['20241121','20241125','20241129','20241203']
 mice_id = ['31MN']
@@ -65,8 +67,10 @@ num_frames_21ML = 14000
 
 #title = f'{mice_id}_{sessions_vec}_roi_{indexes_vec[0]+1}_corr_vs_prox_linear_fit'
 
-results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
-CRC_res_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+# results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
+# CRC_res_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+CRC_res_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 # CRC_res_path = '/data/Lena/WideFlow_prj/Results/results_exp2.1.h5'
 
@@ -78,9 +82,11 @@ for mouse_id,metric_index in zip(mice_id,indexes_vec):
 
 
         data = {}
-        results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+        # results_path = '/data/Lena/WideFlow_prj/Results/results_exp2_noMH.h5'
+        results_path = DATA_STAGING_PATH + '/Results/results_exp2_noMH.h5'  #added by Claude 20260906
         if sess_name == 'CRC4':
-            results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            # results_path = '/data/Lena/WideFlow_prj/Results/Results_exp2_CRC_sessions.h5'
+            results_path = DATA_STAGING_PATH + '/Results/Results_exp2_CRC_sessions.h5'  #added by Claude 20260906
 
         with h5py.File(results_path, 'r') as f:
             decompose_h5_groups_to_dict(f, data, f'/{mouse_id}/{session_id}/')

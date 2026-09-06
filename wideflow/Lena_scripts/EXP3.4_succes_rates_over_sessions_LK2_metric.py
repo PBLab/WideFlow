@@ -9,9 +9,13 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from statsmodels.stats.anova import AnovaRM
 from utils.decompose_dict_and_h5_groups import decompose_h5_groups_to_dict
 
-base_path_qnap = '/data/Lena/WideFlow_prj'
-base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
-results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+from wideflow.config import BASE_PATH, DATA_STAGING_PATH  #added by Claude 20260906
+# base_path_qnap = '/data/Lena/WideFlow_prj'
+base_path_qnap = DATA_STAGING_PATH  #added by Claude 20260906
+# base_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj'
+base_path = BASE_PATH  #added by Claude 20260906
+# results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+results_path = BASE_PATH + '/Results/results_exp3.4.h5'  #added by Claude 20260906
 #dates_vec = ['20250731','20250731','20250731', '20250801','20250801','20250801','20250802','20250802','20250802']
 mice_id = [
     '245FRL',
@@ -56,7 +60,8 @@ for mouse_id in mice_id:
                          'NF2_p1', 'NF2_p2', 'NF2_p3', 'NF3_p1', 'NF3_p2', 'NF3_p3', 'NF4_p1', 'NF4_p2', 'NF4_p3', 'NF5_p1',
                          'NF5_p2', 'NF5_p3' , 'NF6_p1', 'NF6_p2', 'NF6_p3']
             # ,'NF_control_p1','NF_control_p2','NF_control_p3'  ]
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        results_path = BASE_PATH + '/Results/results_exp3.4.h5'  #added by Claude 20260906
     elif mouse_id == '252MR':
         dates_vec = [#'20250731', '20250731', '20250731',
                      '20250801', '20250801', '20250801', '20250802', '20250802', '20250802',
@@ -64,7 +69,8 @@ for mouse_id in mice_id:
         sessions_vec = [#'NF1_p1', 'NF1_p2', 'NF1_p3',
                         'NF2_p1', 'NF2_p2', 'NF2_p3', 'NF3_p1', 'NF3_p2', 'NF3_p3',
                         'NF5_p1', 'NF5_p2', 'NF5_p3', 'NF6_p1', 'NF6_p2', 'NF6_p3','NF7_p1', 'NF7_p2', 'NF7_p3']#,'NF_control_p1','NF_control_p2','NF_control_p3']
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        results_path = BASE_PATH + '/Results/results_exp3.4.h5'  #added by Claude 20260906
 
     elif mouse_id == '245FRL' or mouse_id=='246FN':
         dates_vec = [#'20250731', '20250731', '20250731',
@@ -73,7 +79,8 @@ for mouse_id in mice_id:
         sessions_vec = [#'NF1_p1', 'NF1_p2', 'NF1_p3',
                         'NF1_p1', 'NF1_p2', 'NF1_p3', 'NF2_p1', 'NF2_p2', 'NF2_p3','NF2_p1', 'NF2_p2', 'NF2_p3', 'NF4_p1', 'NF4_p2', 'NF4_p3', 'NF5_p1',
                          'NF5_p2', 'NF5_p3']#,'NF_control_p1','NF_control_p2','NF_control_p3']
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.4.h5'
+        results_path = BASE_PATH + '/Results/results_exp3.4.h5'  #added by Claude 20260906
 
     elif (mouse_id == '258FL' or mouse_id=='260FN' or mouse_id=='261MR' or mouse_id=='263MRL'
           or mouse_id=='228MN' or mouse_id=='259FRL'):
@@ -83,7 +90,8 @@ for mouse_id in mice_id:
         sessions_vec = [# 'NF1_p1', 'NF1_p2', 'NF1_p3',
                          'NF2_p1', 'NF2_p2', 'NF2_p3', 'NF3_p1', 'NF3_p2', 'NF3_p3', 'NF4_p1', 'NF4_p2', 'NF4_p3', 'NF5_p1',
                          'NF5_p2', 'NF5_p3' , 'NF6_p1', 'NF6_p2', 'NF6_p3']
-        results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
+        # results_path = '/claustrum-storage/pblab_shared_data/Lena/WideFlow_prj/Results/results_exp3.5.h5'
+        results_path = BASE_PATH + '/Results/results_exp3.5.h5'  #added by Claude 20260906
 
 
 
