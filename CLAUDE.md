@@ -43,6 +43,12 @@ Full architecture/hardware/config details: see `README.md` at repo root.
 - `requirements.txt` at repo root may be stale/unreliable — `WideFlow1` was verified by actually importing
   the code, not by trusting this file. A second `requirements.txt` exists under `Lena_scripts/`.
 
+## Two-machine sync
+See `WideFlow_data_analysis/CLAUDE.md`'s "Two-machine sync convention" section
+(canonical) — applies to this repo too: real paths/hosts go in gitignored
+`wideflow/config_local.py`, never a literal in tracked code, and IDE/build
+artifacts stay untracked.
+
 ## TODO — revisit `.venv/` (~end of Oct 2026)
 Investigated 2026-08-02: `.venv/` (created 2025-04-28) looks like it was set up reactively while configuring
 PyCharm for a student (`linoyshvartz`) on this project — evidence: her account's own `.pyc` cache files in
@@ -140,10 +146,12 @@ Chain to get from `(mouse_id, session_name)` to that session's raw per-frame log
    e.g. `.../20260809/231ML/20260809_231ML_NF1/metadata.txt` (underscores join the
    three name parts; `_part` is only appended when `parts` is non-empty).
 
-   `base_path = /claustrum-storage/pblab_shared_data/Lena/WideFlow_prj` — use this
-   for all analysis reads. A second mount, `/data/Lena/WideFlow_prj`, exists but is
-   used for data transfer/staging from the rig — reading from it for analysis is
-   very slow. **Do not read from `/data` for analysis.**
+   `base_path` comes from `wideflow/config.py` (imports the gitignored, per-machine
+   `wideflow/config_local.py`'s `BASE_PATH` — see that file's `.example.py`
+   template) — never hardcode a literal path here. A second path,
+   `DATA_STAGING_PATH`, exists but is used for data transfer/staging from the rig —
+   reading from it for analysis is very slow. **Do not read from the staging path
+   for analysis.**
 
    If `parts` is non-empty, there is **one folder+file per part** — not one
    combined file.
