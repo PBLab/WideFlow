@@ -182,7 +182,14 @@ Chain to get from `(mouse_id, session_name)` to that session's raw per-frame log
    See `WideFlow_data_analysis/IO/metadata_loader.py`'s `get_session_frames`
    for the pattern (hash raw bytes → wrap as `io.StringIO` → pass to
    `extract_from_metadata_file`).
-   - `timestamp`
+   - `timestamp` — software time (`perf_counter()`), not camera exposure time.
+     **Convention changed between cohorts during the post-outcome delay** (every
+     frame after a reward or timeout, until the next trial): cohorts ≤3.5 (sessions up
+     to 2025-09-10) stamp each delay frame at the END of its acquisition-loop iteration,
+     cohorts ≥4.0 (from 2025-12-03) at its START, like trial frames. Old-convention delay
+     times are ~26-39 ms later. Signature: delay -> next-trial interval 0-1 ms (old) vs.
+     ~39 ms (new). Frame order and counts are unaffected. Details and source:
+     `WideFlow_data_analysis/docs/experiment_history.md` (2026-10-01).
    - `cue` — reward indicator: `1` on the frame a reward was actually delivered
      (metric crossed threshold and feedback fired), `0` otherwise. Not a
      stimulus-onset cue — it marks reward delivery.
