@@ -213,10 +213,59 @@ Chain to get from `(mouse_id, session_name)` to that session's raw per-frame log
 
 ## Results H5 structure (`results_exp{cohort}_parc_ROI{1|2}.h5`)
 Verified by tracing the actual computations in `untracked_files/post_session_procedure.py`
-and `Lena_scripts/calc_and_save_zscores_and_diff5_all_rois_with_MH_removal_per_roi.py`
+and `Lena_scripts/calc_and_save_zscores_and_diff5_all_rois_with_MH_removal_per _roi.py`
 — **not** from variable names or code comments, which are sometimes misleading (see
 notes below). **If either of these scripts is changed to add/remove/rename what
 gets saved into this h5 file, update this list to match.**
+
+### Location and which files to use
+Path: `BASE_PATH + '/Results/'` (`BASE_PATH` from `wideflow/config.py`, i.e. the
+per-machine `config_local.py`; never hardcode it). The Results folder holds many
+h5 files from earlier processing rounds. **Only these are the clean, current results:**
+
+| Cohort | Files |
+|---|---|
+| 3.5 | `results_exp3.5_parc_ROI1.h5`, `results_exp3.5_parc_ROI2.h5` |
+| 4.0 | `results_exp4_parc_ROI1.h5`, `results_exp4_parc_ROI2.h5` (no `.0` in the name) |
+| 4.1 | `results_exp4.1_parc_ROI1.h5`, `results_exp4.1_parc_ROI2.h5` |
+| 3.4 | `results_exp3.4_parc_ROI1.h5` only (no ROI2 file; 3.4 is excluded from most analyses anyway) |
+
+The name must match `results_exp{cohort}_parc_ROI{1|2}.h5` exactly. A file with any
+extra suffix (e.g. `results_exp3.5_parc_ROI1_before_repack_june2026.h5`) or any other
+name is not clean. **Ask Lena before using any other file in Results/.**
+
+Each file has one group per mouse, then one group per recording part, keyed by the
+raw session name: `{date}_{mouse_id}_{raw_session_name}_{part}`. Each file contains
+every session of the mouse (spont, CRC, NF1 onward, and NF_control where it exists),
+whichever block it was trained in.
+
+### ROI1 vs. ROI2 files: why two versions exist
+Every training target is a merged pair of parcellation ROIs, stored under one merged
+key (`roi_{roi1_name}` or `roi_{roi2_name}` from `mice_metadata.h5`, e.g. `roi_30_37`).
+Each file is the full post-session processing run with one target merged:
+- `_ROI1` file: ROI1's pair merged, ROI2's two ROIs kept separate.
+- `_ROI2` file: ROI2's pair merged, ROI1's two ROIs kept separate.
+
+This lets each target be analyzed in every session, including sessions where the
+other ROI was the one being trained (e.g. ROI2's activity during ROI1's NF2–NF6).
+Neither file can stand in for the other for the z-scored outputs:
+- `rois_traces/*` (e.g. `channel_0`): a merged ROI's trace is exactly the
+  pixel-count-weighted mean of its two halves (verified: weights sum to 1, zero
+  residual). The two files hold identical traces for every ROI they share. You can't
+  un-merge a pair, but you never need to, because the other file has the halves.
+  **For these traces, either file gives the same answer.**
+- `post_session_analysis_LK2/zsores_MH*`: **not** reconstructable. Each z-score is
+  computed against the other ROIs at the same instant. Merging changes that pool:
+  the merged ROI counts as one member instead of two, a different set of neighbours
+  is MH-removed, and the top-15% count changes. Rebuilding the merged z-score from
+  the other file's halves leaves errors up to ~28% of the signal's SD. **For a
+  target's z-scored metric, use the file where that target is the merged ROI.** The
+  separate halves' z-scores in the other file are not that target's metric.
+
+Coupling caveat: during one target's training, that target is part of the pool the
+other target's z-score is computed against. A rise in the trained ROI can lower the
+other ROI's z-score without any change in the other ROI's own activity. Check
+`channel_0`, which has no pool, alongside the z-score.
 
 ### `/{mouse_id}/{session_id}/rois_traces/channel_N` (written by `post_session_procedure.py`)
 Per-ROI mean values, one array per session, at each pipeline stage. ΔF/F throughout
@@ -251,7 +300,7 @@ real value duplicated across 2 consecutive raw-frame slots (same pattern as
 
 **⚠️ Never use `metric_results` in any further analysis code.**
 
-### `/{mouse_id}/{session_id}/post_session_analysis_LK2/*` (written by `calc_and_save_zscores_and_diff5_all_rois_with_MH_removal_per_roi.py`)
+### `/{mouse_id}/{session_id}/post_session_analysis_LK2/*` (written by `calc_and_save_zscores_and_diff5_all_rois_with_MH_removal_per _roi.py`)
 Starting from `channel_0`, with the candidate target ROI's spatial neighbors
 deleted from the pool ("MH removal"):
 
