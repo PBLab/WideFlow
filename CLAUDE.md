@@ -402,6 +402,9 @@ check it before any 3.4 imaging analysis.
 
 Full list, method and numbers: `WideFlow_data_analysis/docs/results_channel_swap_check.md`.
 
+**New cohort → screen it for swaps** before analysing its imaging data (procedure in
+`WideFlow_data_analysis/docs/results_channel_swap_check.md`, "Screening a new cohort").
+
 ## Documentation organization convention
 Where new project information goes:
 - **README.md** (in whichever repo the fact belongs to): current-state facts —
