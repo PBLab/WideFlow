@@ -382,10 +382,10 @@ point, "blue" is violet and vice versa, so `channel_0` and every metric built on
 are wrong. **The live NF metric was swapped too** (the live and saved frame sequences
 are identical), so rewards in those stretches came from a swapped computation.
 
-**Sustained swaps (to the end of the part); exclude from any imaging analysis:**
+**Sustained swaps (to the end of the part); excluded whole from every analysis** (decided 2026-10-06):
 | Part | Swapped from corrected frame (±1) to end |
 |---|---|
-| `20260609_327FL_NF2_p1` | 5910 (frames before are clean) |
+| `20260609_327FL_NF2_p1` | 5910 |
 | `20260618_331FN_NF9_p3` | ~116 |
 | `20260620_329FRR_NF11_p3` | ~55 |
 | `20251202_277FRL_spont_p2` | ~189 |
