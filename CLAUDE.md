@@ -89,6 +89,35 @@ inconsistent about which one they use:
 state whether it means raw frames (no hemo correction) or hemo-corrected frames —
 don't assume.**
 
+### Raw ↔ corrected mapping (verified against the raw tifs, 2026-10-06)
+- Corrected frame `i` = raw frames `2i` (blue) + `2i+1` (violet), from the first frame
+  of each part (no offset). **Corrected index = raw index // 2.**
+- Which raw frame each stored `rois_traces` channel comes from:
+
+  | Channel | Raw frame |
+  |---|---|
+  | `channel_2` (blue ΔF/F), `channel_3` (blue raw), `channel_0` | `2i` |
+  | `channel_7` (violet ΔF/F), `channel_1` (the violet the hemo correction subtracts) | `2i+1` |
+  | `channel_5` (violet raw) | **`2i−1`** (see the warning in "Results H5 structure") |
+- Raw tifs: `wf_raw_data_N.tif`, 2000 pages each (the last file holds the remainder).
+  **Only the last file's name is space-padded** (`wf_raw_data_  9.tif`,
+  `wf_raw_data_ 32.tif`). Raw frame `r` = file `r // 2000`, page `r % 2000` (0-based).
+  Fiji counts slices from 1, so there blue is on **odd** slices.
+- **Trial onsets after a hit fall on an odd raw frame:** the reward is on even frame
+  `r`, the delay covers `r+1…r+200`, and the next trial starts at `r+201`. One
+  corrected frame then holds the last delay frame and the first trial frame. Assign a
+  corrected frame to the trial its blue frame (`2i`) is in. Timeout trials last
+  1000 raw frames, so they start on even frames.
+- **NF rewards (`cue==1`) fall on the even (blue) raw frame**, the frame where the
+  metric crossed threshold. **Control rewards fall on either parity**, since they're
+  probabilistic, not metric-gated. Both map to corrected frame `r // 2`.
+- **The lick sensor varies at raw-frame resolution** (~2.5% of raw pairs differ),
+  unlike the imaging data. A combined raster must either bin both at corrected
+  resolution or label the lick trace as finer.
+- **Each part is processed from scratch:** the ΔF/F rolling baseline and hemo running
+  mean restart, and `diffN` is zero-padded, so a part's first N corrected frames
+  aren't real differences.
+
 ## Mice metadata pipeline (`Lena_scripts/mice_meta/`)
 Terminology note: the Excel/H5 field called `group_number` (e.g. `3.4`, `4.0`, `4.1`)
 is what we call a **cohort** (mice that ran the experiment together) in conversation
@@ -282,6 +311,9 @@ uses a **rolling-minimum** baseline (not mean), over the current buffer window.
 - `channel_3`: raw blue fluorescence (masked/warped pixel intensity, before any
   ΔF/F normalization).
 - `channel_5`: raw violet fluorescence (same as channel_3, violet channel).
+  **⚠️ One frame behind:** `channel_5[i]` is raw frame `2i−1` (the previous pair's
+  violet), not `2i+1` like `channel_1`/`channel_7`. It's read from a different buffer.
+  Don't compare `channel_3[i]` with `channel_5[i]` as if they were the same pair.
 - `channel_7`: raw violet ΔF/F *before* regression rescaling.
 - `channel_4`, `channel_6`: blue/violet rolling-minimum F0 baselines — **computed
   every frame but never saved** (the save code is commented out).
@@ -324,11 +356,51 @@ deleted from the pool ("MH removal"):
 - `zsores_MH_diff10_exc_top15_NEW4`: populated, but is an **exact duplicate** of
   `zsores_MH_diff10_exc_top15`.
 
-**`zsores_MH_diff10_exc_top15` vs. live `metric_results`**: same core formula, but
+**`zsores_MH_diff10_exc_top15` vs. the replayed `metric_results`**: same core formula, but
 differs in (1) MH/neighbor exclusion (off in `metric_results`, on here), (2)
 top-15% exclusion algorithm (rank-based vs. percentile-based), (3) windowing (live:
 circular buffer, warmed up before real data; offline: zero-padded from session
 start).
+
+**`zsores_MH_diff10_exc_top15` vs. the true live metric (`metadata.txt`
+`metric_result`)** (checked 2026-10-06): in practice the only difference is the
+top-15% exclusion **count**. Live (`core/metrics/ROI_Diff.py`) excludes exactly
+`int(0.15·n)` ROIs; offline excludes everything ≥ the 85th percentile; n = ROIs left
+after neighbour removal. Neighbour lists and ROI sets are identical (live
+`closest_rois` = offline `closest_dict_NEW_ROI{1,2}.h5`).
+- When the two counts agree (e.g. n = 67), offline matches live to ~2×10⁻⁵. When they
+  differ by one ROI, which is most parts (368 of 385 NF parts in 3.5/4.0/4.1), the
+  match is ~1–3×10⁻². Recomputing offline with the live rule matches to ~1–2×10⁻⁵.
+- Negligible for using the metric as an activity trace. **For threshold crossings,
+  use the live metric / `cue`:** offline has ~14% more above-threshold frames (all
+  near threshold), and at 0.7% of NF reward frames offline is just below threshold.
+
+## ⚠️ Blue/violet channel swaps (frame errors at acquisition)
+Occasionally the raw frame sequence has an extra or missing frame (two consecutive
+frames of the same wavelength), shifting the blue/violet alternation. After that
+point, "blue" is violet and vice versa, so `channel_0` and every metric built on it
+are wrong. **The live NF metric was swapped too** (the live and saved frame sequences
+are identical), so rewards in those stretches came from a swapped computation.
+
+**Sustained swaps (to the end of the part); exclude from any imaging analysis:**
+| Part | Swapped from corrected frame (±1) to end |
+|---|---|
+| `20260609_327FL_NF2_p1` | 5910 (frames before are clean) |
+| `20260618_331FN_NF9_p3` | ~116 |
+| `20260620_329FRR_NF11_p3` | ~55 |
+| `20251202_277FRL_spont_p2` | ~189 |
+
+**🚨 `277FRL spont p2` must never be used as part of a spontaneous baseline**,
+e.g. when comparing brain activity before vs. after NF training against the spont
+recording. Almost the entire part is swapped.
+
+**Brief events** (back in sync within ≤17 corrected frames) in 10 parts of cohorts
+3.5/4.0/4.1: exclude the event + 75 corrected frames after it (the disturbance
+echoes through the 32-frame ΔF/F baseline and hemo running mean). None affected a
+reward. **Cohort 3.4 has more events of both kinds that were NOT fully tracked**:
+check it before any 3.4 imaging analysis.
+
+Full list, method and numbers: `WideFlow_data_analysis/docs/results_channel_swap_check.md`.
 
 ## Documentation organization convention
 Where new project information goes:
