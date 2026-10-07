@@ -395,7 +395,7 @@ that it had the same ROI1-merged set is inferred from the ~2×10⁻⁵ match.
 - Effect on threshold calibration (30% replay on each NF1 part, thresholds averaged
   over the 3 parts): the chosen thresholds are ~0.07 z (~2%) too high (median; 281MRL
   ROI2 ~0.2 z, 277FRL ROI2 ~0.6 z on its larger scale). That's about half the
-  uncertainty of the 3-part average (~0.13 z), always in the same direction, so the
+  uncertainty of the 3-part average (~0.14 z), always in the same direction, so the
   live success rate at the chosen threshold is ~2 points lower than intended on average.
 
 ## ⚠️ Blue/violet channel swaps (frame errors at acquisition)
