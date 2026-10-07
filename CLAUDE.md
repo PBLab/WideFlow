@@ -111,6 +111,13 @@ don't assume.**
 - **NF rewards (`cue==1`) fall on the even (blue) raw frame**, the frame where the
   metric crossed threshold. **Control rewards fall on either parity**, since they're
   probabilistic, not metric-gated. Both map to corrected frame `r // 2`.
+  **Exception: 20 of 3011 NF rewards (0.7%, cohorts 3.5/4.0/4.1) fall on the odd
+  first raw frame of a trial**, when the metric was already above threshold as the
+  window opened (the crossing is on the straddling corrected frame, whose blue frame
+  is the previous trial's last delay frame). The reward fires immediately, so time to
+  reward is 0 for these trials, and under the blue-frame rule the reward's corrected
+  frame belongs to the previous trial. (Found 2026-10-07; list in
+  `WideFlow_data_analysis/tasks/todo.md`, brain-activity rasters.)
 - **The lick sensor varies at raw-frame resolution** (~2.5% of raw pairs differ),
   unlike the imaging data. A combined raster must either bin both at corrected
   resolution or label the lick trace as finer.
