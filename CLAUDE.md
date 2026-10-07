@@ -363,17 +363,40 @@ circular buffer, warmed up before real data; offline: zero-padded from session
 start).
 
 **`zsores_MH_diff10_exc_top15` vs. the true live metric (`metadata.txt`
-`metric_result`)** (checked 2026-10-06): in practice the only difference is the
-top-15% exclusion **count**. Live (`core/metrics/ROI_Diff.py`) excludes exactly
-`int(0.15·n)` ROIs; offline excludes everything ≥ the 85th percentile; n = ROIs left
-after neighbour removal. Neighbour lists and ROI sets are identical (live
-`closest_rois` = offline `closest_dict_NEW_ROI{1,2}.h5`).
-- When the two counts agree (e.g. n = 67), offline matches live to ~2×10⁻⁵. When they
-  differ by one ROI, which is most parts (368 of 385 NF parts in 3.5/4.0/4.1), the
-  match is ~1–3×10⁻². Recomputing offline with the live rule matches to ~1–2×10⁻⁵.
-- Negligible for using the metric as an activity trace. **For threshold crossings,
-  use the live metric / `cue`:** offline has ~14% more above-threshold frames (all
-  near threshold), and at 0.7% of NF reward frames offline is just below threshold.
+`metric_result`)** (checked 2026-10-06). Two differences, both fully accounting for
+the gap (recomputing with the live rule and the session's live `closest_rois`
+matches live to ~2×10⁻⁵ in all 12 NF mice of 3.5/4.0/4.1):
+1. **Top-15% exclusion count:** live (`core/metrics/ROI_Diff.py`) excludes exactly
+   `int(0.15·n)` ROIs; offline excludes everything ≥ the 85th percentile; n = ROIs
+   left after neighbour removal. They disagree by one ROI for most pool sizes.
+2. **Neighbour list:** live, the target's excluded neighbours (`closest_rois` in
+   `session_config.json`) were **chosen manually by Lena from the parcellation
+   image**. Offline, every ROI's neighbours come from `closest_dict_NEW_ROI{1,2}.h5`,
+   generated automatically by `Lena_scripts/create_closest_dict.py`: two ROIs count
+   as neighbours if more than one outline pixel of one sits exactly 1 apart (in
+   flattened pixel index) from the other's outline, i.e. side by side in the same
+   image row. ROIs touching mostly above/below or at a corner are missed. Known,
+   small mismatch, accepted (Lena's decision). It shows up in block 1 (NF1–NF6),
+   where 8 of 12 NF mice had 1–2 extra manual neighbours (258FL, 260FN, 261MR,
+   263MRL, 276FL, 281MRL, 322MR, 329FRR); block 2 and NF_control match (except 258FL
+   NF_control).
+
+The pool itself matches: in each block the live session used the same ROI set as the
+offline file for that block (ROI1 pair merged in block 1 = `_ROI1` file, ROI2 pair
+merged in block 2 = `_ROI2` file). For 3.5/4.0 block 1, the live dictionary file had
+a different name (`_NEW.h5` / `_NEW2.h5`, not reachable from the analysis machines);
+that it had the same ROI1-merged set is inferred from the ~2×10⁻⁵ match.
+
+- Typical size: ~1–3×10⁻² (z units); exact match (~2×10⁻⁵) only when both agree.
+  Negligible for the metric as an activity trace, but noticeable near threshold:
+  offline has ~14% more above-threshold frames, and at 0.7% of NF reward frames
+  offline is just below threshold. **Never mix live and offline values in one
+  comparison** (see `WideFlow_data_analysis/CLAUDE.md`).
+- Effect on threshold calibration (30% replay on each NF1 part, thresholds averaged
+  over the 3 parts): the chosen thresholds are ~0.07 z (~2%) too high (median; 281MRL
+  ROI2 ~0.2 z, 277FRL ROI2 ~0.6 z on its larger scale). That's about half the
+  uncertainty of the 3-part average (~0.14 z), always in the same direction, so the
+  live success rate at the chosen threshold is ~2 points lower than intended on average.
 
 ## ⚠️ Blue/violet channel swaps (frame errors at acquisition)
 Occasionally the raw frame sequence has an extra or missing frame (two consecutive
