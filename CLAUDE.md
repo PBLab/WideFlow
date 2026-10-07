@@ -27,6 +27,15 @@ Full architecture/hardware/config details: see `README.md` at repo root.
 - `untracked_files/` — scripts deliberately kept outside git tracking
 - `test_rsync1/` — looks like leftover rsync test output (duplicate images) — confirm before touching/removing
 
+## Live acquisition code: the rig is the source of truth
+The live acquisition/feedback code in this checkout (`wideflow/main.py`, `wideflow/core/`
+session classes, metrics, pipelines) is **not** what the rig runs; it's out of date on
+several points. The real live code lives only on the rig (account `wfield`,
+`~/PycharmProjects/WideFlow`, uncommitted). **Don't read the live code here to establish
+how a live value was computed.** Use what the session recorded instead
+(`session_config.json`, `metadata.txt`, recomputation checks against the live metric), and
+ask Lena if that isn't enough.
+
 ## Environment
 - **`WideFlow1`** (conda env, `~/.conda/envs/WideFlow1`) is the confirmed working environment — every
   top-level `wideflow` subpackage (`core`, `Imaging`, `devices`, `DeepLabCut`, `GUI`, `analysis`, `utils`,
