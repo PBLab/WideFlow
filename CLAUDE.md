@@ -371,6 +371,11 @@ deleted from the pool ("MH removal"):
   **empty** — the code that would populate them is commented out.
 - `zsores_MH_diff10_exc_top15_NEW4`: populated, but is an **exact duplicate** of
   `zsores_MH_diff10_exc_top15`.
+- The pool mean and SD behind `zsores_MH_diff10_exc_top15` are **not stored**. To rebuild
+  them exactly, mirror `calc_z_score_exclude_top15`: float32, 85th-percentile cutoff
+  computed one frame at a time. float64 or a vectorized percentile flips a ROI exactly on
+  the cutoff at single frames (6 of 343 NF parts, up to 0.055 z). Implementation:
+  `WideFlow_data_analysis/dev/activity_signals.py`.
 
 **`zsores_MH_diff10_exc_top15` vs. the replayed `metric_results`**: same core formula, but
 differs in (1) MH/neighbor exclusion (off in `metric_results`, on here), (2)
